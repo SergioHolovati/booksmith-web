@@ -1,0 +1,35 @@
+<div class="flex justify-content-between align-items-center mb-5">
+  <div>
+    <h1 class="m-0">My Books</h1>
+
+    <p class="text-500 mt-2">
+      Manage your books
+    </p>
+  </div>
+
+  <p-button
+    label="Create Book"
+    icon="pi pi-plus"
+    (onClick)="goToCreateBook()">
+  </p-button>
+</div>
+
+<p-card>
+  <div class="text-center p-6">
+    <i
+      class="pi pi-book text-5xl text-400 mb-4">
+    </i>
+
+    <h2>No books yet</h2>
+
+    <p class="text-500">
+      Start writing your first book
+    </p>
+
+    <p-button
+      label="Create First Book"
+      icon="pi pi-plus"
+      (onClick)="goToCreateBook()">
+    </p-button>
+  </div>
+</p-card>
