@@ -39,7 +39,7 @@ HttpInterceptorFn = (
       ? req.clone({
           setHeaders: {
             Authorization:
-              `Bearer ${token}`
+              `${token}`
           }
         })
       : req;
@@ -83,7 +83,7 @@ HttpInterceptorFn = (
                 req.clone({
                   setHeaders: {
                     Authorization:
-                      `Bearer ${response.token}`
+                      `${response.token}`
                   }
                 });
 

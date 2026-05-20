@@ -1,0 +1,69 @@
+.sidebar-container {
+  height: 100%;
+
+  padding: 1.5rem;
+
+  /* BLACK FORGE BASE */
+  background: #0b0b0b;
+
+  border-right: 1px solid rgba(255,255,255,.06);
+
+  backdrop-filter: blur(20px);
+
+  display: flex;
+  flex-direction: column;
+}
+
+/* BRAND */
+.brand-area h2 {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.brand-area small {
+  color: #ea9846;
+}
+
+/* =========================
+   PRIME MENU RESET
+   ========================= */
+
+:host ::ng-deep .p-menu {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+/* ITEM BASE */
+:host ::ng-deep .p-menu .p-menuitem-link {
+  background: transparent;
+  color: #ea9846;
+
+  border-radius: 12px;
+
+  margin: 4px 0;
+  padding: 10px 12px;
+
+  transition: all .2s ease;
+}
+
+/* ICON DEFAULT (FORGE ORANGE SOFT) */
+:host ::ng-deep .p-menu .p-menuitem-icon {
+  color: #d6a06a; /* soft forge orange */
+}
+
+/* HOVER STATE */
+:host ::ng-deep .p-menu .p-menuitem-link:hover {
+  background: rgba(214, 160, 106, 0.18) !important;
+  color: #ffe0c2 !important;
+}
+
+/* ACTIVE ITEM */
+:host ::ng-deep .p-menu .p-menuitem-link.p-menuitem-link-active {
+  background: rgba(214, 160, 106, 0.16);
+  color: #ea9846;
+  font-weight: 500;
+
+  border-left: 3px solid #ea9846;
+  padding-left: 9px;
+}

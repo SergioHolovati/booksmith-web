@@ -3,6 +3,10 @@ import {
 } from '@angular/core';
 
 import {
+  CommonModule
+} from '@angular/common';
+
+import {
   FormBuilder,
   FormGroup,
   ReactiveFormsModule,
@@ -13,102 +17,124 @@ import {
   RouterLink
 } from '@angular/router';
 
-import { CommonModule }
-from '@angular/common';
+import {
+  InputTextModule
+} from 'primeng/inputtext';
 
-import { CardModule }
-from 'primeng/card';
+import {
+  ButtonModule
+} from 'primeng/button';
 
-import { InputTextModule }
-from 'primeng/inputtext';
+import {
+  CardModule
+} from 'primeng/card';
 
-import { ButtonModule }
-from 'primeng/button';
+import {
+  FloatLabelModule
+} from 'primeng/floatlabel';
 
 @Component({
   selector:
     'app-forgot-password',
 
-  standalone: true,
+  standalone:
+    true,
 
   imports: [
     CommonModule,
     ReactiveFormsModule,
     RouterLink,
-    CardModule,
     InputTextModule,
-    ButtonModule
+    ButtonModule,
+    CardModule,
+    FloatLabelModule
   ],
 
   templateUrl:
-    './forgot-password.html'
+    './forgot-password.html',
+
+  styleUrl:
+    './forgot-password.scss'
 })
 export class
 ForgotPasswordComponent {
 
-  form!: FormGroup;
+  forgotForm:
+    FormGroup;
 
-  loading = false;
+  loading =
+    false;
 
-  success = false;
+  successMessage =
+    '';
 
   constructor(
     private fb:
       FormBuilder
   ) {
 
-    this.form =
+    this.forgotForm =
       this.fb.group({
-
-      email: [
-        '',
-        [
-          Validators.required,
-          Validators.email
+        email: [
+          '',
+          [
+            Validators.required,
+            Validators.email
+          ]
         ]
-      ]
-    });
+      });
   }
 
-  sendResetLink():
-  void {
+  async submit():
+  Promise<void> {
 
     if (
-      this.form.invalid
+      this.forgotForm.invalid
     ) {
-      this.form
+
+      this.forgotForm
         .markAllAsTouched();
 
       return;
     }
 
-    this.loading = true;
+    this.loading =
+      true;
 
-    const payload =
-      this.form.value;
+    try {
 
-    console.log(
-      'FORGOT PASSWORD',
-      payload
-    );
+      const email =
+        this
+          .forgotForm
+          .value
+          .email;
 
-    /**
-     * TODO
-     *
-     * this.authService
-     * .forgotPassword(payload)
-     */
+      console.log(
+        'send forgot password',
+        email
+      );
 
-    setTimeout(() => {
+      // TODO:
+      // call backend
+
+      this.successMessage =
+        'If an account exists for this email, we sent a reset link.';
+
+    } catch (e) {
+
+      console.error(e);
+
+    } finally {
+
       this.loading =
         false;
-
-      this.success =
-        true;
-    }, 1000);
+    }
   }
 
-  get controls() {
-    return this.form.controls;
+  get form() {
+
+    return this
+      .forgotForm
+      .controls;
   }
 }

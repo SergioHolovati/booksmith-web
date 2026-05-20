@@ -20,7 +20,9 @@ import { AuthService } from '../../../core/services/auth-service';
     PasswordModule,
     RouterLink
   ],
-  templateUrl: './login.html'
+  templateUrl: './login.html',
+    styleUrl:
+    './login.scss'
 })
 export class LoginComponent {
   email = '';

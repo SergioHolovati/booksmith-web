@@ -1,49 +1,127 @@
-<div
-  class="flex justify-content-center align-items-center min-h-screen"
->
-  <p-card styleClass="w-30rem">
+<div class="auth-page">
+
+  <div class="forge-glow"></div>
+
+  <p-card styleClass="auth-card">
 
     <div class="text-center mb-5">
-      <h1>Booksmith AI</h1>
 
-      <p class="text-500">
-        Sign in to continue
+      <div class="brand-icon">
+        ⚒
+      </div>
+
+      <h1 class="brand-title">
+        Booksmith AI
+      </h1>
+
+      <p class="brand-subtitle">
+        Forge stories powered by AI
       </p>
+
     </div>
 
-    <form (ngSubmit)="loginWithForm()" class="p-fluid">
+    <form
+      (ngSubmit)="loginWithForm()"
+      class="p-fluid"
+    >
+
+      <!-- Email -->
+
       <div class="field">
-        <label for="email">Email</label>
-        <input id="email" name="email" type="email" pInputText required [(ngModel)]="email" />
+
+        <label for="email">
+          Email
+        </label>
+
+        <input
+          id="email"
+          name="email"
+          type="email"
+          pInputText
+          required
+          [(ngModel)]="email"
+        />
+
       </div>
+
+      <!-- Password -->
 
       <div class="field mt-3">
-        <label for="password">Password</label>
-        <input id="password" name="password" type="password" pPassword required [(ngModel)]="password" />
+
+        <label for="password">
+          Password
+        </label>
+
+        <input
+          id="password"
+          name="password"
+          type="password"
+          pInputText
+          required
+          [(ngModel)]="password"
+        />
+
       </div>
 
-      <div class="mt-4">
-        <p-button label="Sign in" type="submit" styleClass="w-full"></p-button>
+      <!-- Forgot -->
+
+      <div class="forgot-container">
+
+        <a
+          routerLink="/forgot-password"
+        >
+          Forgot password?
+        </a>
+
       </div>
+
+      <!-- Login -->
+
+      <div class="mt-4 login-container">
+
+        <p-button
+          label="Sign in"
+          type="submit"
+          styleClass="w-full auth-btn"
+        />
+
+      </div>
+
     </form>
-    <div class="text-right mb-4">
 
-      <a
-        routerLink="/forgot-password"
-        class="no-underline"
-      >
-        Forgot password?
-      </a>
+    <!-- Divider -->
+
+    <div class="divider">
+
+      <span>
+        OR
+      </span>
 
     </div>
-    <div class="text-center my-3">or</div>
 
+    <!-- Google -->
+    <div class="google-login-container">
     <p-button
       label="Continue with Google"
       icon="pi pi-google"
-      styleClass="w-full"
-      (onClick)="loginWithGoogle()">
-    </p-button>
+      styleClass="w-full google-btn"
+      (onClick)="loginWithGoogle()"
+    />
+  </div>
+    <!-- Register -->
+
+    <div class="register-link">
+
+      <span>
+        New here?
+      </span>
+
+      <a routerLink="/register">
+        Create account
+      </a>
+
+    </div>
 
   </p-card>
+
 </div>

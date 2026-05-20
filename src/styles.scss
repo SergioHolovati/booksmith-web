@@ -1,1 +1,123 @@
-/* You can add global styles to this file, and also import other style files */
+/* app theme */
+@import "primeicons/primeicons.css";
+
+:root {
+
+  --p-primary-50: #fff6ed;
+  --p-primary-100: #ffead5;
+  --p-primary-200: #ffd0aa;
+  --p-primary-300: #ffb26f;
+  --p-primary-400: #ff9442;
+  --p-primary-500: #ff7a1a;
+  --p-primary-600: #e7650d;
+  --p-primary-700: #c4510a;
+  --p-primary-800: #9f430f;
+  --p-primary-900: #813910;
+
+  --p-primary-color:
+    var(--p-primary-500);
+
+  --p-primary-hover-color:
+    var(--p-primary-400);
+
+  --p-highlight-background:
+    rgba(255, 122, 26, 0.15);
+
+  --p-highlight-color:
+    #ffb26f;
+}
+
+/* body */
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: #090909;
+  font-family:
+    Inter,
+    sans-serif;
+}
+
+/* buttons */
+
+.p-button {
+  border-radius: 14px !important;
+  transition: all .2s ease;
+}
+
+.p-button:hover {
+  transform:
+    translateY(-1px);
+}
+
+/* primary */
+
+.p-button-primary {
+  background:
+    linear-gradient(
+      180deg,
+      #ff9442,
+      #ff7a1a
+    ) !important;
+
+  border:
+    none !important;
+
+  box-shadow:
+    0 4px 18px
+    rgba(255,122,26,.25);
+}
+
+.p-button-primary:hover {
+  background:
+    linear-gradient(
+      180deg,
+      #ff9f57,
+      #ff8429
+    ) !important;
+}
+
+/* Login button */
+
+.login-container .p-button {
+
+}
+/* google */
+
+.google-btn .p-button {
+  background:
+    rgba(255,255,255,0.04) !important;
+
+  border:
+    1px solid
+    rgba(255,255,255,.08)
+    !important;
+
+  color:
+    white !important;
+}
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: #090909;
+
+  font-family:
+    'Inter',
+    sans-serif;
+
+  -webkit-font-smoothing:
+    antialiased;
+
+  -moz-osx-font-smoothing:
+    grayscale;
+
+  text-rendering:
+    optimizeLegibility;
+}
+
+* {
+  box-sizing:
+    border-box;
+}

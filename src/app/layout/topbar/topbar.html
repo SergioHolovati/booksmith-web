@@ -1,6 +1,5 @@
-<div
-  class="surface-card border-bottom-1 border-200 px-4 py-3 flex justify-content-between align-items-center"
->
+<div class="topbar-container">
+
   <div>
 
     <h3 class="m-0">
@@ -8,21 +7,19 @@
       {{ userName }}
     </h3>
 
-    <small class="text-500">
+    <small class="subtitle">
       Ready to write today?
     </small>
 
   </div>
 
-  <div
-    class="flex align-items-center gap-3"
-  >
+  <div class="avatar-area">
 
     <p-avatar
       [image]="avatarUrl"
       shape="circle"
       size="large"
-      styleClass="cursor-pointer"
+      styleClass="avatar-button"
       (click)="toggleMenu($event)"
     />
 
@@ -30,7 +27,9 @@
       #menu
       [model]="menuItems"
       [popup]="true"
+      appendTo="body"
     />
 
   </div>
+
 </div>

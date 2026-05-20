@@ -12,6 +12,7 @@ import { TopbarComponent } from '../topbar/topbar';
     SidebarComponent,
     TopbarComponent
   ],
-  templateUrl: './shell.html'
+  templateUrl: './shell.html',
+  styleUrl: './shell.scss'
 })
 export class ShellComponent {}

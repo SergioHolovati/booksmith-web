@@ -1,167 +1,297 @@
-<div
-  class="flex justify-content-center align-items-center min-h-screen p-4"
->
-  <p-card
-    styleClass="w-full md:w-30rem"
-  >
+<div class="register-page">
 
-    <div class="text-center mb-5">
+  <div class="register-container">
 
-      <h1 class="mb-2">
-        Create account
-      </h1>
+    <p-card styleClass="register-card">
 
-      <p class="text-500 m-0">
-        Start writing with Booksmith AI
-      </p>
+      <div class="text-center mb-5">
 
-    </div>
+        <h1 class="brand-title mb-2">
+          Create account
+        </h1>
 
-    <form
-      [formGroup]="registerForm"
-      (ngSubmit)="register()"
-      class="flex flex-column gap-4"
-    >
+        <p class="brand-subtitle m-0">
+          Start writing with Booksmith AI
+        </p>
 
-      <div>
-        <label class="block mb-2">
-          First Name
-        </label>
-
-        <input
-          pInputText
-          formControlName="firstName"
-          class="w-full"
-        />
-
-        @if (
-          form['firstName'].invalid &&
-          form['firstName'].touched
-        ) {
-          <small class="text-red-500">
-            First name is required
-          </small>
-        }
       </div>
 
-      <div>
-        <label class="block mb-2">
-          Last Name
-        </label>
-
-        <input
-          pInputText
-          formControlName="lastName"
-          class="w-full"
-        />
-      </div>
-
-      <div>
-        <label class="block mb-2">
-          Username
-        </label>
-
-        <input
-          pInputText
-          formControlName="username"
-          class="w-full"
-        />
-      </div>
-
-      <div>
-        <label class="block mb-2">
-          CPF / Document
-        </label>
-
-        <input
-          pInputText
-          formControlName="document"
-          class="w-full"
-        />
-      </div>
-
-      <div>
-        <label class="block mb-2">
-          Email
-        </label>
-
-        <input
-          pInputText
-          formControlName="email"
-          class="w-full"
-          type="email"
-        />
-      </div>
-
-      <div>
-        <label class="block mb-2">
-          Password
-        </label>
-
-        <p-password
-          formControlName="password"
-          styleClass="w-full"
-          inputStyleClass="w-full"
-          [feedback]="true"
-          [toggleMask]="true"
-        />
-      </div>
-      <div>
-  <label class="block mb-2">
-    Confirm Password
-  </label>
-
-  <p-password
-    formControlName="confirmPassword"
-    styleClass="w-full"
-    inputStyleClass="w-full"
-    [feedback]="false"
-    [toggleMask]="true"
-  />
-
-  @if (passwordsDoNotMatch) {
-    <small class="text-red-500">
-      Passwords do not match
-    </small>
-  }
-</div>
-
-      <div>
-        <label class="block mb-2">
-          Phone
-        </label>
-
-        <input
-          pInputText
-          formControlName="phone"
-          class="w-full"
-        />
-      </div>
-
-      <p-button
-        type="submit"
-        label="Create Account"
-        icon="pi pi-user-plus"
-        styleClass="w-full"
-        [loading]="loading"
-      />
-
-    </form>
-
-    <div class="text-center mt-4">
-
-      <span class="text-500">
-        Already have an account?
-      </span>
-
-      <a
-        routerLink="/login"
-        class="ml-2 no-underline"
+      <form
+        [formGroup]="registerForm"
+        (ngSubmit)="register()"
+        class="register-form"
       >
-        Sign in
-      </a>
 
-    </div>
+        <!-- First Name -->
 
-  </p-card>
+        <div class="field">
+
+          <p-floatlabel variant="in">
+
+            <input
+              pInputText
+              inputId="firstName"
+              formControlName="firstName"
+              class="w-full"
+            />
+
+            <label for="firstName">
+              First Name
+            </label>
+
+          </p-floatlabel>
+
+          @if (
+            form['firstName'].invalid &&
+            form['firstName'].touched
+          ) {
+
+            <small class="error-text">
+              First name is required
+            </small>
+
+          }
+
+        </div>
+
+        <!-- Last Name -->
+
+        <div class="field">
+
+          <p-floatlabel variant="in">
+
+            <input
+              pInputText
+              inputId="lastName"
+              formControlName="lastName"
+              class="w-full"
+            />
+
+            <label for="lastName">
+              Last Name
+            </label>
+
+          </p-floatlabel>
+
+        </div>
+
+        <!-- Username -->
+
+        <div class="field">
+
+          <p-floatlabel variant="in">
+
+            <input
+              pInputText
+              inputId="username"
+              formControlName="username"
+              class="w-full"
+            />
+
+            <label for="username">
+              Username
+            </label>
+
+          </p-floatlabel>
+
+        </div>
+
+        <!-- Document -->
+
+        <div class="field">
+
+          <p-floatlabel variant="in">
+
+            <input
+              pInputText
+              inputId="document"
+              formControlName="document"
+              class="w-full"
+            />
+
+            <label for="document">
+              CPF / Document
+            </label>
+
+          </p-floatlabel>
+
+        </div>
+
+        <!-- Email -->
+
+        <div class="field">
+
+          <p-floatlabel variant="in">
+
+            <input
+              pInputText
+              type="email"
+              inputId="email"
+              formControlName="email"
+              class="w-full"
+            />
+
+            <label for="email">
+              Email
+            </label>
+
+          </p-floatlabel>
+
+        </div>
+
+        <!-- Password -->
+
+        <div class="field">
+
+          <p-floatlabel variant="in">
+
+            <p-password
+              inputId="password"
+              formControlName="password"
+              styleClass="w-full"
+              inputStyleClass="w-full"
+              [feedback]="true"
+              [toggleMask]="true"
+              promptLabel="Choose a secure password"
+              weakLabel="Weak"
+              mediumLabel="Good"
+              strongLabel="Strong"
+            />
+
+            <label for="password">
+              Password
+            </label>
+
+          </p-floatlabel>
+
+          <div class="password-helper">
+
+            <small>
+              Your password must contain:
+            </small>
+
+            <ul>
+
+              <li
+                [class.valid]="hasMinLength"
+              >
+                Minimum 8 characters
+              </li>
+
+              <li
+                [class.valid]="hasUppercase"
+              >
+                One uppercase letter
+              </li>
+
+              <li
+                [class.valid]="hasLowercase"
+              >
+                One lowercase letter
+              </li>
+
+              <li
+                [class.valid]="hasNumber"
+              >
+                One number
+              </li>
+
+              <li
+                [class.valid]="hasSpecialChar"
+              >
+                One special character
+            </li>
+
+            </ul>
+
+          </div>
+
+        </div>
+
+        <!-- Confirm Password -->
+
+        <div class="field">
+
+          <p-floatlabel variant="in">
+
+            <p-password
+              inputId="confirmPassword"
+              formControlName="confirmPassword"
+              styleClass="w-full"
+              inputStyleClass="w-full"
+              [feedback]="false"
+              [toggleMask]="true"
+            />
+
+            <label for="confirmPassword">
+              Confirm Password
+            </label>
+
+          </p-floatlabel>
+
+          @if (passwordsDoNotMatch) {
+
+            <small class="error-text">
+              Passwords do not match
+            </small>
+
+          }
+
+        </div>
+
+        <!-- Phone -->
+
+        <div class="field">
+
+          <p-floatlabel variant="in">
+
+            <input
+              pInputText
+              inputId="phone"
+              formControlName="phone"
+              class="w-full"
+            />
+
+            <label for="phone">
+              Phone
+            </label>
+
+          </p-floatlabel>
+
+        </div>
+
+        <!-- Submit -->
+
+        <div class="button-wrapper">
+
+          <p-button
+            type="submit"
+            label="Create Account"
+            icon="pi pi-user-plus"
+            [loading]="loading"
+          />
+
+        </div>
+
+      </form>
+
+      <div class="text-center mt-4">
+
+        <span class="text-500">
+          Already have an account?
+        </span>
+
+        <a
+          routerLink="/login"
+          class="login-link ml-2"
+        >
+          Sign in
+        </a>
+
+      </div>
+
+    </p-card>
+
+  </div>
+
 </div>

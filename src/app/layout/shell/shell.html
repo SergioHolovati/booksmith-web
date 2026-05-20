@@ -1,11 +1,32 @@
-<div class="flex">
-  <app-sidebar />
+<div class="app-layout">
 
-  <div class="flex-1 h-screen overflow-auto">
-    <app-topbar />
+  <!-- Sidebar -->
+  <aside class="sidebar">
 
-    <main class="p-4">
-      <router-outlet />
-    </main>
-  </div>
+    <app-sidebar>
+    </app-sidebar>
+
+  </aside>
+
+  <!-- Main -->
+  <main class="main-layout">
+
+    <!-- Topbar -->
+    <header class="topbar">
+
+      <app-topbar>
+      </app-topbar>
+
+    </header>
+
+    <!-- Content -->
+    <section class="content">
+
+      <router-outlet>
+      </router-outlet>
+
+    </section>
+
+  </main>
+
 </div>

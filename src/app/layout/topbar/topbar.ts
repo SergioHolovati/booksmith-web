@@ -34,7 +34,8 @@ from '../../core/services/auth-service';
     AvatarModule,
     MenuModule
   ],
-  templateUrl: './topbar.html'
+  templateUrl: './topbar.html',
+  styleUrl: './topbar.scss'
 })
 export class TopbarComponent
 implements OnInit {

@@ -1,0 +1,36 @@
+.topbar-container {
+  height: 100%;
+
+  padding: 1rem 2rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  background:
+    rgba(255,255,255,.04);
+
+  border-bottom:
+    1px solid rgba(255,255,255,.08);
+
+  backdrop-filter:
+    blur(18px);
+}
+
+.subtitle {
+  color: #ea9846;
+}
+
+.avatar-area {
+  display: flex;
+  align-items: center;
+}
+
+.avatar-button {
+  cursor: pointer;
+  transition: transform .2s ease;
+}
+
+.avatar-button:hover {
+  transform: scale(1.05);
+}

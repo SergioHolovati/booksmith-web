@@ -6,6 +6,10 @@ import { Injectable } from '@angular/core';
 export class StorageService {
 
   setAccessToken(token: string): void {
+    if (!token) {
+      return;
+    }
+
     localStorage.setItem('access_token', token);
   }
 

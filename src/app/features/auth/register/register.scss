@@ -1,0 +1,119 @@
+.register-page {
+  min-height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 2rem;
+
+  background:
+    radial-gradient(
+      circle at top,
+      rgba(184,115,51,.12),
+      transparent 40%
+    ),
+    #090909;
+}
+
+.register-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.register-card {
+  width: 100%;
+  max-width: 480px;
+
+  background:
+    rgba(255,255,255,.04) !important;
+
+  border:
+    1px solid rgba(255,255,255,.08);
+
+  backdrop-filter:
+    blur(18px);
+
+  border-radius:
+    28px !important;
+
+  box-shadow:
+    0 10px 40px
+    rgba(0,0,0,.45);
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+label {
+  font-size: .95rem;
+  font-weight: 500;
+  color: #e8e8e8;
+}
+
+.brand-title {
+  color: white;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.brand-subtitle {
+  color: #a0a0a0;
+  font-weight: 300;
+}
+
+.error-text {
+  color: #ef4444;
+  font-size: .85rem;
+}
+
+.button-wrapper {
+  width: 100%;
+  margin-bottom: 2%;
+}
+
+.button-wrapper p-button {
+  width: 100%;
+  display: block;
+}
+
+.button-wrapper .p-button {
+  width: 100% !important;
+  justify-content: center;
+}
+
+.login-link {
+  color: #b87333;
+  text-decoration: none;
+  transition: opacity .2s ease;
+}
+
+.login-link:hover {
+  opacity: .8;
+}
+
+:host ::ng-deep .p-password,
+:host ::ng-deep .p-password input,
+:host ::ng-deep .p-inputtext {
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .register-page {
+    padding: 1rem;
+  }
+
+  .register-card {
+    max-width: 100%;
+  }
+}

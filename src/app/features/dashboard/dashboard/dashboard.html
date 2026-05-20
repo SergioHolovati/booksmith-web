@@ -1,36 +1,110 @@
-<div class="mb-5">
-  <h1 class="m-0">Dashboard</h1>
+<div class="dashboard-page">
 
-  <p class="text-500 mt-2">
-    Welcome back to Booksmith AI
-  </p>
-</div>
+  <!-- HEADER -->
+  <div class="mb-5">
 
-<div class="grid">
-  <div class="col-12 md:col-4">
+    <h1 class="dashboard-title m-0">
+      Dashboard
+    </h1>
+
+    <p class="text-500 mt-2">
+      Welcome back to Booksmith AI
+    </p>
+
+  </div>
+  <div class="mt-4">
+
     <p-card>
-      <h2 class="m-0">0</h2>
-      <p class="text-500">
-        Total Books
-      </p>
+
+      <p-table [value]="kpiTable" responsiveLayout="scroll">
+
+        <ng-template pTemplate="header">
+
+          <tr>
+            <th>Metric</th>
+            <th>Value</th>
+            <th>Status</th>
+          </tr>
+
+        </ng-template>
+
+        <ng-template pTemplate="body" let-row>
+
+          <tr>
+
+            <td>
+              {{ row.label }}
+            </td>
+
+            <td>
+              <b>{{ row.value }}</b>
+            </td>
+
+            <td>
+
+              <span class="status" [ngClass]="row.type">
+                {{ row.type }}
+              </span>
+
+            </td>
+
+          </tr>
+
+        </ng-template>
+
+      </p-table>
+
     </p-card>
+
   </div>
 
-  <div class="col-12 md:col-4">
-    <p-card>
-      <h2 class="m-0">0</h2>
-      <p class="text-500">
-        Drafts
-      </p>
-    </p-card>
+  <!-- TABLE + CHART -->
+  <div class="grid mt-5">
+
+    <!-- TABLE -->
+    <div class="col-12 md:col-6">
+
+      <p-card header="Books Overview">
+
+        <p-table [value]="books">
+
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Title</th>
+              <th>Status</th>
+              <th>Updated</th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-book>
+            <tr>
+              <td>{{ book.title }}</td>
+              <td>
+                <span class="status" [ngClass]="book.published ? 'published' : 'draft'">
+                  {{ book.published ? 'Published' : 'Draft' }}
+                </span>
+              </td>
+              <td>{{ book.updatedAt | date }}</td>
+            </tr>
+          </ng-template>
+
+        </p-table>
+
+      </p-card>
+
+    </div>
+
+    <!-- CHART -->
+    <div class="col-12 md:col-6">
+
+      <p-card header="Sales (Last 12 months)">
+
+        <p-chart type="line" [data]="salesData"></p-chart>
+
+      </p-card>
+
+    </div>
+
   </div>
 
-  <div class="col-12 md:col-4">
-    <p-card>
-      <h2 class="m-0">0</h2>
-      <p class="text-500">
-        Published
-      </p>
-    </p-card>
-  </div>
 </div>

@@ -48,11 +48,11 @@ export class AuthService {
   saveToken(
     token: string
   ): void {
+    if (!token) {
+      return;
+    }
 
-    localStorage.setItem(
-      'access_token',
-      token
-    );
+    localStorage.setItem('access_token', token);
   }
 
   getAccessToken():
@@ -142,7 +142,7 @@ export class AuthService {
     const headers =
       new HttpHeaders({
         Authorization:
-          `Bearer ${token}`
+          `${token}`
       });
 
     return this.http.post<{

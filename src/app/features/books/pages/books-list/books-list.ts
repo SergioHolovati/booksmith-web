@@ -1,125 +1,106 @@
-import {
-  Component,
-  OnInit
-} from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 
-import {
-  CommonModule
-} from '@angular/common';
+import { CardModule } from 'primeng/card';
+import { ButtonModule } from 'primeng/button';
+import { TagModule } from 'primeng/tag';
 
-import {
-  Router
-} from '@angular/router';
-
-import {
-  firstValueFrom
-} from 'rxjs';
-
-import {
-  CardModule
-} from 'primeng/card';
-
-import {
-  ButtonModule
-} from 'primeng/button';
-
-import {
-  TagModule
-} from 'primeng/tag';
-
-import {
-  ProgressSpinnerModule
-} from 'primeng/progressspinner';
-
-import {
-  BooksService
-} from '../../../../core/services/book-service';
-import { BookResponse } from '../../../../core/models/response/book-response';
+import { BookService } from '../../services/book-service';
+import { BookResponse } from '../../models/book-response';
+import { ProgressSpinner } from "primeng/progressspinner";
 
 @Component({
-  selector:
-    'app-books-list',
-
-  standalone:
-    true,
-
+  selector: 'app-books-list',
+  standalone: true,
   imports: [
     CommonModule,
     CardModule,
     ButtonModule,
     TagModule,
-    ProgressSpinnerModule
-  ],
-
-  templateUrl:
-    './books-list.html'
+    ProgressSpinner
+],
+  templateUrl: './books-list.html',
+  styleUrl: './books-list.scss'
 })
-export class
-BooksListComponent
-implements OnInit {
+export class BooksListComponent implements OnInit {
 
-  books:
-    BookResponse[] =
-    [];
+  books: BookResponse[] = [];
 
-  loading =
-    true;
+  page = 0;
+  size = 8;
+
+  totalPages = 0;
+  totalElements = 0;
+
+  loading = false;
 
   constructor(
-    private booksService:
-      BooksService,
-
-    private router:
-      Router
+    private router: Router,
+    private bookService: BookService,
+    private cdr: ChangeDetectorRef
   ) {}
 
-  async ngOnInit():
-  Promise<void> {
-
-    await this.loadBooks();
+  ngOnInit(): void {
+    this.loadBooks();
   }
 
-  async loadBooks():
-  Promise<void> {
+  async loadBooks(): Promise<void> {
 
-    try {
+  this.loading = true;
 
-      this.books =
-        await firstValueFrom(
+  try {
 
-          this.booksService
-            .getMyBooks()
-        );
+    const response = await this.bookService.getBooks(this.page, this.size);
 
-    } catch (e) {
+    this.books = [...response.content];
+    this.totalPages = response?.totalPages ?? 0;
+    this.totalElements = response?.totalElements ?? 0;
 
-      console.error(
-        'Error loading books',
-        e
-      );
+  } catch (error) {
 
-    } finally {
+    console.error('Error loading books', error);
 
-      this.loading =
-        false;
+    this.books = [];
+    this.totalPages = 0;
+    this.totalElements = 0;
+
+  } finally {
+    this.loading = false;
+    this.cdr.markForCheck();
+  }
+}
+
+  goToPage(page: number): void {
+    if (page < 0 || page >= this.totalPages) return;
+
+    this.page = page;
+    this.loadBooks();
+  }
+
+  nextPage(): void {
+    if (this.page < this.totalPages - 1) {
+      this.page++;
+      this.loadBooks();
     }
   }
 
-  createBook():
-  void {
-
-    this.router.navigate([
-      '/books/create'
-    ]);
+  prevPage(): void {
+    if (this.page > 0) {
+      this.page--;
+      this.loadBooks();
+    }
   }
 
-  editBook(
-    id: string
-  ): void {
+  createBook(): void {
+    this.router.navigate(['/books/create']);
+  }
 
-    this.router.navigate([
-      '/books/edit',
-      id
-    ]);
+  editBook(bookId: string): void {
+    this.router.navigate(['/books/edit', bookId]);
+  }
+
+  get pages(): number[] {
+    return Array.from({ length: this.totalPages }, (_, i) => i);
   }
 }

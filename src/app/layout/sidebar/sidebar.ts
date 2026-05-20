@@ -7,7 +7,8 @@ import { MenuModule } from 'primeng/menu';
   selector: 'app-sidebar',
   standalone: true,
   imports: [MenuModule, RouterModule],
-  templateUrl: './sidebar.html'
+  templateUrl: './sidebar.html',
+  styleUrl: './sidebar.scss'
 })
 export class SidebarComponent {
   items: MenuItem[] = [
