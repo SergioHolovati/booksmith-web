@@ -11,6 +11,33 @@
       </p>
     </div>
 
+    <form (ngSubmit)="loginWithForm()" class="p-fluid">
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" pInputText required [(ngModel)]="email" />
+      </div>
+
+      <div class="field mt-3">
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" pPassword required [(ngModel)]="password" />
+      </div>
+
+      <div class="mt-4">
+        <p-button label="Sign in" type="submit" styleClass="w-full"></p-button>
+      </div>
+    </form>
+    <div class="text-right mb-4">
+
+      <a
+        routerLink="/forgot-password"
+        class="no-underline"
+      >
+        Forgot password?
+      </a>
+
+    </div>
+    <div class="text-center my-3">or</div>
+
     <p-button
       label="Continue with Google"
       icon="pi pi-google"

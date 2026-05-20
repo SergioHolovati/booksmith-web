@@ -1,0 +1,167 @@
+<div
+  class="flex justify-content-center align-items-center min-h-screen p-4"
+>
+  <p-card
+    styleClass="w-full md:w-30rem"
+  >
+
+    <div class="text-center mb-5">
+
+      <h1 class="mb-2">
+        Create account
+      </h1>
+
+      <p class="text-500 m-0">
+        Start writing with Booksmith AI
+      </p>
+
+    </div>
+
+    <form
+      [formGroup]="registerForm"
+      (ngSubmit)="register()"
+      class="flex flex-column gap-4"
+    >
+
+      <div>
+        <label class="block mb-2">
+          First Name
+        </label>
+
+        <input
+          pInputText
+          formControlName="firstName"
+          class="w-full"
+        />
+
+        @if (
+          form['firstName'].invalid &&
+          form['firstName'].touched
+        ) {
+          <small class="text-red-500">
+            First name is required
+          </small>
+        }
+      </div>
+
+      <div>
+        <label class="block mb-2">
+          Last Name
+        </label>
+
+        <input
+          pInputText
+          formControlName="lastName"
+          class="w-full"
+        />
+      </div>
+
+      <div>
+        <label class="block mb-2">
+          Username
+        </label>
+
+        <input
+          pInputText
+          formControlName="username"
+          class="w-full"
+        />
+      </div>
+
+      <div>
+        <label class="block mb-2">
+          CPF / Document
+        </label>
+
+        <input
+          pInputText
+          formControlName="document"
+          class="w-full"
+        />
+      </div>
+
+      <div>
+        <label class="block mb-2">
+          Email
+        </label>
+
+        <input
+          pInputText
+          formControlName="email"
+          class="w-full"
+          type="email"
+        />
+      </div>
+
+      <div>
+        <label class="block mb-2">
+          Password
+        </label>
+
+        <p-password
+          formControlName="password"
+          styleClass="w-full"
+          inputStyleClass="w-full"
+          [feedback]="true"
+          [toggleMask]="true"
+        />
+      </div>
+      <div>
+  <label class="block mb-2">
+    Confirm Password
+  </label>
+
+  <p-password
+    formControlName="confirmPassword"
+    styleClass="w-full"
+    inputStyleClass="w-full"
+    [feedback]="false"
+    [toggleMask]="true"
+  />
+
+  @if (passwordsDoNotMatch) {
+    <small class="text-red-500">
+      Passwords do not match
+    </small>
+  }
+</div>
+
+      <div>
+        <label class="block mb-2">
+          Phone
+        </label>
+
+        <input
+          pInputText
+          formControlName="phone"
+          class="w-full"
+        />
+      </div>
+
+      <p-button
+        type="submit"
+        label="Create Account"
+        icon="pi pi-user-plus"
+        styleClass="w-full"
+        [loading]="loading"
+      />
+
+    </form>
+
+    <div class="text-center mt-4">
+
+      <span class="text-500">
+        Already have an account?
+      </span>
+
+      <a
+        routerLink="/login"
+        class="ml-2 no-underline"
+      >
+        Sign in
+      </a>
+
+    </div>
+
+  </p-card>
+</div>

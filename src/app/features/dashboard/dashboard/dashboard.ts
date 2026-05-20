@@ -16,7 +16,7 @@ implements OnInit {
   ngOnInit(): void {
 
     console.log(
-      'DashboardComponent carregado'
+      'DashboardComponent carregado', localStorage.getItem('access_token')
     );
   }
 }

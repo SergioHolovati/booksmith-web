@@ -1,0 +1,226 @@
+<div
+  class="p-4 flex justify-content-center"
+>
+
+  <p-card
+    styleClass="w-full max-w-4xl"
+  >
+
+    <div class="mb-5">
+
+      <h2 class="m-0">
+        Become an Author
+      </h2>
+
+      <p class="text-500 mt-2">
+        Tell readers more about
+        yourself and your writing
+        style.
+      </p>
+
+    </div>
+
+    <form
+      [formGroup]="form"
+      (ngSubmit)="submit()"
+      class="flex flex-column gap-4"
+    >
+
+      <!-- Avatar -->
+
+      <div
+        class="flex flex-column gap-2"
+      >
+
+        <label>
+          Avatar (Optional)
+        </label>
+
+        <input
+          type="file"
+          accept="image/*"
+          (change)="onAvatarSelected($event)"
+        />
+
+      </div>
+
+      <!-- Pen Name -->
+
+      <div
+        class="flex flex-column gap-2"
+      >
+
+        <label>
+          Pen Name *
+        </label>
+
+        <input
+          pInputText
+          formControlName="penName"
+          class="w-full"
+          placeholder="Your author name"
+        />
+
+      </div>
+
+      <!-- Bio -->
+
+      <div
+        class="flex flex-column gap-2"
+      >
+
+        <label>
+          Bio *
+        </label>
+
+        <textarea
+          pTextarea
+          rows="5"
+          formControlName="bio"
+          class="w-full"
+          placeholder="Tell readers about yourself..."
+        ></textarea>
+
+      </div>
+
+      <!-- Social Links -->
+
+      <div
+        class="flex flex-column gap-2"
+      >
+
+        <label>
+          Social Links
+        </label>
+
+        <p-autocomplete
+          formControlName="socialLinks"
+          [multiple]="true"
+          [suggestions]="[]"
+          appendTo="body"
+          placeholder="https://instagram.com/yourprofile"
+          class="w-full"
+        />
+
+      </div>
+
+      <!-- Genres -->
+
+      <div
+        class="flex flex-column gap-2"
+      >
+
+        <label>
+          Book Genres
+        </label>
+
+        <p-autocomplete
+          formControlName="bookGenres"
+          [multiple]="true"
+          [suggestions]="[]"
+          appendTo="body"
+          placeholder="Fantasy"
+          class="w-full"
+        />
+
+      </div>
+
+      <!-- Writing Style -->
+
+      <div
+        class="flex flex-column gap-2"
+      >
+
+        <label>
+          Writing Style
+        </label>
+
+        <p-autocomplete
+          formControlName="writingStyle"
+          [multiple]="true"
+          [suggestions]="[]"
+          appendTo="body"
+          placeholder="High Fantasy"
+          class="w-full"
+        />
+
+      </div>
+
+      <!-- References -->
+
+      <div
+        class="flex flex-column gap-2"
+      >
+
+        <label>
+          Author References
+        </label>
+
+        <p-autocomplete
+          formControlName="authorReferences"
+          [multiple]="true"
+          [suggestions]="[]"
+          appendTo="body"
+          placeholder="Tolkien"
+          class="w-full"
+        />
+
+      </div>
+
+      <!-- Audience -->
+
+      <div
+        class="flex flex-column gap-2"
+      >
+
+        <label>
+          Audience *
+        </label>
+
+        <p-select
+          formControlName="audience"
+          [options]="audiences"
+          placeholder="Select audience"
+          class="w-full"
+        />
+
+      </div>
+
+      <!-- Language -->
+
+      <div
+        class="flex flex-column gap-2"
+      >
+
+        <label>
+          Language *
+        </label>
+
+        <p-select
+          formControlName="language"
+          [options]="languages"
+          placeholder="Select language"
+          class="w-full"
+        />
+
+      </div>
+
+      <!-- Submit -->
+
+      <div class="pt-2">
+
+        <p-button
+          type="submit"
+          label="Create Author Profile"
+          icon="pi pi-check"
+          [loading]="loading"
+          styleClass="w-full"
+        />
+
+      </div>
+
+    </form>
+
+  </p-card>
+
+</div>

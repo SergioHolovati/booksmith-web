@@ -23,6 +23,24 @@ export const routes: Routes = [
   },
 
   {
+    path: 'register',
+    loadComponent: () =>
+      import('./features/auth/register/register')
+        .then(c => c.RegisterComponent)
+  },
+
+  {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import(
+        './features/auth/forgot-password/forgot-password'
+      )
+      .then(c =>
+        c.ForgotPasswordComponent
+      )
+  },
+
+  {
     path: 'auth/callback',
     loadComponent: () =>
       import('./features/auth/callback/callback')
@@ -66,6 +84,16 @@ export const routes: Routes = [
           )
           .then(c =>
             c.BookCreateComponent
+          )
+      },
+      {
+        path: 'become-author',
+        loadComponent: () =>
+          import(
+            './features/profile/author-profile-create/author-profile-create'
+          )
+          .then(c =>
+            c.AuthorProfileCreateComponent
           )
       }
     ]
