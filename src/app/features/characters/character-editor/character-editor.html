@@ -1,0 +1,140 @@
+<div class="page narrow">
+  <a [routerLink]="['/books', bookId(), 'characters']" class="back-link"><i class="pi pi-arrow-left"></i> Personagens</a>
+
+  @if (loading()) {
+    <div class="center"><p-progress-spinner strokeWidth="4" /></div>
+  } @else if (error(); as message) {
+    <div class="glass-card empty-state">
+      <i class="pi pi-exclamation-circle"></i>
+      <p>{{ message }}</p>
+      <p-button label="Tentar de novo" severity="secondary" [outlined]="true" (onClick)="load()" />
+    </div>
+  } @else if (character(); as character) {
+    <div class="name-row">
+      <label for="character-name" class="visually-hidden">Nome</label>
+      <input id="character-name" class="name-input" [ngModel]="draft().name" (ngModelChange)="setName($event)"
+        maxlength="120" placeholder="Nome do personagem" autocomplete="off" />
+      @if (character.appearanceSummary) {
+        <p class="muted small summary">{{ character.appearanceSummary }}</p>
+      }
+    </div>
+
+    @if (conflict()) {
+      <p-message severity="warn" styleClass="block-message">
+        <span>Este personagem foi alterado em outro aparelho. Recarregue para ver a versão mais nova (as alterações
+          feitas aqui serão descartadas).</span>
+        <p-button label="Recarregar" size="small" severity="secondary" (onClick)="load()" />
+      </p-message>
+    }
+
+    <div class="sections">
+      <p-selectbutton [options]="sections" [ngModel]="section()" (ngModelChange)="selectSection($event)"
+        optionLabel="label" optionValue="value" [allowEmpty]="false" />
+    </div>
+
+    @if (section() === 'sheet') {
+      <section class="fields" aria-label="Ficha">
+        <div class="field">
+          <span class="field-label" id="role-label">Papel na história</span>
+          <div class="chips" role="group" aria-labelledby="role-label">
+            @for (role of roleOptions; track role.value) {
+              <button type="button" class="chip" [class.on]="draft().sheet.role === role.value"
+                [attr.aria-pressed]="draft().sheet.role === role.value" (click)="setRole(role.value)">
+                {{ role.label }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="aliases" class="field-label">Apelidos e outros nomes</label>
+          <p-autocomplete inputId="aliases" [ngModel]="draft().aliases" (ngModelChange)="setAliases($event)"
+            [multiple]="true" [typeahead]="false" placeholder="Digite e tecle Enter" styleClass="full-width" />
+          <small class="muted">O agente de continuidade reconhece o personagem por qualquer um deles.</small>
+        </div>
+
+        @for (field of sheetFields; track field.key) {
+          <div class="field">
+            <label [for]="'sheet-' + field.key" class="field-label">{{ field.label }}</label>
+            @if (field.long) {
+              <textarea pTextarea [id]="'sheet-' + field.key" [autoResize]="true" rows="2"
+                [placeholder]="field.placeholder" [ngModel]="draft().sheet[field.key] ?? ''"
+                (ngModelChange)="setSheet(field.key, $event)" maxlength="4000"></textarea>
+            } @else {
+              <input pInputText [id]="'sheet-' + field.key" [placeholder]="field.placeholder"
+                [ngModel]="draft().sheet[field.key] ?? ''" (ngModelChange)="setSheet(field.key, $event)"
+                maxlength="120" />
+            }
+          </div>
+        }
+      </section>
+    } @else if (form()) {
+      <section class="glass-card portrait" [attr.aria-label]="section() === 'appearance' ? 'Retrato' : 'Jeito de ser'">
+        <div class="portrait-head">
+          <span class="portrait-title">{{ section() === 'appearance' ? 'Retrato' : 'Jeito de ser' }}</span>
+          <span class="muted small">{{ progress().filled }} de {{ progress().total }} detalhes</span>
+        </div>
+        <div class="meter" role="progressbar" [attr.aria-valuenow]="progress().filled" aria-valuemin="0"
+          [attr.aria-valuemax]="progress().total">
+          <span [style.width.%]="progress().total ? (100 * progress().filled) / progress().total : 0"></span>
+        </div>
+        @for (line of portrait(); track line.tab) {
+          <p class="portrait-line"><strong>{{ line.tab }}</strong> {{ line.text }}</p>
+        } @empty {
+          <p class="muted small portrait-empty">
+            Nada é obrigatório. Escolha o que já sabe, e o retrato vai se montando aqui.
+          </p>
+        }
+      </section>
+
+      <nav class="tabs" [attr.aria-label]="section() === 'appearance' ? 'Partes da aparência' : 'Partes da personalidade'">
+        @for (t of groupTabs(); track t.key) {
+          <button type="button" class="tab" [class.on]="tab()?.key === t.key"
+            [attr.aria-current]="tab()?.key === t.key ? 'true' : null" (click)="tabKey.set(t.key)">
+            {{ t.label }}
+            @if (filledByTab()[t.key]) {
+              <span class="count">{{ filledByTab()[t.key] }}</span>
+            }
+          </button>
+        }
+      </nav>
+
+      @if (tab(); as tab) {
+        <section class="fields" [attr.aria-label]="tab.label">
+          <div class="tab-tools">
+            @if (tab.help) {
+              <p class="muted small tab-help">{{ tab.help }}</p>
+            }
+            <p-button label="Sortear o que falta" icon="pi pi-sparkles" severity="secondary" [text]="true" size="small"
+              styleClass="roll" (onClick)="roll(tab)" />
+          </div>
+          @for (field of tab.fields; track field.key) {
+            <app-builder-field [field]="field" [value]="value(field)" (valueChange)="setValue(field, $event)" />
+          }
+
+          @if (nextTab(); as next) {
+            <button type="button" class="next-tab" (click)="tabKey.set(next.key)">
+              Próximo: {{ next.label }} <i class="pi pi-arrow-right"></i>
+            </button>
+          }
+        </section>
+      }
+    }
+
+    <p-button label="Excluir personagem" icon="pi pi-trash" severity="danger" [text]="true" styleClass="delete"
+      (onClick)="confirmDelete()" />
+
+    @if (dirty()) {
+      <div class="save-bar" role="region" aria-label="Alterações não salvas">
+        <span class="muted small">Alterações não salvas</span>
+        <div class="save-actions">
+          <p-button label="Descartar" severity="secondary" [text]="true" [disabled]="saving()" (onClick)="discard()" />
+          <p-button label="Salvar" icon="pi pi-check" [loading]="saving()" [disabled]="!draft().name.trim()"
+            (onClick)="save()" />
+        </div>
+      </div>
+    }
+  }
+</div>
+
+<p-confirmdialog [style]="{ width: 'min(420px, calc(100vw - 32px))' }" />

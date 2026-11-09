@@ -1,36 +1,53 @@
 .topbar-container {
-  height: 100%;
-
-  padding: 1rem 2rem;
-
+  height: var(--bs-topbar-h);
+  padding: 0 var(--bs-gutter);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  background: rgba(9, 9, 9, .85);
+  border-bottom: 1px solid var(--bs-border);
+  backdrop-filter: var(--bs-blur);
+  -webkit-backdrop-filter: var(--bs-blur);
+}
 
-  background:
-    rgba(255,255,255,.04);
+.brand {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
 
-  border-bottom:
-    1px solid rgba(255,255,255,.08);
+.brand-icon {
+  font-size: 1.25rem;
+}
 
-  backdrop-filter:
-    blur(18px);
+.brand-name {
+  font-weight: 700;
+  color: #fff;
+  font-size: 1.1rem;
 }
 
 .subtitle {
-  color: #ea9846;
-}
-
-.avatar-area {
-  display: flex;
-  align-items: center;
+  color: var(--bs-ember);
 }
 
 .avatar-button {
+  width: var(--bs-touch);
+  height: var(--bs-touch);
+  border-radius: 50%;
+  border: 1px solid rgba(214, 160, 106, .4);
+  background: var(--bs-sand-soft);
+  color: var(--bs-ember);
+  font: 600 1rem var(--bs-font-ui);
   cursor: pointer;
   transition: transform .2s ease;
 }
 
 .avatar-button:hover {
   transform: scale(1.05);
+}
+
+@media (min-width: 1024px) {
+  .topbar-container {
+    background: rgba(255, 255, 255, .04);
+  }
 }

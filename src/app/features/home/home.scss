@@ -1,0 +1,127 @@
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 4rem 0;
+}
+
+.continue-card {
+  display: flex;
+  gap: 1rem;
+  color: inherit;
+  background:
+    radial-gradient(circle at top right, rgba(255, 140, 0, .14), transparent 55%),
+    var(--bs-surface);
+  margin-bottom: 1rem;
+}
+
+.cover {
+  width: 88px;
+  flex-shrink: 0;
+}
+
+.continue-info {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  min-width: 0;
+}
+
+.eyebrow {
+  font-size: .75rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--bs-ember);
+}
+
+.open {
+  margin-top: auto;
+  color: var(--bs-accent-light);
+  font-size: .9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: .5rem;
+  margin-bottom: 2rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: .9rem .5rem;
+  text-align: center;
+}
+
+.value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.label {
+  font-size: .75rem;
+  color: var(--bs-muted);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: .75rem;
+}
+
+.section-header h2 {
+  font-size: 1.1rem;
+}
+
+/* Carrossel horizontal no celular */
+.recent {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 112px;
+  gap: .75rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: .5rem;
+  scrollbar-width: none;
+}
+
+.recent-item {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  color: inherit;
+  scroll-snap-align: start;
+}
+
+.recent-title {
+  font-size: .85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (min-width: 1024px) {
+  .cover {
+    width: 120px;
+  }
+
+  .stats {
+    gap: 1rem;
+  }
+
+  .value {
+    font-size: 1.75rem;
+  }
+
+  .recent {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-columns: auto;
+  }
+}

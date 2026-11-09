@@ -1,0 +1,50 @@
+<div class="page narrow">
+  <a routerLink="/books" class="back-link"><i class="pi pi-arrow-left"></i> Meus livros</a>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Lixeira</h1>
+      <p class="page-subtitle">O que você excluiu fica aqui por 30 dias e pode voltar com um toque.</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="center"><p-progress-spinner strokeWidth="4" /></div>
+  } @else if (error(); as message) {
+    <div class="glass-card empty-state">
+      <i class="pi pi-wifi"></i>
+      <p>{{ message }}</p>
+      <p-button label="Tentar de novo" severity="secondary" [outlined]="true" (onClick)="load()" />
+    </div>
+  } @else if (items().length === 0) {
+    <div class="glass-card empty-state">
+      <i class="pi pi-trash"></i>
+      <h3>A lixeira está vazia</h3>
+      <p class="muted">Livros e capítulos excluídos aparecem aqui.</p>
+    </div>
+  } @else {
+    <ul class="items">
+      @for (item of items(); track item.id) {
+        <li class="item">
+          <i class="pi type-icon" [class.pi-book]="item.type === 'BOOK'" [class.pi-file]="item.type === 'CHAPTER'"></i>
+          <div class="item-text">
+            <span class="item-title">{{ item.title }}</span>
+            <small class="muted">
+              @if (item.type === 'CHAPTER') {
+                Capítulo de "{{ item.bookTitle }}" · {{ formatCount(item.wordCount ?? 0) }} palavras
+              } @else {
+                Livro inteiro, com os capítulos
+              }
+            </small>
+            <small class="expires" [class.soon]="daysLeft(item) <= 3">
+              Excluído em {{ deletedOn(item) }} · some em {{ daysLeft(item) }} {{ daysLeft(item) === 1 ? 'dia' : 'dias' }}
+            </small>
+          </div>
+          <p-button label="Restaurar" icon="pi pi-replay" size="small" severity="secondary" [outlined]="true"
+            [loading]="restoring() === item.id" [disabled]="restoring() !== null && restoring() !== item.id"
+            [ariaLabel]="'Restaurar ' + item.title" (onClick)="restore(item)" />
+        </li>
+      }
+    </ul>
+  }
+</div>

@@ -1,0 +1,48 @@
+<section class="glass-card map-places" aria-labelledby="map-places-title">
+  <h3 id="map-places-title" class="map-places-title"><i class="pi pi-map-marker"></i> Lugares</h3>
+  @if (generated()) {
+    <p class="muted small">
+      @if (pinCount() > 0) {
+        {{ pinCount() }} {{ pinCount() === 1 ? 'lugar marcado' : 'lugares marcados' }} no mapa: toque num ponto para
+        abrir a ficha.
+      } @else {
+        Os países, cidades, florestas e serras deste mapa podem virar lugares do universo, cada um com ficha.
+      }
+    </p>
+  }
+  <div class="actions">
+    @if (generated() && !drafts()) {
+      <p-button [label]="pinCount() ? 'Criar o que falta do mapa' : 'Criar os lugares deste mapa'" icon="pi pi-sparkles"
+        (onClick)="open()" />
+    }
+    <p-button [label]="places().length ? 'Ver os ' + places().length + ' lugares' : 'Ver lugares'" icon="pi pi-list"
+      severity="secondary" [text]="true" [routerLink]="['/universes', universe().id, 'places']" />
+  </div>
+
+  @if (drafts()) {
+    <div class="drafts" role="group" aria-label="Lugares do mapa">
+      @for (group of groups(); track group.name) {
+        <div class="draft-group">
+          <button type="button" class="group-name" (click)="toggleGroup(group.items)">{{ group.name }}</button>
+          @for (draft of group.items; track draft.key) {
+            <label class="draft" [class.done]="exists(draft)">
+              <input type="checkbox" [checked]="exists(draft) || chosen().has(draft.key)" [disabled]="exists(draft)"
+                (change)="toggle(draft)" />
+              <span class="draft-name">{{ draft.name }}</span>
+              <span class="muted small">{{ exists(draft) ? 'já existe' : draft.label }}</span>
+            </label>
+          }
+        </div>
+      }
+    </div>
+    <label class="draft lore-option">
+      <input type="checkbox" [checked]="withLore()" (change)="withLore.set(!withLore())" />
+      <span class="draft-name">Também religiões, governos, idiomas e organizações</span>
+    </label>
+    <div class="actions">
+      <p-button [label]="createLabel()" icon="pi pi-check" [loading]="importing()"
+        [disabled]="newChosen() === 0 && !withLore()" (onClick)="create()" />
+      <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="close()" />
+    </div>
+  }
+</section>

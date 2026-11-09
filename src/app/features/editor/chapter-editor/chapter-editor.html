@@ -1,0 +1,93 @@
+@if (loading()) {
+  <div class="center-state">
+    <p-progress-spinner strokeWidth="4" />
+  </div>
+} @else if (loadError(); as error) {
+  <div class="center-state">
+    <i class="pi pi-exclamation-circle"></i>
+    <p>{{ error }}</p>
+    <p-button label="Voltar aos livros" (onClick)="back()" />
+  </div>
+} @else {
+  <div class="editor-page" [class.focus-mode]="focusMode()">
+    <header class="editor-header">
+      <button type="button" class="icon-btn" (click)="back()" aria-label="Voltar">
+        <i class="pi pi-arrow-left"></i>
+      </button>
+
+      <div class="title-area">
+        <input class="title-input" [attr.lang]="language()" spellcheck="true" [ngModel]="title()" (ngModelChange)="title.set($event)" (blur)="saveTitle()"
+          (keydown.enter)="$any($event.target).blur()" maxlength="200" aria-label="Título do capítulo"
+          placeholder="Título do capítulo" />
+        <div class="meta" aria-live="polite">
+          <span>{{ wordsLabel() }}</span>
+          <span class="dot">·</span>
+          <span class="save-status" [attr.data-status]="status()">{{ statusLabel() }}</span>
+          @if (status() === 'error' || status() === 'offline') {
+            <button type="button" class="retry" (click)="retrySave()">Tentar de novo</button>
+          }
+        </div>
+      </div>
+
+      <button type="button" class="icon-btn" (click)="historyOpen.set(true)" aria-label="Histórico de versões">
+        <i class="pi pi-history"></i>
+      </button>
+
+      <button type="button" class="icon-btn" (click)="toggleFocusMode()"
+        [attr.aria-pressed]="focusMode()" aria-label="Modo foco">
+        <i class="pi" [class.pi-eye]="!focusMode()" [class.pi-eye-slash]="focusMode()"></i>
+      </button>
+    </header>
+
+    @if (errorMessage(); as message) {
+      <div class="error-banner">{{ message }}</div>
+    }
+
+    <main class="editor-scroll">
+      <div #editorHost class="editor-host"></div>
+    </main>
+
+    <!-- Fica logo acima do teclado virtual no celular -->
+    <nav class="toolbar" aria-label="Formatação">
+      <button type="button" class="tool" [class.active]="toolbar().bold" (mousedown)="$event.preventDefault()"
+        (click)="toggleBold()" aria-label="Negrito"><b>B</b></button>
+      <button type="button" class="tool" [class.active]="toolbar().italic" (mousedown)="$event.preventDefault()"
+        (click)="toggleItalic()" aria-label="Itálico"><i class="serif">I</i></button>
+      <button type="button" class="tool" [class.active]="toolbar().underline" (mousedown)="$event.preventDefault()"
+        (click)="toggleUnderline()" aria-label="Sublinhado"><u>U</u></button>
+      <button type="button" class="tool" [class.active]="toolbar().heading" (mousedown)="$event.preventDefault()"
+        (click)="toggleHeading()" aria-label="Título">H</button>
+      <button type="button" class="tool" [class.active]="toolbar().blockquote" (mousedown)="$event.preventDefault()"
+        (click)="toggleQuote()" aria-label="Citação">❝</button>
+      <button type="button" class="tool" [class.active]="toolbar().indent" (mousedown)="$event.preventDefault()"
+        (click)="toggleIndent()" aria-label="Recuo de parágrafo" title="Recuo de parágrafo (Tab)">⇥</button>
+      <button type="button" class="tool" (mousedown)="$event.preventDefault()" (click)="insertSceneBreak()"
+        aria-label="Quebra de cena">✱✱✱</button>
+      <span class="tool-spacer"></span>
+      <button type="button" class="tool" [disabled]="!toolbar().canUndo" (mousedown)="$event.preventDefault()"
+        (click)="undo()" aria-label="Desfazer">↶</button>
+      <button type="button" class="tool" [disabled]="!toolbar().canRedo" (mousedown)="$event.preventDefault()"
+        (click)="redo()" aria-label="Refazer">↷</button>
+    </nav>
+  </div>
+}
+
+<p-dialog header="Este capítulo mudou em outro aparelho" [visible]="showConflict()" [modal]="true" [closable]="false"
+  [draggable]="false" [style]="{ width: 'min(480px, calc(100vw - 32px))' }">
+  <div class="conflict-body">
+    <p>Você editou este capítulo aqui enquanto ele também foi salvo em outro dispositivo.</p>
+    <p class="muted small">Seja qual for a escolha, uma cópia da versão descartada fica guardada neste aparelho.</p>
+  </div>
+  <ng-template #footer>
+    <div class="conflict-actions">
+      <p-button label="Usar a versão do outro aparelho" severity="secondary" [outlined]="true"
+        [disabled]="resolving()" (onClick)="useServer()" styleClass="full-width" />
+      <p-button label="Manter o que escrevi aqui" [loading]="resolving()" (onClick)="keepMine()"
+        styleClass="full-width" />
+    </div>
+  </ng-template>
+</p-dialog>
+
+@if (!loading() && !loadError()) {
+  <app-chapter-history [chapterId]="chapterId()" [actions]="historyActions" [(visible)]="historyOpen" />
+}

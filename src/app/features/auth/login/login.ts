@@ -1,52 +1,55 @@
-import { Component } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
-
+import { Component, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
-import { PasswordModule } from 'primeng/password';
+import { MessageModule } from 'primeng/message';
 
-import { AuthService } from '../../../core/services/auth-service';
+import { problemMessage } from '../../../core/api/problem';
+import { AuthService } from '../../../core/auth/auth.service';
+
+const GOOGLE_ERRORS: Record<string, string> = {
+  google: 'Não foi possível entrar com o Google. Tente novamente.',
+  google_email_not_verified: 'Seu e-mail do Google não está verificado.',
+};
 
 @Component({
   selector: 'app-login',
-  standalone: true,
-  imports: [
-    ButtonModule,
-    CardModule,
-    FormsModule,
-    InputTextModule,
-    PasswordModule,
-    RouterLink
-  ],
+  imports: [FormsModule, RouterLink, ButtonModule, InputTextModule, MessageModule],
   templateUrl: './login.html',
-    styleUrl:
-    './login.scss'
+  styleUrl: '../auth-page.scss',
 })
 export class LoginComponent {
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+
+  /** ?error= vindo do fluxo do Google */
+  readonly error = input<string>();
+
   email = '';
   password = '';
+  readonly loading = signal(false);
+  readonly message = signal<string | null>(null);
 
-  constructor(
-    private authService: AuthService,
-    private router: Router
-  ) {}
-
-  loginWithGoogle() {
-    this.authService.loginWithGoogle();
+  googleError(): string | null {
+    const code = this.error();
+    return code ? (GOOGLE_ERRORS[code] ?? GOOGLE_ERRORS['google']) : null;
   }
 
   async loginWithForm(): Promise<void> {
-    const ok = await this.authService.login(
-      this.email,
-      this.password
-    );
-
-    if (ok) {
-      this.router.navigate(['/dashboard']);
-    } else {
-      alert('Login failed. Please check your credentials.');
+    this.message.set(null);
+    this.loading.set(true);
+    try {
+      await this.auth.login(this.email.trim(), this.password);
+      await this.router.navigate(['/home']);
+    } catch (error) {
+      this.message.set(problemMessage(error, 'Não foi possível entrar.'));
+    } finally {
+      this.loading.set(false);
     }
+  }
+
+  loginWithGoogle(): void {
+    this.auth.loginWithGoogle();
   }
 }

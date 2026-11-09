@@ -1,0 +1,61 @@
+<div class="page narrow">
+  <a [routerLink]="base()" class="back-link"><i class="pi pi-arrow-left"></i> {{ backLabel() }}</a>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Lugares</h1>
+      <p class="page-subtitle">
+        Onde a história acontece. Coloque um lugar "dentro de" outro (o café dentro do bairro, o bairro dentro da
+        cidade) e anote as regras de cada um.
+      </p>
+    </div>
+  </div>
+
+  <form class="create" (ngSubmit)="create()">
+    <label for="new-place" class="visually-hidden">Nome do lugar</label>
+    <input id="new-place" pInputText name="name" [(ngModel)]="newName" maxlength="120"
+      placeholder="Nome do novo lugar" autocomplete="off" />
+    <p-button type="submit" label="Criar" icon="pi pi-plus" [loading]="creating()" [disabled]="!newName.trim()" />
+  </form>
+
+  @if (loading()) {
+    <div class="center"><p-progress-spinner strokeWidth="4" /></div>
+  } @else if (error(); as message) {
+    <div class="glass-card empty-state">
+      <i class="pi pi-wifi"></i>
+      <p>{{ message }}</p>
+      <p-button label="Tentar de novo" severity="secondary" [outlined]="true" (onClick)="load()" />
+    </div>
+  } @else if (places().length === 0) {
+    <div class="glass-card empty-state">
+      <i class="pi pi-map"></i>
+      <h3>Nenhum lugar ainda</h3>
+      <p class="muted">Comece pelo lugar onde a primeira cena acontece.</p>
+    </div>
+  } @else {
+    <ul class="items">
+      @for (node of tree(); track node.place.id) {
+        <li [style.--depth]="node.depth" [class.nested]="node.depth > 0">
+          <a class="item" [routerLink]="[...base(), 'places', node.place.id]">
+            <i class="pi type-icon" [class]="icon(node.place)" aria-hidden="true"></i>
+            <span class="item-text">
+              <span class="item-title">
+                {{ node.place.name }}
+                @if (node.place.type) {
+                  <span class="status-chip">{{ typeLabel[node.place.type] }}</span>
+                }
+              </span>
+              @if (node.place.parentName) {
+                <small class="muted">Dentro de {{ node.place.parentName }}</small>
+              }
+              @if (node.place.excerpt) {
+                <small class="excerpt">{{ node.place.excerpt }}</small>
+              }
+            </span>
+            <i class="pi pi-chevron-right muted"></i>
+          </a>
+        </li>
+      }
+    </ul>
+  }
+</div>

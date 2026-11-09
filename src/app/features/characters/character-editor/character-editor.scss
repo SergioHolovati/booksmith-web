@@ -1,0 +1,68 @@
+@use '../../../shared/builder/builder-layout';
+
+.narrow {
+  max-width: 720px;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-height: var(--bs-touch);
+  color: var(--bs-ember);
+  font-size: .9rem;
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  padding: 4rem 0;
+}
+
+.name-row {
+  margin: .5rem 0 1rem;
+}
+
+.name-input {
+  width: 100%;
+  padding: .25rem 0;
+  border: 0;
+  border-bottom: 1px solid var(--bs-border);
+  background: transparent;
+  color: var(--bs-text);
+  font-family: 'Literata', Georgia, serif;
+  font-size: 1.75rem;
+  font-weight: 600;
+  outline: none;
+}
+
+.name-input:focus {
+  border-bottom-color: var(--bs-ember);
+}
+
+.summary {
+  margin: .4rem 0 0;
+}
+
+:host ::ng-deep .block-message {
+  margin-bottom: 1rem;
+}
+
+:host ::ng-deep .block-message .p-message-text {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  align-items: flex-start;
+}
+
+:host ::ng-deep .delete {
+  margin-top: 2rem;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}

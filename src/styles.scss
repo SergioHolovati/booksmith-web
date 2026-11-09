@@ -1,8 +1,11 @@
-/* app theme */
+/*
+ * Identidade visual Booksmith: fundo preto "forja", vidro translúcido e laranja de brasa.
+ * Mobile-first: estilos-base são para celular; @media (min-width) amplia para tablet e desktop.
+ */
 @import "primeicons/primeicons.css";
 
 :root {
-
+  /* Paleta PrimeNG (mesma do preset em app.config.ts) */
   --p-primary-50: #fff6ed;
   --p-primary-100: #ffead5;
   --p-primary-200: #ffd0aa;
@@ -13,111 +16,363 @@
   --p-primary-700: #c4510a;
   --p-primary-800: #9f430f;
   --p-primary-900: #813910;
+  --p-primary-color: var(--p-primary-500);
+  --p-primary-hover-color: var(--p-primary-400);
+  --p-highlight-background: rgba(255, 122, 26, 0.15);
+  --p-highlight-color: #ffb26f;
 
-  --p-primary-color:
-    var(--p-primary-500);
+  /* Tokens do Booksmith */
+  --bs-bg: #090909;
+  --bs-bg-elevated: #111111;
+  --bs-sidebar: #0b0b0b;
+  --bs-surface: rgba(255, 255, 255, 0.04);
+  --bs-surface-hover: rgba(255, 255, 255, 0.07);
+  --bs-border: rgba(255, 255, 255, 0.08);
+  --bs-text: #f2f2f2;
+  --bs-text-soft: #d9d9d9;
+  --bs-muted: #9a9a9a;
+  --bs-accent: #ff7a1a;
+  --bs-accent-light: #ffab52;
+  --bs-ember: #ea9846;
+  --bs-sand: #d6a06a;
+  --bs-sand-soft: rgba(214, 160, 106, 0.16);
+  --bs-danger: #ef4444;
+  --bs-success: #22c55e;
 
-  --p-primary-hover-color:
-    var(--p-primary-400);
+  --bs-radius-sm: 10px;
+  --bs-radius: 14px;
+  --bs-radius-lg: 20px;
+  --bs-radius-xl: 28px;
+  --bs-blur: blur(18px);
+  --bs-shadow: 0 8px 40px rgba(0, 0, 0, 0.45);
 
-  --p-highlight-background:
-    rgba(255, 122, 26, 0.15);
+  --bs-font-ui: 'Inter', system-ui, sans-serif;
+  --bs-font-prose: 'Literata', Georgia, serif;
 
-  --p-highlight-color:
-    #ffb26f;
+  /* Alvos de toque: mínimo 44px (WCAG 2.5.5 / diretrizes iOS e Android) */
+  --bs-touch: 44px;
+  --bs-gutter: 16px;
+  --bs-topbar-h: 56px;
+  --bs-bottom-nav-h: 64px;
+  --bs-safe-top: env(safe-area-inset-top, 0px);
+  --bs-safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* body */
-
-html,
-body {
-  margin: 0;
-  min-height: 100%;
-  background: #090909;
-  font-family:
-    Inter,
-    sans-serif;
-}
-
-/* buttons */
-
-.p-button {
-  border-radius: 14px !important;
-  transition: all .2s ease;
-}
-
-.p-button:hover {
-  transform:
-    translateY(-1px);
-}
-
-/* primary */
-
-.p-button-primary {
-  background:
-    linear-gradient(
-      180deg,
-      #ff9442,
-      #ff7a1a
-    ) !important;
-
-  border:
-    none !important;
-
-  box-shadow:
-    0 4px 18px
-    rgba(255,122,26,.25);
-}
-
-.p-button-primary:hover {
-  background:
-    linear-gradient(
-      180deg,
-      #ff9f57,
-      #ff8429
-    ) !important;
-}
-
-/* Login button */
-
-.login-container .p-button {
-
-}
-/* google */
-
-.google-btn .p-button {
-  background:
-    rgba(255,255,255,0.04) !important;
-
-  border:
-    1px solid
-    rgba(255,255,255,.08)
-    !important;
-
-  color:
-    white !important;
-}
-html,
-body {
-  margin: 0;
-  min-height: 100%;
-  background: #090909;
-
-  font-family:
-    'Inter',
-    sans-serif;
-
-  -webkit-font-smoothing:
-    antialiased;
-
-  -moz-osx-font-smoothing:
-    grayscale;
-
-  text-rendering:
-    optimizeLegibility;
+@media (min-width: 1024px) {
+  :root {
+    --bs-gutter: 32px;
+    --bs-topbar-h: 72px;
+  }
 }
 
 * {
-  box-sizing:
-    border-box;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bs-bg);
+  color: var(--bs-text);
+  font-family: var(--bs-font-ui);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  -webkit-tap-highlight-color: transparent;
+}
+
+h1, h2, h3, h4 {
+  margin: 0;
+  color: #fff;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--bs-accent-light);
+  text-decoration: none;
+}
+
+a:hover {
+  color: #ffc078;
+}
+
+/* ===== Layout de página ===== */
+
+.page {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--bs-gutter);
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.page-title {
+  font-size: 1.5rem;
+}
+
+.page-subtitle {
+  color: var(--bs-muted);
+  margin-top: .25rem;
+}
+
+@media (min-width: 1024px) {
+  .page-title {
+    font-size: 2rem;
+  }
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.muted {
+  color: var(--bs-muted);
+}
+
+.small {
+  font-size: .85rem;
+}
+
+/* ===== Superfícies ===== */
+
+.glass-card {
+  background: var(--bs-surface);
+  border: 1px solid var(--bs-border);
+  backdrop-filter: var(--bs-blur);
+  -webkit-backdrop-filter: var(--bs-blur);
+  border-radius: var(--bs-radius-lg);
+  padding: 1rem;
+}
+
+@media (min-width: 768px) {
+  .glass-card {
+    padding: 1.5rem;
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .75rem;
+}
+
+.empty-state .pi {
+  font-size: 2.5rem;
+  color: var(--bs-sand);
+}
+
+/* ===== Formulários ===== */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.field label {
+  font-size: .95rem;
+  font-weight: 500;
+  color: var(--bs-text-soft);
+}
+
+.field-hint {
+  font-size: .8rem;
+  color: var(--bs-muted);
+}
+
+.error-text {
+  color: var(--bs-danger);
+  font-size: .85rem;
+}
+
+/* 16px evita o zoom automático do iOS ao focar um campo */
+input[pInputText],
+textarea[pTextarea],
+.bs-input {
+  width: 100%;
+  min-height: var(--bs-touch);
+  font-size: 16px;
+  background: var(--bs-surface) !important;
+  border: 1px solid var(--bs-border) !important;
+  color: #fff !important;
+  border-radius: var(--bs-radius) !important;
+  padding: .85rem 1rem !important;
+  font-family: var(--bs-font-ui);
+}
+
+input[pInputText]:focus,
+textarea[pTextarea]:focus,
+.bs-input:focus {
+  outline: none;
+  border-color: rgba(255, 140, 0, .45) !important;
+  box-shadow: 0 0 0 1px rgba(255, 140, 0, .2) !important;
+}
+
+input[type="date"].bs-input {
+  color-scheme: dark;
+}
+
+/* ===== Botões ===== */
+
+.p-button {
+  border-radius: var(--bs-radius) !important;
+  min-height: var(--bs-touch);
+  transition: all .2s ease;
+}
+
+@media (hover: hover) {
+  .p-button:hover {
+    transform: translateY(-1px);
+  }
+}
+
+.p-button-primary,
+.p-button:not(.p-button-secondary):not(.p-button-text):not(.p-button-outlined):not(.p-button-danger) {
+  background: linear-gradient(180deg, #ff9442, #ff7a1a) !important;
+  border: none !important;
+  box-shadow: 0 4px 18px rgba(255, 122, 26, .25);
+}
+
+.p-button-text {
+  min-width: var(--bs-touch);
+}
+
+.full-width,
+.full-width .p-button {
+  width: 100%;
+  justify-content: center;
+}
+
+.google-btn .p-button {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, .08) !important;
+  color: white !important;
+  box-shadow: none;
+}
+
+/* Botão de vidro com ícone laranja (antigo "forge-plus-btn") */
+.forge-icon-btn .p-button {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid var(--bs-border) !important;
+  color: #eb7805 !important;
+  box-shadow: none;
+}
+
+.forge-icon-btn .p-button:hover {
+  background: rgba(214, 160, 106, 0.18) !important;
+  border-color: rgba(214, 160, 106, 0.4) !important;
+  color: #ffb86b !important;
+}
+
+/* Botão flutuante de ação principal (celular) */
+.fab {
+  position: fixed;
+  right: var(--bs-gutter);
+  bottom: calc(var(--bs-bottom-nav-h) + var(--bs-safe-bottom) + 16px);
+  z-index: 20;
+}
+
+.fab .p-button {
+  width: 56px;
+  height: 56px;
+  border-radius: 50% !important;
+}
+
+@media (min-width: 1024px) {
+  .fab {
+    display: none;
+  }
+}
+
+.desktop-only {
+  display: none !important;
+}
+
+@media (min-width: 1024px) {
+  .desktop-only {
+    display: revert !important;
+  }
+
+  .mobile-only {
+    display: none !important;
+  }
+}
+
+/* ===== Estados ===== */
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: .75rem;
+  padding: .2rem .6rem;
+  border-radius: 999px;
+  background: var(--bs-sand-soft);
+  color: var(--bs-ember);
+  white-space: nowrap;
+}
+
+.status-chip.success {
+  background: rgba(34, 197, 94, .12);
+  color: #4ade80;
+}
+
+.status-chip.danger {
+  background: rgba(239, 68, 68, .12);
+  color: #f87171;
+}
+
+/* ===== PrimeNG: ajustes de tema escuro ===== */
+
+.p-dialog {
+  background: var(--bs-bg-elevated) !important;
+  border: 1px solid var(--bs-border) !important;
+  border-radius: var(--bs-radius-lg) !important;
+  margin: var(--bs-gutter);
+}
+
+.p-selectbutton .p-togglebutton {
+  min-height: var(--bs-touch);
+}
+
+/*
+ * Componentes de página nascem "inline" (padrão de elementos customizados). Conteúdo em bloco dentro de
+ * um elemento inline confunde o alvo do toque em alguns casos; toda página roteada vira bloco.
+ */
+router-outlet + * {
+  display: block;
 }

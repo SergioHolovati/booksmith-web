@@ -1,0 +1,272 @@
+:host {
+  display: block;
+  --toolbar-h: 52px;
+}
+
+.center-state {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: var(--bs-gutter);
+  text-align: center;
+}
+
+.center-state .pi {
+  font-size: 2rem;
+  color: var(--bs-sand);
+}
+
+.editor-page {
+  min-height: 100dvh;
+  background: var(--bs-bg);
+}
+
+.editor-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: calc(var(--bs-safe-top) + 6px) 8px 6px;
+  background: rgba(9, 9, 9, .9);
+  border-bottom: 1px solid var(--bs-border);
+  backdrop-filter: var(--bs-blur);
+  -webkit-backdrop-filter: var(--bs-blur);
+  transition: opacity .3s ease;
+}
+
+.icon-btn {
+  flex-shrink: 0;
+  width: var(--bs-touch);
+  height: var(--bs-touch);
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--bs-ember);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.icon-btn:active {
+  background: var(--bs-sand-soft);
+}
+
+.title-area {
+  flex: 1;
+  min-width: 0;
+}
+
+.title-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #fff;
+  font: 600 16px var(--bs-font-ui);
+  padding: 2px 0;
+  outline: none;
+  text-overflow: ellipsis;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .35rem;
+  font-size: .75rem;
+  color: var(--bs-muted);
+}
+
+.save-status[data-status='saving'],
+.save-status[data-status='pending'] {
+  color: var(--bs-sand);
+}
+
+.save-status[data-status='offline'],
+.save-status[data-status='conflict'],
+.save-status[data-status='error'] {
+  color: #f59e0b;
+}
+
+.retry {
+  border: none;
+  background: none;
+  color: var(--bs-accent-light);
+  font-size: .75rem;
+  padding: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.error-banner {
+  margin: 8px var(--bs-gutter) 0;
+  padding: .6rem .9rem;
+  border-radius: var(--bs-radius);
+  background: rgba(239, 68, 68, .12);
+  color: #fca5a5;
+  font-size: .85rem;
+}
+
+.editor-scroll {
+  padding: 1.25rem var(--bs-gutter) calc(var(--toolbar-h) + var(--bs-safe-bottom) + 40vh);
+}
+
+.editor-host {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+/* Conteúdo gerado pelo ProseMirror: estilos sem encapsulamento */
+:host ::ng-deep .manuscript {
+  outline: none;
+  min-height: 60vh;
+  font-family: var(--bs-font-prose);
+  font-size: 18px;
+  line-height: 1.75;
+  color: #ececec;
+  caret-color: var(--bs-accent);
+  word-wrap: break-word;
+
+  p {
+    margin: 0 0 .9em;
+  }
+
+  /* Recuo da primeira linha (Tab), como em livro impresso */
+  p[data-indent='true'] {
+    text-indent: 1.5em;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--bs-font-ui);
+    margin: 1.4em 0 .6em;
+  }
+
+  blockquote {
+    margin: 1em 0;
+    padding-left: 1em;
+    border-left: 3px solid var(--bs-sand);
+    color: #cfcfcf;
+    font-style: italic;
+  }
+
+  .scene-break {
+    text-align: center;
+    letter-spacing: .5em;
+    color: var(--bs-sand);
+    margin: 1.5em 0;
+    user-select: none;
+  }
+
+  .scene-break.ProseMirror-selectednode {
+    outline: 1px dashed var(--bs-sand);
+    border-radius: 6px;
+  }
+
+  p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    color: #5f5f5f;
+    pointer-events: none;
+  }
+}
+
+.toolbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: var(--keyboard-offset, 0px);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: calc(var(--toolbar-h) + var(--bs-safe-bottom));
+  padding: 0 6px var(--bs-safe-bottom);
+  background: rgba(17, 17, 17, .96);
+  border-top: 1px solid var(--bs-border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tool {
+  flex-shrink: 0;
+  min-width: var(--bs-touch);
+  height: var(--bs-touch);
+  border: none;
+  border-radius: var(--bs-radius-sm);
+  background: transparent;
+  color: var(--bs-text-soft);
+  font: 500 1rem var(--bs-font-ui);
+  cursor: pointer;
+}
+
+.tool .serif {
+  font-family: var(--bs-font-prose);
+}
+
+.tool.active {
+  background: var(--bs-sand-soft);
+  color: var(--bs-ember);
+}
+
+.tool:disabled {
+  opacity: .35;
+}
+
+.tool-spacer {
+  flex: 1;
+}
+
+/* Modo foco: só o texto */
+.focus-mode .editor-header {
+  opacity: .25;
+}
+
+.focus-mode .editor-header:hover,
+.focus-mode .editor-header:focus-within {
+  opacity: 1;
+}
+
+.conflict-body {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+
+.conflict-actions {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  :host ::ng-deep .manuscript {
+    font-size: 19px;
+  }
+
+  .editor-scroll {
+    padding-top: 3rem;
+  }
+
+  /* No desktop a barra fica centralizada, como uma régua flutuante */
+  .toolbar {
+    left: 50%;
+    right: auto;
+    bottom: 24px;
+    transform: translateX(-50%);
+    width: auto;
+    border: 1px solid var(--bs-border);
+    border-radius: 16px;
+    padding: 0 6px;
+    height: var(--toolbar-h);
+    box-shadow: var(--bs-shadow);
+  }
+
+  .conflict-actions {
+    flex-direction: row-reverse;
+  }
+}

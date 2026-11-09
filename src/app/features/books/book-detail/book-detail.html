@@ -1,0 +1,181 @@
+<div class="page">
+  @if (error(); as message) {
+    <div class="glass-card empty-state">
+      <i class="pi pi-exclamation-circle"></i>
+      <p>{{ message }}</p>
+      <p-button label="Voltar aos livros" routerLink="/books" />
+    </div>
+  } @else if (book(); as book) {
+    <a routerLink="/books" class="back-link"><i class="pi pi-arrow-left"></i> Meus livros</a>
+
+    <section class="hero">
+      <app-book-cover class="cover" [url]="book.coverUrl" [title]="book.title" />
+      <div class="hero-info">
+        <div class="chips">
+          <span class="status-chip">{{ kindLabel[book.kind] }}</span>
+          <span class="status-chip" [class.success]="book.status === 'COMPLETE'">{{ statusLabel[book.status] }}</span>
+          @if (book.language !== 'pt-BR') {
+            <span class="status-chip">{{ languageLabel[book.language] }}</span>
+          }
+        </div>
+        <h1 class="page-title">{{ book.title }}</h1>
+        @if (book.fandom) {
+          <p class="fandom">{{ book.fandom }}</p>
+        }
+        <p class="muted small">
+          {{ book.chapters.length }} {{ book.chapters.length === 1 ? 'capítulo' : 'capítulos' }} ·
+          {{ formatCount(totalWords()) }} palavras
+        </p>
+      </div>
+    </section>
+
+    @if (book.synopsis) {
+      <p class="synopsis">{{ book.synopsis }}</p>
+    }
+
+    <div class="primary-actions">
+      @if (lastChapter(); as chapter) {
+        <p-button label="Continuar escrevendo" icon="pi pi-pencil" [routerLink]="['/write', chapter.id]"
+          styleClass="full-width" />
+      } @else {
+        <p-button label="Escrever o primeiro capítulo" icon="pi pi-pencil" (onClick)="newChapter()"
+          [loading]="creatingChapter()" styleClass="full-width" />
+      }
+      <div class="secondary">
+        <div class="secondary-group">
+          <p-button label="Editar" icon="pi pi-cog" severity="secondary" [outlined]="true"
+            [routerLink]="['/books', book.id, 'edit']" />
+          <p-button label="Importar" icon="pi pi-file-import" severity="secondary" [outlined]="true"
+            [routerLink]="['/books', book.id, 'import']" />
+          @if (book.chapters.length > 0) {
+            <p-button label="Baixar" icon="pi pi-download" severity="secondary" [outlined]="true"
+              [routerLink]="['/books', book.id, 'export']" />
+          }
+        </div>
+        <p-button icon="pi pi-trash" severity="danger" [text]="true" ariaLabel="Excluir livro"
+          (onClick)="confirmDeleteBook()" />
+      </div>
+    </div>
+
+    @if (universeName(); as name) {
+      <a [routerLink]="['/universes', book.universeId]" class="universe-link"><i class="pi pi-globe"></i> Universo <strong>{{ name }}</strong></a>
+    }
+    <nav class="universe" aria-label="Bíblia do Universo">
+      <a class="universe-card" [routerLink]="['/books', book.id, 'characters']">
+        <i class="pi pi-users"></i>
+        <span class="universe-text">
+          <span class="universe-title">Personagens
+            @if (characters(); as list) {
+              <span class="muted">· {{ list.length }}</span>
+            }
+          </span>
+          <small class="muted">
+            @if (characterPreview()) {
+              {{ characterPreview() }}{{ (characters()?.length ?? 0) > 3 ? '…' : '' }}
+            } @else {
+              Ficha e aparência de quem vive na história
+            }
+          </small>
+        </span>
+        <i class="pi pi-chevron-right muted"></i>
+      </a>
+      <a class="universe-card" [routerLink]="['/books', book.id, 'places']">
+        <i class="pi pi-map"></i>
+        <span class="universe-text">
+          <span class="universe-title">Lugares
+            @if (places(); as list) {
+              <span class="muted">· {{ list.length }}</span>
+            }
+          </span>
+          <small class="muted">
+            @if (placePreview()) {
+              {{ placePreview() }}{{ (places()?.length ?? 0) > 3 ? '…' : '' }}
+            } @else {
+              Onde a história acontece, e as regras de cada lugar
+            }
+          </small>
+        </span>
+        <i class="pi pi-chevron-right muted"></i>
+      </a>
+      <a class="universe-card" [routerLink]="['/books', book.id, 'timeline']">
+        <i class="pi pi-clock"></i>
+        <span class="universe-text">
+          <span class="universe-title">Linha do tempo
+            @if (timeline(); as list) {
+              <span class="muted">· {{ list.length }}</span>
+            }
+          </span>
+          <small class="muted">
+            @if (timeline()?.length) {
+              Último: {{ timeline()!.at(-1)!.title }}
+            } @else {
+              O que acontece, em ordem
+            }
+          </small>
+        </span>
+        <i class="pi pi-chevron-right muted"></i>
+      </a>
+      <a class="universe-card" [routerLink]="['/books', book.id, 'continuity']">
+        <i class="pi pi-search"></i>
+        <span class="universe-text">
+          <span class="universe-title">Continuidade
+            @if (continuityOverview()?.alerts?.length; as open) {
+              <span class="alert-count">{{ open }}</span>
+            }
+          </span>
+          <small class="muted">
+            @if (!continuityOverview()?.lastAnalysis) {
+              Procure furos comparando o texto com as fichas
+            } @else if (continuityOverview()?.alerts?.length) {
+              {{ continuityOverview()!.alerts.length === 1 ? '1 possível furo para conferir' : continuityOverview()!.alerts.length + ' possíveis furos para conferir' }}
+            } @else {
+              Nenhum furo nas verificações atuais
+            }
+          </small>
+        </span>
+        <i class="pi pi-chevron-right muted"></i>
+      </a>
+    </nav>
+
+    <section class="chapters">
+      <div class="section-header">
+        <h2>Capítulos</h2>
+        <p-button label="Novo" icon="pi pi-plus" size="small" severity="secondary" [outlined]="true"
+          [loading]="creatingChapter()" (onClick)="newChapter()" />
+      </div>
+
+      @if (book.chapters.length === 0) {
+        <p class="muted">
+          Nenhum capítulo ainda. Já escreveu algo no Word, no Google Docs ou no LibreOffice?
+          <a [routerLink]="['/books', book.id, 'import']">Importe o arquivo</a>.
+        </p>
+      } @else {
+        <ol class="chapter-list">
+          @for (chapter of book.chapters; track chapter.id; let i = $index; let first = $first; let last = $last) {
+            <li class="chapter">
+              <a class="chapter-main" [routerLink]="['/write', chapter.id]">
+                <span class="number">{{ i + 1 }}</span>
+                <span class="chapter-text">
+                  <span class="chapter-title">{{ chapter.title }}</span>
+                  <span class="muted small">{{ formatCount(chapter.wordCount) }} palavras</span>
+                </span>
+              </a>
+              <div class="chapter-actions">
+                <button type="button" class="mini" [disabled]="first || reordering()" (click)="move(i, -1)"
+                  aria-label="Mover para cima"><i class="pi pi-chevron-up"></i></button>
+                <button type="button" class="mini" [disabled]="last || reordering()" (click)="move(i, 1)"
+                  aria-label="Mover para baixo"><i class="pi pi-chevron-down"></i></button>
+                <button type="button" class="mini" (click)="confirmDeleteChapter(chapter)"
+                  aria-label="Excluir capítulo"><i class="pi pi-trash"></i></button>
+              </div>
+            </li>
+          }
+        </ol>
+      }
+    </section>
+  } @else {
+    <div class="loading"><p-progress-spinner strokeWidth="4" /></div>
+  }
+</div>
+
+<p-confirmdialog [style]="{ width: 'min(420px, calc(100vw - 32px))' }" />

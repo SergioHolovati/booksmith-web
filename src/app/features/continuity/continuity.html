@@ -1,0 +1,96 @@
+<div class="page narrow">
+  <a [routerLink]="['/books', bookId()]" class="back-link"><i class="pi pi-arrow-left"></i> Livro</a>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Continuidade</h1>
+      <p class="page-subtitle">O texto comparado com a Bíblia do Universo, para achar furos antes dos leitores.</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="center"><p-progress-spinner strokeWidth="4" /></div>
+  } @else if (error(); as message) {
+    <div class="glass-card empty-state">
+      <i class="pi pi-wifi"></i>
+      <p>{{ message }}</p>
+      <p-button label="Tentar de novo" severity="secondary" [outlined]="true" (onClick)="load()" />
+    </div>
+  } @else if (overview(); as overview) {
+    <section class="glass-card analyze">
+      <p-button [label]="overview.lastAnalysis ? 'Analisar de novo' : 'Analisar o livro'" icon="pi pi-search"
+        [loading]="analyzing()" styleClass="full-width" (onClick)="analyze()" />
+      @if (overview.lastAnalysis; as last) {
+        <p class="muted small">
+          Última análise {{ analyzedAgo() }} · {{ last.chapters }} {{ last.chapters === 1 ? 'capítulo' : 'capítulos' }}
+          · {{ last.entities }} {{ last.entities === 1 ? 'ficha' : 'fichas' }}
+        </p>
+      }
+      <details class="checks">
+        <summary>O que é verificado agora</summary>
+        <ul>
+          @for (check of overview.checks; track check) {
+            <li>{{ check }}</li>
+          }
+        </ul>
+        <p class="muted small">
+          Por enquanto, sem IA: verificações exatas, gratuitas e rápidas. Quando a regra não tem certeza de quem está
+          sendo descrito ("seus olhos azuis"), ela não avisa. A análise com IA (quem sabe o quê, linha do tempo,
+          regras do mundo) vem depois.
+        </p>
+      </details>
+    </section>
+
+    @if (!overview.lastAnalysis) {
+      <div class="glass-card empty-state">
+        <i class="pi pi-search"></i>
+        <h3>Ainda não analisado</h3>
+        <p class="muted">Preencha a aparência dos personagens e toque em "Analisar o livro".</p>
+      </div>
+    } @else if (overview.alerts.length === 0) {
+      <div class="glass-card empty-state">
+        <i class="pi pi-check-circle"></i>
+        <h3>Nenhum furo encontrado</h3>
+        <p class="muted">Nas verificações atuais, o texto bate com as fichas.</p>
+      </div>
+    } @else {
+      <ul class="alerts">
+        @for (alert of overview.alerts; track alert.id) {
+          <li class="alert" [attr.data-type]="alert.type">
+            <div class="alert-head">
+              <i class="pi" [class.pi-eye]="alert.type === 'attribute'" [class.pi-pencil]="alert.type === 'naming'"
+                aria-hidden="true"></i>
+              <p class="message">{{ alert.message }}</p>
+            </div>
+            <ul class="evidence">
+              @for (item of alert.evidence; track $index) {
+                <li>
+                  <blockquote>
+                    @for (part of quoteParts(item.quote, item.highlight); track $index) {
+                      @if (part.mark) {
+                        <mark>{{ part.text }}</mark>
+                      } @else {
+                        {{ part.text }}
+                      }
+                    }
+                  </blockquote>
+                  <a class="open" [routerLink]="['/write', item.chapterId]"
+                    [queryParams]="item.blockId ? { block: item.blockId } : {}">
+                    <i class="pi pi-book"></i> {{ item.chapterTitle }} <i class="pi pi-arrow-right"></i>
+                  </a>
+                </li>
+              }
+            </ul>
+            <div class="actions">
+              <p-button label="É intencional" size="small" severity="secondary" [outlined]="true"
+                [disabled]="deciding() !== null" (onClick)="decide(alert, 'intentional')" />
+              <p-button label="Ignorar" size="small" severity="secondary" [text]="true"
+                [disabled]="deciding() !== null" (onClick)="decide(alert, 'ignored')" />
+            </div>
+          </li>
+        }
+      </ul>
+      <p class="muted small hint">Corrigiu no texto? Analise de novo: o alerta some sozinho.</p>
+    }
+  }
+</div>

@@ -1,0 +1,71 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Olá, {{ firstName() }}</h1>
+      <p class="page-subtitle">Pronto para escrever hoje?</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading"><p-progress-spinner strokeWidth="4" /></div>
+  } @else if (error(); as message) {
+    <div class="glass-card empty-state">
+      <i class="pi pi-wifi"></i>
+      <p>{{ message }}</p>
+      <p-button label="Tentar de novo" severity="secondary" [outlined]="true" (onClick)="load()" />
+    </div>
+  } @else if (current(); as book) {
+    <a class="glass-card continue-card" [routerLink]="['/books', book.id]">
+      <app-book-cover class="cover" [url]="book.coverUrl" [title]="book.title" />
+      <div class="continue-info">
+        <span class="eyebrow">Continuar escrevendo</span>
+        <h2>{{ book.title }}</h2>
+        <p class="muted small">
+          {{ book.chapterCount }} {{ book.chapterCount === 1 ? 'capítulo' : 'capítulos' }} ·
+          {{ formatCount(book.wordCount) }} palavras
+        </p>
+        <span class="open"><i class="pi pi-pencil"></i> Abrir</span>
+      </div>
+    </a>
+
+    <div class="stats">
+      <div class="glass-card stat">
+        <span class="value">{{ totalBooks() }}</span>
+        <span class="label">{{ totalBooks() === 1 ? 'livro' : 'livros' }}</span>
+      </div>
+      <div class="glass-card stat">
+        <span class="value">{{ totalChapters() }}</span>
+        <span class="label">{{ totalChapters() === 1 ? 'capítulo' : 'capítulos' }}</span>
+      </div>
+      <div class="glass-card stat">
+        <span class="value">{{ formatCount(totalWords()) }}</span>
+        <span class="label">palavras</span>
+      </div>
+    </div>
+
+    @if (recent().length > 0) {
+      <section>
+        <div class="section-header">
+          <h2>Outros livros</h2>
+          <a routerLink="/books">Ver todos</a>
+        </div>
+        <div class="recent">
+          @for (item of recent(); track item.id) {
+            <a class="recent-item" [routerLink]="['/books', item.id]">
+              <app-book-cover class="recent-cover" [url]="item.coverUrl" [title]="item.title" />
+              <span class="recent-title">{{ item.title }}</span>
+              <span class="muted small">{{ item.updatedAt | date: 'd MMM' }}</span>
+            </a>
+          }
+        </div>
+      </section>
+    }
+  } @else {
+    <div class="glass-card empty-state">
+      <i class="pi pi-sparkles"></i>
+      <h3>Sua primeira história começa aqui</h3>
+      <p class="muted">Fanfic ou universo original: crie um livro e escreva onde estiver, até no celular.</p>
+      <p-button label="Criar meu primeiro livro" icon="pi pi-plus" routerLink="/books/new" />
+    </div>
+  }
+</div>

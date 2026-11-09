@@ -1,0 +1,192 @@
+<div class="page narrow">
+  <a routerLink="/universes" class="back-link"><i class="pi pi-arrow-left"></i> Universos</a>
+
+  @if (loading()) {
+    <div class="center"><p-progress-spinner strokeWidth="4" /></div>
+  } @else if (error(); as message) {
+    <div class="glass-card empty-state">
+      <i class="pi pi-exclamation-circle"></i>
+      <p>{{ message }}</p>
+      <p-button label="Tentar de novo" severity="secondary" [outlined]="true" (onClick)="load()" />
+    </div>
+  } @else if (universe(); as universe) {
+    <div class="name-row">
+      <label for="universe-name" class="visually-hidden">Nome do universo</label>
+      <input id="universe-name" class="name-input" [ngModel]="draft().name" (ngModelChange)="setName($event)"
+        maxlength="120" placeholder="Nome do universo" autocomplete="off" />
+      <p class="muted small">
+        {{ universe.characterCount }} {{ universe.characterCount === 1 ? 'personagem' : 'personagens' }} ·
+        {{ universe.placeCount }} {{ universe.placeCount === 1 ? 'lugar' : 'lugares' }} ·
+        {{ universe.eventCount }} {{ universe.eventCount === 1 ? 'evento' : 'eventos' }}
+      </p>
+    </div>
+
+    @if (conflict()) {
+      <p-message severity="warn" styleClass="block-message">
+        <span>Este universo foi alterado em outro aparelho. Recarregue para ver a versão mais nova (as alterações
+          feitas aqui serão descartadas).</span>
+        <p-button label="Recarregar" size="small" severity="secondary" (onClick)="load()" />
+      </p-message>
+    }
+
+    <section class="glass-card portrait" aria-label="Seu universo">
+      <div class="portrait-head">
+        <span class="portrait-title">Seu universo</span>
+        <span class="muted small">{{ progress().filled }} de {{ progress().total }} detalhes</span>
+      </div>
+      <div class="meter" role="progressbar" [attr.aria-valuenow]="progress().filled" aria-valuemin="0"
+        [attr.aria-valuemax]="progress().total">
+        <span [style.width.%]="progress().total ? (100 * progress().filled) / progress().total : 0"></span>
+      </div>
+      @for (line of portrait(); track line.tab) {
+        <p class="portrait-line"><strong>{{ line.tab }}</strong> {{ line.text }}</p>
+      } @empty {
+        <p class="muted small portrait-empty">
+          Nada é obrigatório. Siga os passos na ordem que quiser; o universo vai se montando aqui.
+        </p>
+      }
+    </section>
+
+    <nav class="tabs" aria-label="Passos do universo">
+      @for (s of steps(); track s.key; let i = $index) {
+        <button type="button" class="tab" [class.on]="step()?.key === s.key"
+          [attr.aria-current]="step()?.key === s.key ? 'step' : null" (click)="goTo(s)">
+          <span class="step-number">{{ i + 1 }}</span> {{ s.label }}
+          @if (filledByStep()[s.key]) {
+            <span class="count">{{ filledByStep()[s.key] }}</span>
+          }
+        </button>
+      }
+    </nav>
+
+    @if (step(); as step) {
+      <section class="fields" [attr.aria-label]="step.label" [attr.data-step]="step.key">
+        <div class="tab-tools">
+          @if (step.help) {
+            <p class="muted small tab-help">{{ step.help }}</p>
+          }
+          @if (canRoll()) {
+            <p-button label="Sortear o que falta" icon="pi pi-sparkles" severity="secondary" [text]="true" size="small"
+              styleClass="roll" (onClick)="roll(step)" />
+          }
+        </div>
+
+        @if (step.key === 'peoples') {
+          <a class="glass-card world-link" [routerLink]="['/universes', universe.id, 'mundo']">
+            <i class="pi pi-sun" aria-hidden="true"></i>
+            <span>
+              <strong>Religiões, governos, idiomas e organizações</strong>
+              <small class="muted">Cada um com ficha própria e os lugares onde está presente</small>
+            </span>
+            <i class="pi pi-chevron-right muted" aria-hidden="true"></i>
+          </a>
+        }
+
+        @if (step.map) {
+          <div class="map">
+            @if (universe.mapUrl) {
+              <div class="map-image">
+                <img [src]="universe.mapUrl" alt="Mapa de {{ universe.name }}" />
+                @for (pin of pins(); track pin.id) {
+                  <a class="pin" [style.left.%]="(pin.mapX ?? 0) * 100" [style.top.%]="(pin.mapY ?? 0) * 100"
+                    [routerLink]="['/universes', universe.id, 'places', pin.id]" [attr.aria-label]="pin.name"
+                    [title]="pin.name"></a>
+                }
+              </div>
+              <a [href]="universe.mapUrl" target="_blank" rel="noopener" class="small full-size">
+                <i class="pi pi-external-link"></i> Abrir em tamanho cheio
+              </a>
+              <div class="map-actions">
+                <div class="map-buttons">
+                  <p-button label="Gerar outro" icon="pi pi-sparkles" severity="secondary" [outlined]="true"
+                    [routerLink]="['/universes', universe.id, 'mapa']" />
+                  <label for="map-file" class="p-button p-button-secondary p-button-text map-upload">
+                    <i class="pi pi-upload"></i> Enviar imagem
+                  </label>
+                </div>
+                <p-button label="Tirar" icon="pi pi-trash" severity="danger" [text]="true" (onClick)="confirmRemoveMap()" />
+              </div>
+            } @else {
+              <a class="map-generate" [routerLink]="['/universes', universe.id, 'mapa']">
+                <i class="pi pi-sparkles"></i>
+                <span class="map-title">Gerar um continente</span>
+                <span class="muted small">Relevo, rios, países e cidades com nomes, criados na hora</span>
+              </a>
+              <label for="map-file" class="map-empty" [class.busy]="uploadingMap()">
+                @if (uploadingMap()) {
+                  <p-progress-spinner strokeWidth="4" styleClass="map-spinner" />
+                  <span>Enviando o mapa…</span>
+                } @else {
+                  <i class="pi pi-upload"></i>
+                  <span class="map-title">Enviar um mapa meu</span>
+                  <span class="muted small">Foto do caderno, desenho ou imagem de outro programa</span>
+                }
+              </label>
+            }
+            <input id="map-file" type="file" accept="image/*" class="visually-hidden" [disabled]="uploadingMap()"
+              (change)="onMapSelected($event)" />
+          </div>
+
+          <app-map-places-card [universe]="universe" [places]="places()" [generated]="mapIsGenerated()"
+            [pinCount]="pins().length" (imported)="loadPlaces()" />
+        }
+
+        @for (field of step.fields; track field.key) {
+          <app-builder-field [field]="field" [value]="value(field)" (valueChange)="setValue(field, $event)" />
+        }
+
+        @if (collection(); as collection) {
+          <div class="items">
+            @for (item of items(); track item.id; let i = $index) {
+              <article class="glass-card item" [class.open]="openItem() === item.id" [attr.data-item]="item.id">
+                <button type="button" class="item-head" [attr.aria-expanded]="openItem() === item.id"
+                  (click)="toggleItem(item)">
+                  <span class="item-title">{{ itemTitle(collection, item, i) }}</span>
+                  <i class="pi" [class.pi-chevron-down]="openItem() !== item.id"
+                    [class.pi-chevron-up]="openItem() === item.id"></i>
+                </button>
+                @if (openItem() === item.id) {
+                  <div class="item-body">
+                    @for (field of collection.fields; track field.key) {
+                      <app-builder-field [field]="field" [value]="itemValue(item, field)"
+                        (valueChange)="setItemValue(item, field, $event)" />
+                    }
+                    <div class="item-actions">
+                      <p-button label="Sortear o que falta" icon="pi pi-sparkles" severity="secondary" [text]="true"
+                        size="small" (onClick)="rollItem(item)" />
+                      <p-button label="Excluir" icon="pi pi-trash" severity="danger" [text]="true" size="small"
+                        (onClick)="confirmRemoveItem(item, i)" />
+                    </div>
+                  </div>
+                }
+              </article>
+            }
+            @if (items().length < collection.max) {
+              <p-button [label]="collection.add" icon="pi pi-plus" severity="secondary" [outlined]="true"
+                styleClass="add-item" (onClick)="addItem()" />
+            }
+          </div>
+        }
+
+        @if (nextStep(); as next) {
+          <button type="button" class="next-tab" (click)="goTo(next)">
+            Próximo: {{ next.label }} <i class="pi pi-arrow-right"></i>
+          </button>
+        }
+      </section>
+    }
+
+    @if (dirty()) {
+      <div class="save-bar" role="region" aria-label="Alterações não salvas">
+        <span class="muted small">Alterações não salvas</span>
+        <div class="save-actions">
+          <p-button label="Descartar" severity="secondary" [text]="true" [disabled]="saving()" (onClick)="discard()" />
+          <p-button label="Salvar" icon="pi pi-check" [loading]="saving()" [disabled]="!draft().name.trim()"
+            (onClick)="save()" />
+        </div>
+      </div>
+    }
+  }
+</div>
+
+<p-confirmdialog [style]="{ width: 'min(420px, calc(100vw - 32px))' }" />

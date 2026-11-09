@@ -1,0 +1,188 @@
+.narrow {
+  max-width: 720px;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-height: var(--bs-touch);
+  color: var(--bs-ember);
+  font-size: .9rem;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:host ::ng-deep .block-message {
+  margin-bottom: .75rem;
+}
+
+.drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  min-height: 180px;
+  padding: 1.5rem;
+  border: 2px dashed rgba(234, 152, 70, .45);
+  border-radius: var(--bs-radius-lg);
+  background: var(--bs-surface);
+  cursor: pointer;
+  text-align: center;
+  transition: background .15s, border-color .15s;
+}
+
+.drop:hover,
+.drop.dragging {
+  background: var(--bs-surface-hover);
+  border-color: var(--bs-ember);
+}
+
+.drop .pi {
+  font-size: 2rem;
+  color: var(--bs-ember);
+}
+
+.drop-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.tips {
+  margin-top: 1.25rem;
+  line-height: 1.55;
+}
+
+.tips ul {
+  margin: .25rem 0 .75rem;
+  padding-left: 1.2rem;
+}
+
+.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .75rem;
+  padding: 3rem 0;
+}
+
+.summary {
+  margin-bottom: .75rem;
+}
+
+.file {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  min-width: 0;
+}
+
+.file .pi {
+  color: var(--bs-sand);
+}
+
+.file-name {
+  overflow-wrap: anywhere;
+}
+
+.totals {
+  margin: .5rem 0 .25rem;
+  font-size: 1.05rem;
+}
+
+.rule {
+  margin: 0 0 .75rem;
+}
+
+/* O styleClass do p-selectbutton vai para cada botão; o contêiner é estilizado pelo div de fora */
+.modes ::ng-deep .p-selectbutton {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+}
+
+.modes ::ng-deep .p-togglebutton {
+  width: 100%;
+  justify-content: center;
+}
+
+.chapters {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.chapter {
+  display: flex;
+  gap: .75rem;
+  padding: .75rem;
+  background: var(--bs-surface);
+  border: 1px solid rgba(255, 255, 255, .06);
+  border-radius: var(--bs-radius);
+}
+
+.number {
+  flex-shrink: 0;
+  width: 1.75rem;
+  color: var(--bs-sand);
+  font-variant-numeric: tabular-nums;
+}
+
+.chapter-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+}
+
+.chapter-title {
+  overflow-wrap: anywhere;
+}
+
+.excerpt {
+  margin-top: .2rem;
+  font-family: 'Literata', Georgia, serif;
+  font-size: .85rem;
+  color: var(--bs-text-soft);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+  position: sticky;
+  bottom: calc(var(--bs-bottom-nav-h) + var(--bs-safe-bottom) + .5rem);
+  padding: .5rem 0;
+  background: linear-gradient(to top, var(--bs-bg) 70%, transparent);
+}
+
+@media (min-width: 640px) {
+  .actions {
+    flex-direction: row-reverse;
+    justify-content: flex-start;
+    position: static;
+    background: none;
+  }
+
+  :host ::ng-deep .actions .full-width {
+    width: auto;
+  }
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}

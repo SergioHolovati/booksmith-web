@@ -1,0 +1,99 @@
+<div class="page narrow">
+  <a [routerLink]="['/books', bookId()]" class="back-link"><i class="pi pi-arrow-left"></i>
+    {{ book()?.title ?? 'Livro' }}</a>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Importar arquivo</h1>
+      <p class="page-subtitle">
+        Traga um texto que você já escreveu. Os capítulos entram no fim do livro, e nada do que já existe muda.
+      </p>
+    </div>
+  </div>
+
+  @if (error(); as message) {
+    <p-message severity="error" [text]="message" styleClass="block-message" />
+  }
+
+  @if (!plan() && !loading()) {
+    <label for="import-file" class="drop" [class.dragging]="dragging()" (dragover)="onDragOver($event)"
+      (dragleave)="dragging.set(false)" (drop)="onDrop($event)">
+      <i class="pi pi-file-import"></i>
+      <span class="drop-title">Escolher arquivo</span>
+      <span class="muted small">.docx, .odt, .txt ou .md · até 15 MB</span>
+    </label>
+    <input id="import-file" type="file" class="visually-hidden" [accept]="accept"
+      (change)="onFileSelected($event)" />
+
+    <div class="tips muted small">
+      <p><strong>De onde vem o arquivo:</strong></p>
+      <ul>
+        <li>Word: o próprio .docx (se for .doc antigo, use "Salvar como" → .docx).</li>
+        <li>Google Docs: Arquivo → Fazer download → Microsoft Word (.docx) ou OpenDocument (.odt).</li>
+        <li>LibreOffice: o próprio .odt. Pages ou WPS: exportar como Word (.docx).</li>
+        <li>Bloco de Notas, Obsidian e outros editores de texto: .txt ou .md.</li>
+      </ul>
+      <p>
+        Para separar em capítulos, use o estilo <strong>Título 1</strong> no nome de cada capítulo (no Markdown,
+        <strong>## Nome</strong>), ou comece cada um com uma linha como "Capítulo 1". Linhas só com
+        <strong>* * *</strong> viram quebras de cena.
+      </p>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="center">
+      <p-progress-spinner strokeWidth="4" />
+      <p class="muted">Lendo o arquivo…</p>
+    </div>
+  }
+
+  @if (plan(); as plan) {
+    @if (!loading()) {
+      <section class="glass-card summary">
+        <div class="file">
+          <i class="pi pi-file"></i>
+          <span class="file-name">{{ file()?.name }}</span>
+        </div>
+        <p class="totals">
+          <strong>{{ plan.chapters.length }} {{ plan.chapters.length === 1 ? 'capítulo' : 'capítulos' }}</strong>
+          · {{ formatCount(plan.totalWords) }} palavras
+        </p>
+        <p class="muted small rule">{{ ruleText() }}</p>
+
+        @if (autoChapters() > 1) {
+          <div class="modes">
+            <p-selectbutton [options]="modes" [ngModel]="mode()" (ngModelChange)="changeMode($event)"
+              optionLabel="label" optionValue="value" [allowEmpty]="false" />
+          </div>
+        }
+      </section>
+
+      @for (warning of plan.warnings; track warning) {
+        <p-message severity="warn" [text]="warning" styleClass="block-message" />
+      }
+
+      <ol class="chapters">
+        @for (chapter of plan.chapters; track $index; let i = $index) {
+          <li class="chapter">
+            <span class="number">{{ (book()?.chapters?.length ?? 0) + i + 1 }}</span>
+            <div class="chapter-text">
+              <span class="chapter-title">{{ chapter.title }}</span>
+              <span class="muted small">{{ formatCount(chapter.wordCount) }} palavras</span>
+              @if (chapter.excerpt) {
+                <span class="excerpt">{{ chapter.excerpt }}</span>
+              }
+            </div>
+          </li>
+        }
+      </ol>
+
+      <div class="actions">
+        <p-button [label]="importLabel()" icon="pi pi-check" styleClass="full-width" [loading]="importing()"
+          (onClick)="confirm()" />
+        <p-button label="Escolher outro arquivo" severity="secondary" [text]="true" [disabled]="importing()"
+          (onClick)="reset()" />
+      </div>
+    }
+  }
+</div>

@@ -1,0 +1,63 @@
+import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { Observable, catchError, from, map, switchMap, throwError } from 'rxjs';
+
+import { environment } from '../../../environments/environment';
+
+export type ExportFormat = 'epub' | 'pdf' | 'docx';
+
+export interface ExportedFile {
+  filename: string;
+  blob: Blob;
+}
+
+/** Baixar o livro em ePub, PDF de leitura ou Word. O arquivo é gerado na hora pela API. */
+@Injectable({ providedIn: 'root' })
+export class ExportApi {
+  private readonly http = inject(HttpClient);
+  private readonly base = environment.apiBaseUrl;
+
+  download(bookId: string, format: ExportFormat): Observable<ExportedFile> {
+    return this.http
+      .get(`${this.base}/books/${bookId}/export/${format}`, { observe: 'response', responseType: 'blob' })
+      .pipe(
+        map((response: HttpResponse<Blob>) => ({
+          filename: filenameOf(response.headers.get('Content-Disposition')) ?? `livro.${format}`,
+          blob: response.body ?? new Blob(),
+        })),
+        catchError((error: unknown) => from(withJsonBody(error)).pipe(switchMap((parsed) => throwError(() => parsed)))),
+      );
+  }
+}
+
+/** Nome do arquivo no Content-Disposition (prefere o filename* em UTF-8). */
+export function filenameOf(header: string | null): string | null {
+  if (!header) {
+    return null;
+  }
+  const encoded = /filename\*=UTF-8''([^;]+)/i.exec(header);
+  if (encoded) {
+    return decodeURIComponent(encoded[1].trim());
+  }
+  const plain = /filename="?([^";]+)"?/i.exec(header);
+  return plain ? plain[1].trim() : null;
+}
+
+/** Com responseType blob, o erro também chega como Blob: converte para o JSON do ProblemDetail. */
+async function withJsonBody(error: unknown): Promise<unknown> {
+  if (!(error instanceof HttpErrorResponse) || !(error.error instanceof Blob)) {
+    return error;
+  }
+  try {
+    const body = JSON.parse(await error.error.text());
+    return new HttpErrorResponse({
+      error: body,
+      headers: error.headers,
+      status: error.status,
+      statusText: error.statusText,
+      url: error.url ?? undefined,
+    });
+  } catch {
+    return error;
+  }
+}

@@ -1,0 +1,101 @@
+@let f = field();
+<div class="field" [attr.data-field]="f.key">
+  <span class="field-label" [id]="'label-' + f.key">{{ f.label }}</span>
+
+  @switch (f.type) {
+    @case ('color') {
+      <div class="swatches" role="group" [attr.aria-labelledby]="'label-' + f.key">
+        @for (option of f.options; track option.value) {
+          <button type="button" class="swatch" [class.on]="value() === option.value"
+            [attr.aria-pressed]="value() === option.value" (click)="choose(option.value)">
+            <span class="dot" [style.background]="option.hex ?? 'conic-gradient(#4f7a3a 0 50%, #6b4423 0)'"></span>
+            <span class="swatch-label">{{ option.label }}</span>
+          </button>
+        }
+        @if (f.allowCustom) {
+          <button type="button" class="swatch" [class.on]="customValue() !== ''" [attr.aria-pressed]="customValue() !== ''"
+            (click)="openCustom()">
+            <span class="dot other"><i class="pi pi-pencil"></i></span>
+            <span class="swatch-label">Outra</span>
+          </button>
+        }
+      </div>
+    }
+    @case ('choice') {
+      <div class="chips" role="group" [attr.aria-labelledby]="'label-' + f.key">
+        @for (option of f.options; track option.value) {
+          <button type="button" class="chip" [class.on]="value() === option.value"
+            [attr.aria-pressed]="value() === option.value" (click)="choose(option.value)">
+            {{ option.label }}
+          </button>
+        }
+        @if (f.allowCustom) {
+          <button type="button" class="chip" [class.on]="customValue() !== ''" [attr.aria-pressed]="customValue() !== ''"
+            (click)="openCustom()">Outro…</button>
+        }
+      </div>
+    }
+    @case ('multi') {
+      <div class="chips" role="group" [attr.aria-labelledby]="'label-' + f.key">
+        @for (option of f.options; track option.value) {
+          <button type="button" class="chip" [class.on]="list().includes(option.value)"
+            [attr.aria-pressed]="list().includes(option.value)" (click)="toggle(option.value)">
+            {{ option.label }}
+          </button>
+        }
+        @for (item of customItems(); track item) {
+          <button type="button" class="chip on" [attr.aria-label]="'Remover ' + item" (click)="toggle(item)">
+            {{ item }} <i class="pi pi-times"></i>
+          </button>
+        }
+      </div>
+      @if (f.allowCustom) {
+        <div class="custom-add">
+          <input #custom pInputText [attr.aria-label]="f.label + ': outro'" placeholder="Outro…" maxlength="80"
+            (keydown.enter)="$event.preventDefault(); addCustomItem(custom)" />
+          <p-button icon="pi pi-plus" severity="secondary" [outlined]="true" [ariaLabel]="'Adicionar a ' + f.label"
+            (onClick)="addCustomItem(custom)" />
+        </div>
+      }
+    }
+    @case ('scale') {
+      <div class="scale">
+        <input type="range" [min]="f.min" [max]="f.max" step="1" [value]="scalePosition()"
+          [class.unset]="value() === undefined" [attr.aria-labelledby]="'label-' + f.key"
+          [attr.aria-valuetext]="scaleLabel()" (input)="setScale(+$any($event.target).value)" />
+        @if (f.poles; as poles) {
+          <div class="poles">
+            <span aria-hidden="true">{{ poles[0] }}</span>
+            <strong class="pole-value" [class.muted]="value() === undefined">{{ scaleLabel() }}</strong>
+            <span aria-hidden="true">{{ poles[1] }}</span>
+          </div>
+        }
+        <div class="scale-info">
+          @if (!f.poles) {
+            <span [class.muted]="value() === undefined">{{ scaleLabel() }}</span>
+          }
+          @if (value() !== undefined) {
+            <button type="button" class="link" (click)="setScale(null)">Limpar</button>
+          }
+        </div>
+      </div>
+    }
+    @case ('text') {
+      <input pInputText [attr.aria-labelledby]="'label-' + f.key" [placeholder]="f.placeholder ?? ''"
+        [ngModel]="value() ?? ''" (ngModelChange)="setText($event)" maxlength="200" />
+    }
+    @case ('longtext') {
+      <textarea pTextarea [attr.aria-labelledby]="'label-' + f.key" [autoResize]="true" rows="3"
+        [placeholder]="f.placeholder ?? ''" [ngModel]="value() ?? ''" (ngModelChange)="setText($event)"
+        maxlength="2000"></textarea>
+    }
+  }
+
+  @if ((f.type === 'choice' || f.type === 'color') && isCustomOpen()) {
+    <input pInputText class="custom-input" [attr.aria-label]="f.label + ': outro'"
+      placeholder="Descreva com suas palavras" maxlength="80" [ngModel]="customValue()" (ngModelChange)="setText($event)" />
+  }
+  @if (f.help) {
+    <small class="muted">{{ f.help }}</small>
+  }
+</div>

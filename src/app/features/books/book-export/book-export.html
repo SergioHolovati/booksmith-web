@@ -1,0 +1,68 @@
+<div class="page narrow">
+  <a [routerLink]="['/books', bookId()]" class="back-link"><i class="pi pi-arrow-left"></i> {{ book()?.title ?? 'Livro' }}</a>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Baixar o livro</h1>
+      <p class="page-subtitle">O arquivo é feito na hora, com o texto de agora. Seu livro continua aqui do mesmo jeito.</p>
+    </div>
+  </div>
+
+  @if (loadError(); as message) {
+    <p-message severity="error" [text]="message" styleClass="block-message" />
+  } @else if (book(); as book) {
+    @if (book.chapters.length === 0) {
+      <div class="glass-card empty-state">
+        <i class="pi pi-file"></i>
+        <h3>Ainda não há o que baixar</h3>
+        <p class="muted">Escreva o primeiro capítulo, ou importe um arquivo, e volte aqui.</p>
+      </div>
+    } @else {
+      @if (book.kind === 'FANFIC') {
+        <p-message severity="info" styleClass="block-message"
+          text="Fanfic sai como edição de fã: uma página de aviso diz que é para uso pessoal, sem venda, e dá os créditos à obra original." />
+      }
+      <ul class="formats">
+        @for (option of formats; track option.format) {
+          <li class="format glass-card" [attr.data-format]="option.format">
+            <div class="format-head">
+              <i [class]="option.icon" aria-hidden="true"></i>
+              <div>
+                <h2>{{ option.title }}</h2>
+                <p class="muted">{{ option.description }}</p>
+              </div>
+            </div>
+
+            @if (ready()[option.format]; as file) {
+              <div class="ready">
+                <p class="file"><i class="pi pi-check-circle"></i> {{ file.filename }} · {{ fileSize(file.blob.size) }}</p>
+                <div class="ready-actions">
+                  <p-button label="Salvar no aparelho" icon="pi pi-download" (onClick)="save(file)" />
+                  @if (canShare(file)) {
+                    <p-button label="Enviar para…" icon="pi pi-share-alt" severity="secondary" [outlined]="true"
+                      (onClick)="share(file)" />
+                  }
+                  <p-button label="Gerar de novo" severity="secondary" [text]="true"
+                    [loading]="generating() === option.format" [disabled]="generating() !== null"
+                    (onClick)="generate(option.format)" />
+                </div>
+              </div>
+            } @else {
+              <p-button [label]="'Gerar ' + option.title" icon="pi pi-cog" styleClass="full-width"
+                [loading]="generating() === option.format" [disabled]="generating() !== null"
+                (onClick)="generate(option.format)" />
+            }
+            @if (errors()[option.format]; as message) {
+              <p-message severity="error" [text]="message" styleClass="block-message" />
+            }
+          </li>
+        }
+      </ul>
+      <p class="muted small hint">
+        PDF para gráfica (com sangria e cores de impressão) e capa completa chegam com a diagramação.
+      </p>
+    }
+  } @else {
+    <div class="center"><p-progress-spinner strokeWidth="4" /></div>
+  }
+</div>

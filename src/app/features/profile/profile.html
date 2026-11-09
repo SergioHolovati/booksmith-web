@@ -1,0 +1,140 @@
+<div class="page narrow">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Perfil</h1>
+      <p class="page-subtitle">Sua conta e como os leitores vão te conhecer</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading"><p-progress-spinner strokeWidth="4" /></div>
+  } @else {
+    @if (message(); as text) {
+      <p-message severity="error" [text]="text" styleClass="mb-3" />
+    }
+
+    @if (profile(); as profile) {
+      <section class="glass-card account">
+        <div class="avatar" aria-hidden="true">
+          @if (profile.author?.avatarUrl) {
+            <img [src]="profile.author?.avatarUrl" alt="" />
+          } @else {
+            {{ profile.user.displayName.charAt(0).toUpperCase() }}
+          }
+        </div>
+        <div class="account-info">
+          <h2>{{ profile.user.displayName }}</h2>
+          <p class="muted small">{{ profile.user.email }}</p>
+          @if (profile.author) {
+            <p class="pen-name">Autor como <strong>{{ profile.author.penName }}</strong></p>
+          }
+        </div>
+      </section>
+
+      @if (!editingAuthor()) {
+        <section class="glass-card author-cta">
+          @if (profile.author) {
+            <p>{{ profile.author.bio }}</p>
+            <p class="muted small">{{ profile.author.bookGenres.join(' · ') }}</p>
+            <p-button label="Editar perfil de autor" icon="pi pi-pencil" severity="secondary" [outlined]="true"
+              (onClick)="editingAuthor.set(true)" />
+          } @else {
+            <h3>Perfil de autor</h3>
+            <p class="muted">Opcional para escrever. Será usado quando você publicar suas histórias para leitores.</p>
+            <p-button label="Criar perfil de autor" icon="pi pi-user-plus" (onClick)="editingAuthor.set(true)" />
+          }
+        </section>
+      } @else {
+        <form class="glass-card form" [formGroup]="form" (ngSubmit)="saveAuthor()">
+          <div class="avatar-picker">
+            <label for="avatar" class="avatar large">
+              @if (avatarPreview()) {
+                <img [src]="avatarPreview()" alt="Avatar" />
+              } @else {
+                <i class="pi pi-camera"></i>
+              }
+            </label>
+            <input id="avatar" type="file" accept="image/*" class="visually-hidden" (change)="onAvatarSelected($event)" />
+            <label for="avatar" class="avatar-link">Escolher foto</label>
+          </div>
+
+          <div class="field">
+            <label for="penName">Nome de autor</label>
+            <input id="penName" pInputText formControlName="penName" placeholder="Como você assina suas histórias" />
+            @if (invalid('penName')) {
+              <small class="error-text">Informe o nome com que você assina.</small>
+            }
+          </div>
+
+          <div class="field">
+            <label for="bio">Bio</label>
+            <textarea id="bio" pTextarea formControlName="bio" rows="4"
+              placeholder="Conte um pouco sobre você e o que escreve"></textarea>
+            @if (invalid('bio')) {
+              <small class="error-text">Escreva uma bio curta.</small>
+            }
+          </div>
+
+          <div class="field">
+            <label for="genres">Gêneros</label>
+            <p-autocomplete inputId="genres" formControlName="bookGenres" [multiple]="true" [typeahead]="false" [addOnBlur]="true" separator=","
+              placeholder="Fantasia, romance…" styleClass="full-width" />
+            @if (invalid('bookGenres')) {
+              <small class="error-text">Escolha ao menos um gênero.</small>
+            } @else {
+              <small class="field-hint">Separe com vírgula ou Enter.</small>
+            }
+          </div>
+
+          <div class="field">
+            <label for="styles">Estilos de escrita <span class="muted small">(opcional)</span></label>
+            <p-autocomplete inputId="styles" formControlName="writingStyles" [multiple]="true" [typeahead]="false" [addOnBlur]="true" separator=","
+              styleClass="full-width" />
+          </div>
+
+          <div class="field">
+            <label for="refs">Autores que te inspiram <span class="muted small">(opcional)</span></label>
+            <p-autocomplete inputId="refs" formControlName="authorReferences" [multiple]="true" [typeahead]="false" [addOnBlur]="true" separator=","
+              styleClass="full-width" />
+          </div>
+
+          <div class="two-cols">
+            <div class="field">
+              <label for="audience">Público</label>
+              <p-select inputId="audience" [options]="audiences" formControlName="audience" placeholder="Escolha"
+                styleClass="full-width" />
+              @if (invalid('audience')) {
+                <small class="error-text">Escolha o público.</small>
+              }
+            </div>
+            <div class="field">
+              <label for="language">Idioma</label>
+              <p-select inputId="language" [options]="languages" formControlName="language" styleClass="full-width" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="links">Redes sociais <span class="muted small">(opcional)</span></label>
+            <p-autocomplete inputId="links" formControlName="socialLinks" [multiple]="true" [typeahead]="false" [addOnBlur]="true" separator=","
+              placeholder="https://…" styleClass="full-width" />
+          </div>
+
+          @if (formError(); as text) {
+            <p-message severity="error" [text]="text" styleClass="form-error" />
+          }
+
+          <div class="actions">
+            <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="editingAuthor.set(false)" />
+            <p-button type="submit" label="Salvar" icon="pi pi-check" [loading]="saving()" />
+          </div>
+        </form>
+      }
+
+      <a routerLink="/sessions" class="trash-link"><i class="pi pi-mobile"></i> Aparelhos conectados</a>
+      <a routerLink="/trash" class="trash-link"><i class="pi pi-trash"></i> Lixeira (itens excluídos nos últimos 30 dias)</a>
+
+      <p-button label="Sair da conta" icon="pi pi-sign-out" severity="secondary" [text]="true" (onClick)="logout()"
+        styleClass="logout" />
+    }
+  }
+</div>

@@ -1,0 +1,95 @@
+<div class="page">
+  <a [routerLink]="['/universes', universeId()]" [queryParams]="{ passo: 'map' }" class="back-link">
+    <i class="pi pi-arrow-left"></i> {{ universe()?.name ?? 'Universo' }}
+  </a>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Gerar mapa</h1>
+      <p class="page-subtitle">
+        Um continente inventado na hora, sem IA: relevo, clima, rios, países e cidades com nomes. Gere quantos quiser.
+      </p>
+    </div>
+  </div>
+
+  @if (error(); as message) {
+    <div class="glass-card empty-state">
+      <i class="pi pi-exclamation-circle"></i>
+      <p>{{ message }}</p>
+    </div>
+  } @else {
+    <div class="layout">
+      <section class="preview">
+        <div class="canvas-frame" [class.busy]="generating()">
+          <canvas #map aria-label="Mapa gerado" role="img"></canvas>
+          @if (generating()) {
+            <div class="overlay"><p-progress-spinner strokeWidth="4" styleClass="spinner" /><span>Criando o mundo…</span></div>
+          }
+        </div>
+        <div class="main-actions">
+          <p-button label="Gerar outro" icon="pi pi-refresh" severity="secondary" [outlined]="true"
+            [disabled]="generating()" (onClick)="another()" />
+          <p-button label="Usar este mapa" icon="pi pi-check" [loading]="saving()" [disabled]="generating() || !world()"
+            (onClick)="use()" />
+        </div>
+      </section>
+
+      <section class="glass-card controls" aria-label="Ajustes do mapa">
+        <div class="control">
+          <span class="control-label" id="size-label">Tamanho</span>
+          <p-selectbutton [options]="sizes" optionLabel="label" optionValue="value" [allowEmpty]="false"
+            [ngModel]="settings().size" (ngModelChange)="change('size', $event)" ariaLabelledBy="size-label" />
+        </div>
+        <div class="control">
+          <span class="control-label" id="land-label">Terra e mar</span>
+          <p-selectbutton [options]="lands" optionLabel="label" optionValue="value" [allowEmpty]="false"
+            [ngModel]="settings().land" (ngModelChange)="change('land', $event)" ariaLabelledBy="land-label" />
+        </div>
+        <div class="control">
+          <label class="control-label" for="countries">Países: <strong>{{ settings().countries }}</strong></label>
+          <input id="countries" type="range" min="1" [max]="maxCountries" step="1" [value]="settings().countries"
+            (change)="changeCountries(+$any($event.target).value)" />
+        </div>
+        <div class="control">
+          <span class="control-label" id="climate-label">Clima</span>
+          <p-selectbutton [options]="climates" optionLabel="label" optionValue="value" [allowEmpty]="false"
+            [ngModel]="settings().climate" (ngModelChange)="change('climate', $event)" ariaLabelledBy="climate-label" />
+        </div>
+        <div class="control">
+          <span class="control-label" id="style-label">Estilo</span>
+          <p-selectbutton [options]="styles" optionLabel="label" optionValue="value" [allowEmpty]="false"
+            [ngModel]="settings().style" (ngModelChange)="change('style', $event)" ariaLabelledBy="style-label" />
+        </div>
+        <div class="control">
+          <label class="control-label" for="seed">Semente</label>
+          <input id="seed" pInputText [ngModel]="settings().seed" (change)="changeSeed($any($event.target).value)"
+            maxlength="40" autocomplete="off" />
+          <small class="muted">A mesma semente, com os mesmos ajustes, gera sempre o mesmo mapa.</small>
+        </div>
+      </section>
+    </div>
+
+    @if (summary().length > 0) {
+      <section class="glass-card contents" aria-label="O que tem no mapa">
+        <h2 class="contents-title">Neste mapa</h2>
+        <ul class="countries">
+          @for (c of summary(); track c.name) {
+            <li>
+              <span class="swatch" [style.background]="c.color"></span>
+              <strong>{{ c.name }}</strong>
+              <span class="muted small">capital {{ c.capital }} · {{ c.places }} {{ c.places === 1 ? 'cidade' : 'cidades e vilas' }}</span>
+            </li>
+          }
+        </ul>
+        @if (features().length > 0) {
+          <p class="muted small">{{ features().join(' · ') }}</p>
+        }
+        <p class="muted small">
+          Logo os países, cidades e florestas daqui vão poder virar lugares do universo, com ficha própria.
+        </p>
+      </section>
+    }
+  }
+</div>
+
+<p-confirmdialog [style]="{ width: 'min(420px, calc(100vw - 32px))' }" />

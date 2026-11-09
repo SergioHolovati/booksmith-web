@@ -1,0 +1,50 @@
+<div class="page narrow">
+  <a routerLink="/profile" class="back-link"><i class="pi pi-arrow-left"></i> Perfil</a>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Aparelhos conectados</h1>
+      <p class="page-subtitle">Onde sua conta está aberta. Desconecte o que você não reconhece ou não usa mais.</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="center"><p-progress-spinner strokeWidth="4" /></div>
+  } @else if (error(); as message) {
+    <div class="glass-card empty-state">
+      <i class="pi pi-wifi"></i>
+      <p>{{ message }}</p>
+      <p-button label="Tentar de novo" severity="secondary" [outlined]="true" (onClick)="load()" />
+    </div>
+  } @else {
+    <ul class="items">
+      @for (session of sessions(); track session.id) {
+        <li class="item" [class.current]="session.current">
+          <i class="pi type-icon" [class]="icon(session)"></i>
+          <div class="item-text">
+            <span class="item-title">{{ session.device }}</span>
+            <small [class.here]="session.current" class="muted">{{ lastActive(session) }}</small>
+          </div>
+          @if (!session.current) {
+            <p-button label="Desconectar" size="small" severity="secondary" [outlined]="true"
+              [loading]="ending() === session.id" [disabled]="ending() !== null && ending() !== session.id"
+              [ariaLabel]="'Desconectar ' + session.device" (onClick)="end(session)" />
+          }
+        </li>
+      }
+    </ul>
+
+    @if (others().length > 0) {
+      <p-button label="Desconectar todos os outros aparelhos" icon="pi pi-sign-out" severity="danger"
+        [outlined]="true" styleClass="end-all" [loading]="ending() === 'others'"
+        [disabled]="ending() !== null && ending() !== 'others'" (onClick)="endOthers()" />
+    } @else {
+      <p class="muted small alone">Sua conta só está aberta neste aparelho.</p>
+    }
+
+    <p class="muted small hint">
+      Perdeu o celular ou acha que alguém sabe sua senha? Desconecte os aparelhos e troque a senha
+      em "Esqueci minha senha": trocar a senha também desconecta todos eles.
+    </p>
+  }
+</div>

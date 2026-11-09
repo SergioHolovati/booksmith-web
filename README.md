@@ -1,83 +1,38 @@
-# BooksmithWeb
+# Booksmith Web
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.11.
+App Angular 21 do Booksmith: **mobile-first** e instalável (PWA). O escritor pode escrever o livro inteiro no celular,
+inclusive sem sinal. A definição completa está em [`../arquitetura-tecnica.md`](../arquitetura-tecnica.md) (§23).
 
-## Development server
-
-To start a local development server, run:
-
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Rodar
 
 ```bash
-ng generate component component-name
+npm install
+npm start              # http://localhost:4200 (a API em :8090 é acessada pelo proxy em proxy.conf.json)
+npm run start:mobile   # expõe na rede local: abra http://<ip-do-computador>:4200 no celular
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+A API precisa estar rodando (veja `../booksmith/README.md`).
+
+## Testes e build
 
 ```bash
-ng generate --help
+npm test -- --watch=false
+npm run build          # produção, com service worker
 ```
 
-## Building
+## Estrutura
 
-To build the project run:
-
-```bash
-ng build
+```
+src/app
+├── core/          # API, autenticação (token + refresh), modelos, utilitários (rascunho offline, imagem, palavras)
+├── layout/        # shell: barra superior + navegação inferior (celular) / barra lateral (desktop)
+└── features/
+    ├── auth/      # login, cadastro, esqueci/redefinir senha, callback do Google
+    ├── home/      # "continuar escrevendo"
+    ├── books/     # lista, formulário, detalhe com capítulos
+    ├── editor/    # editor em tela cheia (TipTap) + esquema do documento + autosave
+    └── profile/   # conta e perfil de autor
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
-
-
-## architecture
-```app
-│── core
-│   ├── interceptors
-│   ├── guards
-│   ├── services
-│   └── models
-│
-│── shared
-│   ├── components
-│   └── ui
-│
-│── features
-│   ├── auth
-│   ├── dashboard
-│   └── books
-│       ├── pages
-│       ├── components
-│       ├── services
-│       └── models
-│
-└── layout´´´
+O esquema do editor (`features/editor/schema`) espelha o validador do backend (`ManuscriptDocument.java`):
+qualquer nó ou formatação nova precisa ser adicionada nos dois lados.

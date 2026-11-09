@@ -1,173 +1,31 @@
-import {
-  Component,
-  OnInit,
-  ViewChild
-} from '@angular/core';
+import { Component, computed, inject, viewChild } from '@angular/core';
+import { Router } from '@angular/router';
+import { MenuItem } from 'primeng/api';
+import { Menu, MenuModule } from 'primeng/menu';
 
-import {
-  Router
-} from '@angular/router';
-
-import {
-  MenuItem
-} from 'primeng/api';
-
-import {
-  Menu
-} from 'primeng/menu';
-
-import {
-  AvatarModule
-} from 'primeng/avatar';
-
-import {
-  MenuModule
-} from 'primeng/menu';
-
-import { AuthService }
-from '../../core/services/auth-service';
+import { AuthService } from '../../core/auth/auth.service';
 
 @Component({
   selector: 'app-topbar',
-  standalone: true,
-  imports: [
-    AvatarModule,
-    MenuModule
-  ],
+  imports: [MenuModule],
   templateUrl: './topbar.html',
-  styleUrl: './topbar.scss'
+  styleUrl: './topbar.scss',
 })
-export class TopbarComponent
-implements OnInit {
+export class TopbarComponent {
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly menu = viewChild.required<Menu>('menu');
 
-  @ViewChild('menu')
-  menu!: Menu;
+  readonly firstName = computed(() => this.auth.user()?.displayName.split(' ')[0] ?? 'Escritor');
+  readonly initial = computed(() => this.firstName().charAt(0).toUpperCase());
 
-  userName =
-    'User';
-
-  menuItems:
-    MenuItem[] = [];
-
-  avatarUrl =
-    'assets/image/avatar-placeholder.png';
-
-  constructor(
-    private authService:
-      AuthService,
-
-    private router:
-      Router
-  ) {}
-
-  ngOnInit():
-  void {
-
-    this.loadUserName();
-
-    this.buildMenu();
-  }
-
-  private loadUserName():
-  void {
-
-    this.userName =
-      this.authService
-        .getUserName();
-    }
-
-private buildMenu():
-void {
-
-  const isAuthor =
-    this.authService
-      .isAuthor();
-
-  this.menuItems = [
-
-    {
-      label:
-        'Edit Profile',
-
-      icon:
-        'pi pi-user-edit',
-
-      command: () => {
-
-        this.router.navigate([
-          '/profile/edit'
-        ]);
-      }
-    },
-
-    ...(
-      !isAuthor
-        ? [
-            {
-              label:
-                'Become Author',
-
-              icon:
-                'pi pi-pencil',
-
-              command: () => {
-
-                this.router.navigate([
-                  '/become-author'
-                ]);
-              }
-            }
-          ]
-        : [
-            {
-              label:
-                'Author Profile',
-
-              icon:
-                'pi pi-book',
-
-              command: () => {
-
-                this.router.navigate([
-                  '/author/profile'
-                ]);
-              }
-            }
-          ]
-    ),
-
-    {
-      separator:
-        true
-    },
-
-    {
-      label:
-        'Logout',
-
-      icon:
-        'pi pi-sign-out',
-
-      command: () => {
-
-        this.logout();
-      }
-    }
+  readonly menuItems: MenuItem[] = [
+    { label: 'Meu perfil', icon: 'pi pi-user-edit', command: () => this.router.navigate(['/profile']) },
+    { separator: true },
+    { label: 'Sair', icon: 'pi pi-sign-out', command: () => this.auth.logout() },
   ];
-}
-  async logout():
-  Promise<void> {
 
-    await this.authService
-      .logout();
-  }
-
-  toggleMenu(
-    event: Event
-  ): void {
-
-    this.menu.toggle(
-      event
-    );
+  toggleMenu(event: Event): void {
+    this.menu().toggle(event);
   }
 }

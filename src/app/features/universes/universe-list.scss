@@ -1,0 +1,135 @@
+.narrow {
+  max-width: 720px;
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  padding: 4rem 0;
+}
+
+.universe {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .75rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+}
+
+.universe-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  width: 100%;
+}
+
+.universe-name {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: .5rem;
+  min-width: 0;
+  margin: 0;
+  font-family: 'Literata', Georgia, serif;
+  font-size: 1.25rem;
+  overflow-wrap: anywhere;
+}
+
+.universe-name i {
+  color: var(--bs-ember);
+}
+
+a.universe-name {
+  color: var(--bs-text);
+}
+
+.premise {
+  display: flex;
+  gap: .75rem;
+  align-items: flex-start;
+  width: 100%;
+  color: var(--bs-text-soft);
+  font-size: .9rem;
+  line-height: 1.45;
+}
+
+.map-thumb {
+  flex-shrink: 0;
+  width: 72px;
+  height: 72px;
+  border-radius: var(--bs-radius-sm);
+  border: 1px solid var(--bs-border);
+  object-fit: cover;
+}
+
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+
+.rename {
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+  width: 100%;
+}
+
+.rename input {
+  flex: 1;
+  min-width: 0;
+}
+
+.counts {
+  margin: 0;
+}
+
+.books {
+  display: flex;
+  gap: .75rem;
+  width: 100%;
+  margin: 0;
+  padding: 0 0 .25rem;
+  list-style: none;
+  overflow-x: auto;
+}
+
+.book {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  width: 84px;
+  color: var(--bs-text);
+}
+
+.cover {
+  display: block;
+  width: 84px;
+}
+
+.book-title {
+  font-size: .8rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .25rem 1rem;
+}
+
+.links a {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  min-height: var(--bs-touch);
+  color: var(--bs-ember);
+  font-size: .9rem;
+}
+
+.hint {
+  margin-top: 1.5rem;
+}

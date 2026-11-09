@@ -6,7 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "start:mobile": "ng serve --host 0.0.0.0"
   },
   "private": true,
   "packageManager": "npm@11.14.1",
@@ -18,8 +19,13 @@
     "@angular/forms": "^21.2.0",
     "@angular/platform-browser": "^21.2.0",
     "@angular/router": "^21.2.0",
+    "@angular/service-worker": "^21.2.13",
     "@primeng/themes": "^21.0.4",
     "@primeuix/themes": "^2.0.3",
+    "@tiptap/core": "^3.33.0",
+    "@tiptap/extensions": "^3.33.0",
+    "@tiptap/pm": "^3.33.0",
+    "@tiptap/starter-kit": "^3.33.0",
     "chart.js": "^4.5.1",
     "primeicons": "^7.0.0",
     "primeng": "^21.1.8",

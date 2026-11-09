@@ -1,19 +1,15 @@
 <div class="sidebar-container">
-
   <div class="brand-area">
-
-    <h2 class="m-0">
-      Booksmith AI
-    </h2>
-
-    <small>
-      Author Workspace
-    </small>
-
+    <h2>Booksmith AI</h2>
+    <small>Author Workspace</small>
   </div>
 
-  <p-menu
-    [model]="items"
-  />
-
+  <nav class="menu" aria-label="Navegação principal">
+    @for (item of items; track item.link) {
+      <a [routerLink]="item.link" routerLinkActive="active" class="menu-item">
+        <i [class]="item.icon" aria-hidden="true"></i>
+        <span>{{ item.label }}</span>
+      </a>
+    }
+  </nav>
 </div>

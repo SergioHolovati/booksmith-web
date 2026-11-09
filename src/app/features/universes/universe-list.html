@@ -1,0 +1,109 @@
+<div class="page narrow">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Universos</h1>
+      <p class="page-subtitle">
+        Construa o mundo (ideia, mapa, magia, leis) e escreva quantos livros quiser nele: uma série usa os mesmos
+        personagens, lugares e linha do tempo.
+      </p>
+    </div>
+    <p-button label="Criar universo" icon="pi pi-plus" [loading]="creating()" (onClick)="create()" />
+  </div>
+
+  @if (loading()) {
+    <div class="center"><p-progress-spinner strokeWidth="4" /></div>
+  } @else if (error(); as message) {
+    <div class="glass-card empty-state">
+      <i class="pi pi-wifi"></i>
+      <p>{{ message }}</p>
+      <p-button label="Tentar de novo" severity="secondary" [outlined]="true" (onClick)="load()" />
+    </div>
+  } @else {
+    @for (card of cards(); track card.universe.id) {
+      <section class="glass-card universe" [attr.data-universe]="card.universe.id">
+        <div class="universe-head">
+          @if (renaming() === card.universe.id) {
+            <form class="rename" (ngSubmit)="rename(card.universe)">
+              <label class="visually-hidden" [for]="'name-' + card.universe.id">Nome do universo</label>
+              <input pInputText [id]="'name-' + card.universe.id" name="name" [ngModel]="newName()"
+                (ngModelChange)="newName.set($event)" maxlength="120" autocomplete="off" />
+              <p-button type="submit" icon="pi pi-check" ariaLabel="Salvar nome" [loading]="saving()" />
+              <p-button icon="pi pi-times" severity="secondary" [text]="true" ariaLabel="Cancelar"
+                (onClick)="renaming.set(null)" />
+            </form>
+          } @else {
+            <a class="universe-name" [routerLink]="['/universes', card.universe.id]">
+              <i class="pi pi-globe"></i> {{ card.universe.name }}
+            </a>
+            <p-button icon="pi pi-pencil" severity="secondary" [text]="true" size="small"
+              [ariaLabel]="'Renomear ' + card.universe.name" (onClick)="startRename(card.universe)" />
+          }
+        </div>
+
+        @if (card.universe.mapUrl || card.universe.premise) {
+          <a class="premise" [routerLink]="['/universes', card.universe.id]">
+            @if (card.universe.mapUrl) {
+              <img class="map-thumb" [src]="card.universe.mapUrl" alt="" />
+            }
+            @if (card.universe.premise) {
+              <span>{{ card.universe.premise }}</span>
+            }
+          </a>
+        }
+
+        <p class="muted small counts">
+          {{ card.books.length }} {{ card.books.length === 1 ? 'livro' : 'livros' }} ·
+          {{ card.universe.characterCount }} {{ card.universe.characterCount === 1 ? 'personagem' : 'personagens' }} ·
+          {{ card.universe.placeCount }} {{ card.universe.placeCount === 1 ? 'lugar' : 'lugares' }} ·
+          {{ card.universe.eventCount }} {{ card.universe.eventCount === 1 ? 'evento' : 'eventos' }}
+          @if (card.universe.magicCount) {
+            · {{ card.universe.magicCount }} {{ card.universe.magicCount === 1 ? 'magia' : 'magias' }}
+          }
+          @if (card.universe.lawCount) {
+            · {{ card.universe.lawCount }} {{ card.universe.lawCount === 1 ? 'lei' : 'leis' }}
+          }
+        </p>
+
+        @if (card.books.length > 0) {
+          <ul class="books">
+            @for (book of card.books; track book.id) {
+              <li>
+                <a class="book" [routerLink]="['/books', book.id]">
+                  <app-book-cover class="cover" [url]="book.coverUrl" [title]="book.title" />
+                  <span class="book-title">{{ book.title }}</span>
+                </a>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="muted small">Nenhum livro neste universo ainda.</p>
+        }
+        <div class="links">
+          <a [routerLink]="['/universes', card.universe.id, 'places']"><i class="pi pi-map"></i> Lugares</a>
+          @if (card.books.length > 0) {
+            <a [routerLink]="['/books', card.books[0].id, 'characters']"><i class="pi pi-users"></i> Personagens</a>
+            <a [routerLink]="['/books', card.books[0].id, 'timeline']"><i class="pi pi-clock"></i> Linha do tempo</a>
+          }
+        </div>
+
+        <div class="card-actions">
+          <p-button label="Construir universo" icon="pi pi-sparkles" size="small"
+            [routerLink]="['/universes', card.universe.id]" />
+          <p-button label="Novo livro neste universo" icon="pi pi-plus" severity="secondary" [outlined]="true"
+            size="small" routerLink="/books/new" [queryParams]="{ universe: card.universe.id }" />
+        </div>
+      </section>
+    } @empty {
+      <div class="glass-card empty-state">
+        <i class="pi pi-globe"></i>
+        <p>Comece pelo mundo ou pela história: crie um universo aqui, ou um livro (que já nasce com o seu).</p>
+        <p-button label="Criar o primeiro universo" icon="pi pi-plus" (onClick)="create()" />
+      </div>
+    }
+
+    <p class="muted small hint">
+      Para juntar um livro que já existe a uma série, abra o livro, toque em <strong>Editar</strong> e escolha o
+      universo.
+    </p>
+  }
+</div>

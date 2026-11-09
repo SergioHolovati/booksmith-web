@@ -1,127 +1,50 @@
 <div class="auth-page">
-
   <div class="forge-glow"></div>
 
-  <p-card styleClass="auth-card">
-
-    <div class="text-center mb-5">
-
-      <div class="brand-icon">
-        ⚒
-      </div>
-
-      <h1 class="brand-title">
-        Booksmith AI
-      </h1>
-
-      <p class="brand-subtitle">
-        Forge stories powered by AI
-      </p>
-
+  <div class="auth-card">
+    <div class="brand">
+      <div class="brand-icon">⚒</div>
+      <h1 class="brand-title">Booksmith AI</h1>
+      <p class="brand-subtitle">Forje suas histórias, do primeiro personagem ao livro pronto</p>
     </div>
 
-    <form
-      (ngSubmit)="loginWithForm()"
-      class="p-fluid"
-    >
+    @if (googleError(); as text) {
+      <p-message severity="error" [text]="text" styleClass="mb-3" />
+    }
+    @if (message(); as text) {
+      <p-message severity="error" [text]="text" />
+    }
 
-      <!-- Email -->
+    <form class="form" (ngSubmit)="loginWithForm()" #form="ngForm">
+      <div class="field">
+        <label for="email">E-mail</label>
+        <input id="email" name="email" type="email" pInputText required autocomplete="email" inputmode="email"
+          [(ngModel)]="email" />
+      </div>
 
       <div class="field">
-
-        <label for="email">
-          Email
-        </label>
-
-        <input
-          id="email"
-          name="email"
-          type="email"
-          pInputText
-          required
-          [(ngModel)]="email"
-        />
-
+        <label for="password">Senha</label>
+        <input id="password" name="password" type="password" pInputText required autocomplete="current-password"
+          [(ngModel)]="password" />
       </div>
 
-      <!-- Password -->
-
-      <div class="field mt-3">
-
-        <label for="password">
-          Password
-        </label>
-
-        <input
-          id="password"
-          name="password"
-          type="password"
-          pInputText
-          required
-          [(ngModel)]="password"
-        />
-
+      <div class="link-row">
+        <a routerLink="/forgot-password">Esqueceu a senha?</a>
       </div>
 
-      <!-- Forgot -->
-
-      <div class="forgot-container">
-
-        <a
-          routerLink="/forgot-password"
-        >
-          Forgot password?
-        </a>
-
-      </div>
-
-      <!-- Login -->
-
-      <div class="mt-4 login-container">
-
-        <p-button
-          label="Sign in"
-          type="submit"
-          styleClass="w-full auth-btn"
-        />
-
-      </div>
-
+      <p-button label="Entrar" type="submit" styleClass="full-width" [loading]="loading()"
+        [disabled]="form.invalid ?? true" />
     </form>
 
-    <!-- Divider -->
+    <div class="divider"><span>OU</span></div>
 
-    <div class="divider">
-
-      <span>
-        OR
-      </span>
-
+    <div class="google-btn">
+      <p-button label="Continuar com Google" icon="pi pi-google" styleClass="full-width" (onClick)="loginWithGoogle()" />
     </div>
 
-    <!-- Google -->
-    <div class="google-login-container">
-    <p-button
-      label="Continue with Google"
-      icon="pi pi-google"
-      styleClass="w-full google-btn"
-      (onClick)="loginWithGoogle()"
-    />
+    <div class="footer-link">
+      <span>Primeira vez aqui? </span>
+      <a routerLink="/register">Criar conta</a>
+    </div>
   </div>
-    <!-- Register -->
-
-    <div class="register-link">
-
-      <span>
-        New here?
-      </span>
-
-      <a routerLink="/register">
-        Create account
-      </a>
-
-    </div>
-
-  </p-card>
-
 </div>

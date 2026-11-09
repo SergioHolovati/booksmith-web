@@ -1,0 +1,138 @@
+.narrow {
+  max-width: 720px;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-height: var(--bs-touch);
+  color: var(--bs-ember);
+  font-size: .9rem;
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  padding: 4rem 0;
+}
+
+.analyze {
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+  margin-bottom: 1rem;
+}
+
+.analyze p {
+  margin: 0;
+}
+
+.checks summary {
+  min-height: var(--bs-touch);
+  display: flex;
+  align-items: center;
+  color: var(--bs-ember);
+  font-size: .9rem;
+  cursor: pointer;
+}
+
+.checks ul {
+  margin: 0 0 .5rem;
+  padding-left: 1.2rem;
+  color: var(--bs-text-soft);
+  font-size: .9rem;
+  line-height: 1.6;
+}
+
+.alerts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+
+.alert {
+  padding: .9rem;
+  background: var(--bs-surface);
+  border: 1px solid rgba(255, 255, 255, .06);
+  border-left: 3px solid #f59e0b;
+  border-radius: var(--bs-radius);
+}
+
+.alert[data-type='naming'] {
+  border-left-color: var(--bs-sand);
+}
+
+.alert-head {
+  display: flex;
+  gap: .6rem;
+  align-items: flex-start;
+}
+
+.alert-head .pi {
+  margin-top: .2rem;
+  color: #f59e0b;
+}
+
+.alert[data-type='naming'] .alert-head .pi {
+  color: var(--bs-sand);
+}
+
+.message {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.evidence {
+  list-style: none;
+  margin: .75rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+}
+
+blockquote {
+  margin: 0;
+  padding: .5rem .75rem;
+  border-left: 2px solid var(--bs-border);
+  font-family: 'Literata', Georgia, serif;
+  font-size: .92rem;
+  line-height: 1.55;
+  color: var(--bs-text-soft);
+  overflow-wrap: anywhere;
+}
+
+mark {
+  padding: 0 .15em;
+  border-radius: 3px;
+  background: rgba(245, 158, 11, .25);
+  color: var(--bs-text);
+}
+
+.open {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  min-height: var(--bs-touch);
+  color: var(--bs-ember);
+  font-size: .85rem;
+}
+
+.open .pi {
+  font-size: .75rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin-top: .5rem;
+}
+
+.hint {
+  margin-top: 1rem;
+}

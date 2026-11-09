@@ -1,0 +1,128 @@
+/* Estilo comum das telas de autenticação (login, cadastro, senha) */
+:host {
+  display: block;
+}
+
+.auth-page {
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at top, rgba(255, 140, 0, 0.15), transparent 30%),
+    linear-gradient(180deg, #090909 0%, #111111 100%);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: calc(var(--bs-safe-top) + 24px) var(--bs-gutter) calc(var(--bs-safe-bottom) + 24px);
+  position: relative;
+  overflow: hidden;
+}
+
+.forge-glow {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(255, 132, 0, 0.12), transparent 70%);
+  filter: blur(80px);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 460px;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-radius: 22px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.45);
+  padding: 1.5rem 1.25rem;
+}
+
+.brand {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.brand-icon {
+  font-size: 2rem;
+  margin-bottom: .75rem;
+}
+
+.brand-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.brand-subtitle {
+  color: #b5b5b5;
+  margin-top: .5rem;
+}
+
+.link-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.divider {
+  margin: 1.75rem 0;
+  text-align: center;
+  position: relative;
+}
+
+.divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  border-top: 1px solid rgba(255, 255, 255, .08);
+}
+
+.divider span {
+  background: #111;
+  color: #999;
+  padding: 0 1rem;
+  position: relative;
+}
+
+.footer-link {
+  margin-top: 1.5rem;
+  text-align: center;
+  color: #888;
+}
+
+.success-box {
+  padding: 1rem;
+  border-radius: var(--bs-radius);
+  background: rgba(34, 197, 94, .1);
+  border: 1px solid rgba(34, 197, 94, .25);
+  color: #bbf7d0;
+}
+
+.password-rules {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .25rem .75rem;
+  font-size: .8rem;
+  color: var(--bs-muted);
+}
+
+.password-rules .ok {
+  color: #4ade80;
+}
+
+@media (min-width: 640px) {
+  .auth-page {
+    align-items: center;
+  }
+
+  .auth-card {
+    padding: 2rem;
+    border-radius: 28px;
+  }
+
+  .brand-title {
+    font-size: 2rem;
+  }
+}

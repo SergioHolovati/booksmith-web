@@ -1,0 +1,145 @@
+<div class="page narrow">
+  <a [routerLink]="['/books', bookId()]" class="back-link"><i class="pi pi-arrow-left"></i>
+    {{ book()?.title ?? 'Livro' }}</a>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Linha do tempo</h1>
+      <p class="page-subtitle">
+        O que acontece, em ordem. Inclua o que veio antes do livro: é assim que dá para notar quando alguém sabe algo
+        cedo demais ou chega a um lugar rápido demais.
+      </p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="center"><p-progress-spinner strokeWidth="4" /></div>
+  } @else if (error(); as message) {
+    <div class="glass-card empty-state">
+      <i class="pi pi-wifi"></i>
+      <p>{{ message }}</p>
+      <p-button label="Tentar de novo" severity="secondary" [outlined]="true" (onClick)="load()" />
+    </div>
+  } @else {
+    @if (events().length === 0) {
+      <div class="glass-card empty-state">
+        <i class="pi pi-clock"></i>
+        <h3>Nenhum evento ainda</h3>
+        <p class="muted">Comece pelo acontecimento que dá início à história.</p>
+      </div>
+    } @else {
+      <ol class="timeline">
+        @for (event of events(); track event.id; let i = $index; let first = $first; let last = $last) {
+          <li class="event">
+            <span class="dot" aria-hidden="true"></span>
+            <div class="card">
+              <button type="button" class="card-main" (click)="open(event)" [attr.aria-label]="'Editar ' + event.title">
+                @if (event.whenLabel) {
+                  <span class="when">{{ event.whenLabel }}</span>
+                }
+                <span class="title">{{ event.title }}</span>
+                @if (event.description) {
+                  <span class="description">{{ event.description }}</span>
+                }
+                @if (event.chapterId || event.place || event.characters.length) {
+                  <span class="links">
+                    @if (event.chapterId && chapterTitles().get(event.chapterId); as chapter) {
+                      <span class="link"><i class="pi pi-book"></i>{{ chapter }}</span>
+                    }
+                    @if (event.place) {
+                      <span class="link"><i class="pi pi-map-marker"></i>{{ event.place.name }}</span>
+                    }
+                    @for (character of event.characters; track character.id) {
+                      <span class="link"><i class="pi pi-user"></i>{{ character.name }}</span>
+                    }
+                  </span>
+                }
+              </button>
+              <div class="order">
+                <button type="button" class="mini" [disabled]="first || busy()" (click)="move(i, -1)"
+                  [attr.aria-label]="'Subir ' + event.title"><i class="pi pi-chevron-up"></i></button>
+                <button type="button" class="mini" [disabled]="last || busy()" (click)="move(i, 1)"
+                  [attr.aria-label]="'Descer ' + event.title"><i class="pi pi-chevron-down"></i></button>
+              </div>
+            </div>
+          </li>
+        }
+      </ol>
+    }
+
+    <form class="create" (ngSubmit)="create()">
+      <label for="new-event" class="visually-hidden">Novo evento</label>
+      <input id="new-event" pInputText name="title" [(ngModel)]="newTitle" maxlength="200"
+        placeholder="O que acontece depois?" autocomplete="off" />
+      <p-button type="submit" label="Adicionar" icon="pi pi-plus" [loading]="busy()" [disabled]="!newTitle.trim()" />
+    </form>
+  }
+</div>
+
+<!-- Escape não fecha a gaveta: fecharia por baixo das listas abertas e descartaria a edição sem aviso -->
+<p-drawer [(visible)]="drawerOpen" position="right" header="Evento" [style]="{ width: 'min(460px, 100vw)' }"
+  styleClass="event-drawer" [closeOnEscape]="false">
+  @if (draft(); as draft) {
+    <form class="fields" (ngSubmit)="save()">
+      @if (conflict()) {
+        <div class="conflict">
+          <span>Este evento foi alterado em outro aparelho.</span>
+          <p-button label="Ver a versão nova" size="small" severity="secondary" (onClick)="reloadEditing()" />
+        </div>
+      }
+
+      <div class="field">
+        <label for="event-title" class="field-label">O que acontece</label>
+        <input id="event-title" pInputText name="title" [ngModel]="draft.title" (ngModelChange)="patch({ title: $event })"
+          maxlength="200" />
+      </div>
+
+      <div class="field">
+        <label for="event-when" class="field-label">Quando</label>
+        <input id="event-when" pInputText name="when" [ngModel]="draft.whenLabel ?? ''"
+          (ngModelChange)="patch({ whenLabel: $event || null })" maxlength="100"
+          placeholder="Ex.: verão de 1999, três dias depois, ano 312" />
+      </div>
+
+      <div class="field">
+        <label for="event-description" class="field-label">Detalhes</label>
+        <textarea id="event-description" pTextarea name="description" [autoResize]="true" rows="3"
+          [ngModel]="draft.description ?? ''" (ngModelChange)="patch({ description: $event || null })"
+          maxlength="4000" placeholder="O que muda, quem fica sabendo do quê"></textarea>
+      </div>
+
+      <div class="field">
+        <label for="event-chapter" class="field-label">Capítulo</label>
+        <p-select inputId="event-chapter" name="chapter" [options]="chapterOptions()" optionLabel="label"
+          optionValue="value" [ngModel]="draft.chapterId" (ngModelChange)="patch({ chapterId: $event ?? null })"
+          placeholder="Fora do livro ou ainda sem capítulo" [showClear]="true" styleClass="full-width"
+          appendTo="body" />
+      </div>
+
+      <div class="field">
+        <label for="event-place" class="field-label">Lugar</label>
+        <p-select inputId="event-place" name="place" [options]="placeOptions()" optionLabel="label" optionValue="value"
+          [ngModel]="draft.placeId" (ngModelChange)="patch({ placeId: $event ?? null })" placeholder="Nenhum"
+          [showClear]="true" [filter]="placeOptions().length > 8" styleClass="full-width" appendTo="body"
+          emptyMessage="Nenhum lugar criado ainda" />
+      </div>
+
+      <div class="field">
+        <label for="event-characters" class="field-label">Personagens</label>
+        <p-multiselect inputId="event-characters" name="characters" [options]="characterOptions()"
+          optionLabel="label" optionValue="value" [ngModel]="draft.characterIds"
+          (ngModelChange)="patch({ characterIds: $event ?? [] })" placeholder="Quem participa" display="chip"
+          [filter]="characterOptions().length > 8" styleClass="full-width" appendTo="body"
+          emptyMessage="Nenhum personagem criado ainda" />
+      </div>
+
+      <div class="drawer-actions">
+        <p-button type="submit" label="Salvar" icon="pi pi-check" [loading]="saving()"
+          [disabled]="!draft.title.trim()" styleClass="full-width" />
+        <p-button label="Excluir evento" icon="pi pi-trash" severity="danger" [text]="true" (onClick)="confirmDelete()" />
+      </div>
+    </form>
+  }
+</p-drawer>
+
+<p-confirmdialog [style]="{ width: 'min(420px, calc(100vw - 32px))' }" />

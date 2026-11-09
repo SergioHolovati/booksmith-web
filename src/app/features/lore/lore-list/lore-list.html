@@ -1,0 +1,73 @@
+<div class="page narrow">
+  <a [routerLink]="['/universes', universeId()]" [queryParams]="{ passo: 'peoples' }" class="back-link">
+    <i class="pi pi-arrow-left"></i> {{ universe()?.name ?? 'Universo' }}
+  </a>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Mundo</h1>
+      <p class="page-subtitle">Religiões, governos, idiomas e organizações, e onde cada um está presente.</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="center"><p-progress-spinner strokeWidth="4" /></div>
+  } @else if (error(); as message) {
+    <div class="glass-card empty-state">
+      <i class="pi pi-wifi"></i>
+      <p>{{ message }}</p>
+      <p-button label="Tentar de novo" severity="secondary" [outlined]="true" (onClick)="load()" />
+    </div>
+  } @else if (definition(); as definition) {
+    <nav class="tabs" aria-label="Tipos">
+      @for (type of types; track type) {
+        <button type="button" class="tab" [class.on]="selected() === type" [attr.aria-current]="selected() === type ? 'page' : null"
+          (click)="select(type)">
+          <i class="pi" [class]="definition.types[type].icon" aria-hidden="true"></i>
+          {{ definition.types[type].plural }}
+          @if (counts()[type]) {
+            <span class="count">{{ counts()[type] }}</span>
+          }
+        </button>
+      }
+    </nav>
+
+    @if (current(); as current) {
+      <p class="muted small help">{{ current.help }}</p>
+
+      <form class="create" (ngSubmit)="create()">
+        <label for="new-lore" class="visually-hidden">Nome</label>
+        <input id="new-lore" pInputText name="name" [(ngModel)]="newName" maxlength="120" autocomplete="off"
+          [placeholder]="'Nome: ' + current.label.toLowerCase()" />
+        <p-button type="submit" label="Criar" icon="pi pi-plus" [loading]="creating()" [disabled]="!newName.trim()" />
+      </form>
+
+      @if (visible().length === 0) {
+        <div class="glass-card empty-state">
+          <i class="pi" [class]="current.icon"></i>
+          <p class="muted">Nenhum item ainda. Crie acima, ou gere o mundo junto com os lugares do mapa.</p>
+        </div>
+      } @else {
+        <ul class="items">
+          @for (item of visible(); track item.id) {
+            <li>
+              <a class="item" [routerLink]="['/universes', universeId(), 'mundo', item.id]">
+                <i class="pi type-icon" [class]="current.icon" aria-hidden="true"></i>
+                <span class="item-text">
+                  <span class="item-title">{{ item.name }}</span>
+                  @if (item.summary) {
+                    <small class="excerpt">{{ item.summary }}</small>
+                  }
+                  @if (item.places.length) {
+                    <small class="muted">Em {{ item.places.map((p) => p.name).join(', ') }}</small>
+                  }
+                </span>
+                <i class="pi pi-chevron-right muted"></i>
+              </a>
+            </li>
+          }
+        </ul>
+      }
+    }
+  }
+</div>

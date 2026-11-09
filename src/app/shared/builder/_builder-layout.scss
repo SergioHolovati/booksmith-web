@@ -1,0 +1,181 @@
+/* Montadores (personagem, universo): seções, abas em passos, retrato ao vivo e barra de salvar. */
+
+/* O styleClass do p-selectbutton vai para cada botão; o contêiner é estilizado pelo div de fora */
+.sections {
+  margin-bottom: 1rem;
+}
+
+.sections ::ng-deep .p-selectbutton {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  width: 100%;
+}
+
+.sections ::ng-deep .p-togglebutton {
+  width: 100%;
+  justify-content: center;
+}
+
+/* Abas da aparência: rolam na horizontal no celular */
+.tabs {
+  display: flex;
+  gap: .4rem;
+  overflow-x: auto;
+  margin: 0 -16px 1rem;
+  padding: 0 16px .25rem;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  min-height: 40px;
+  padding: 0 .9rem;
+  border: 1px solid var(--bs-border);
+  border-radius: 999px;
+  background: var(--bs-surface);
+  color: var(--bs-text-soft);
+  font: inherit;
+  font-size: .9rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tab.on {
+  border-color: var(--bs-ember);
+  color: var(--bs-text);
+  background: var(--bs-sand-soft);
+}
+
+.count {
+  min-width: 1.25rem;
+  padding: 0 .3rem;
+  border-radius: 999px;
+  background: var(--bs-ember);
+  color: #111;
+  font-size: .7rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.next-tab {
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-height: var(--bs-touch);
+  border: 0;
+  background: none;
+  color: var(--bs-ember);
+  font: inherit;
+  cursor: pointer;
+}
+
+.save-bar {
+  position: sticky;
+  bottom: calc(var(--bs-bottom-nav-h) + var(--bs-safe-bottom) + .5rem);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  margin-top: 1rem;
+  padding: .5rem .75rem;
+  background: var(--bs-bg-elevated);
+  border: 1px solid var(--bs-border);
+  border-radius: var(--bs-radius);
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, .45);
+}
+
+.save-actions {
+  display: flex;
+  gap: .25rem;
+}
+
+@media (min-width: 1024px) {
+  .save-bar {
+    bottom: 1rem;
+  }
+}
+
+/* ===== Retrato: o personagem montado em texto, ao vivo ===== */
+.portrait {
+  margin-bottom: 1rem;
+  padding: 1rem;
+}
+
+.portrait-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: .5rem;
+}
+
+.portrait-title {
+  font-family: 'Literata', Georgia, serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--bs-sand);
+}
+
+.meter {
+  height: 6px;
+  margin: .5rem 0 .75rem;
+  border-radius: 999px;
+  background: var(--bs-border);
+  overflow: hidden;
+}
+
+.meter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--bs-ember), var(--bs-sand));
+  transition: width .3s ease;
+}
+
+.portrait-line {
+  margin: .35rem 0 0;
+  font-size: .9rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.portrait-line strong {
+  color: var(--bs-ember);
+  font-weight: 600;
+  margin-right: .25rem;
+}
+
+.portrait-empty {
+  margin: 0;
+}
+
+.tab-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .25rem .75rem;
+}
+
+.tab-help {
+  flex: 1 1 14rem;
+  margin: 0;
+}
+
+:host ::ng-deep .roll {
+  margin-left: auto;
+}

@@ -1,0 +1,61 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Meus livros</h1>
+      <p class="page-subtitle">Fanfics e histórias originais · <a routerLink="/universes"><i class="pi pi-globe"></i>
+          Universos</a> · <a routerLink="/trash"><i class="pi pi-trash"></i> Lixeira</a></p>
+    </div>
+    <p-button class="desktop-only" label="Novo livro" icon="pi pi-plus" routerLink="/books/new" />
+  </div>
+
+  @if (error(); as message) {
+    <div class="glass-card empty-state">
+      <i class="pi pi-wifi"></i>
+      <p>{{ message }}</p>
+      <p-button label="Tentar de novo" severity="secondary" [outlined]="true" (onClick)="load(0)" />
+    </div>
+  } @else if (!loading() && books().length === 0) {
+    <div class="glass-card empty-state">
+      <i class="pi pi-book"></i>
+      <h3>Nenhum livro ainda</h3>
+      <p class="muted">Crie o primeiro e comece a escrever, até pelo celular.</p>
+      <p-button label="Criar livro" icon="pi pi-plus" routerLink="/books/new" />
+    </div>
+  } @else {
+    <div class="book-grid">
+      @for (book of books(); track book.id) {
+        <a class="book-card" [routerLink]="['/books', book.id]">
+          <app-book-cover class="cover" [url]="book.coverUrl" [title]="book.title" />
+          <div class="info">
+            <h3 class="title">{{ book.title }}</h3>
+            @if (book.kind === 'FANFIC' && book.fandom) {
+              <span class="fandom">{{ book.fandom }}</span>
+            }
+            <p class="stats muted small">
+              {{ book.chapterCount }} {{ book.chapterCount === 1 ? 'capítulo' : 'capítulos' }} ·
+              {{ formatCount(book.wordCount) }} palavras
+            </p>
+            <div class="footer">
+              <span class="status-chip" [class.success]="book.status === 'COMPLETE'">
+                {{ statusLabel[book.status] }}
+              </span>
+              <small class="muted">{{ book.updatedAt | date: 'd MMM' }}</small>
+            </div>
+          </div>
+        </a>
+      }
+    </div>
+
+    @if (loading()) {
+      <div class="loading"><p-progress-spinner strokeWidth="4" /></div>
+    } @else if (hasMore()) {
+      <div class="loading">
+        <p-button label="Carregar mais" severity="secondary" [outlined]="true" (onClick)="load(page() + 1)" />
+      </div>
+    }
+  }
+</div>
+
+<div class="fab forge-icon-btn">
+  <p-button icon="pi pi-plus" routerLink="/books/new" ariaLabel="Novo livro" />
+</div>

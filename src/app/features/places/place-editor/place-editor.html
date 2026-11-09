@@ -1,0 +1,118 @@
+<div class="page narrow">
+  <a [routerLink]="listRoute()" class="back-link"><i class="pi pi-arrow-left"></i> Lugares</a>
+
+  @if (loading()) {
+    <div class="center"><p-progress-spinner strokeWidth="4" /></div>
+  } @else if (error(); as message) {
+    <div class="glass-card empty-state">
+      <i class="pi pi-exclamation-circle"></i>
+      <p>{{ message }}</p>
+      <p-button label="Tentar de novo" severity="secondary" [outlined]="true" (onClick)="load()" />
+    </div>
+  } @else if (place()) {
+    <div class="name-row">
+      <label for="place-name" class="visually-hidden">Nome</label>
+      <input id="place-name" class="name-input" [ngModel]="draft().name" (ngModelChange)="setName($event)"
+        maxlength="120" placeholder="Nome do lugar" autocomplete="off" />
+    </div>
+
+    @if (conflict()) {
+      <p-message severity="warn" styleClass="block-message">
+        <span>Este lugar foi alterado em outro aparelho. Recarregue para ver a versão mais nova (as alterações feitas
+          aqui serão descartadas).</span>
+        <p-button label="Recarregar" size="small" severity="secondary" (onClick)="load()" />
+      </p-message>
+    }
+
+    <section class="fields" aria-label="Ficha do lugar">
+      <div class="field">
+        <span class="field-label" id="type-label">Tipo</span>
+        <div class="chips" role="group" aria-labelledby="type-label">
+          @for (type of typeOptions; track type.value) {
+            <button type="button" class="chip" [class.on]="draft().sheet.type === type.value"
+              [attr.aria-pressed]="draft().sheet.type === type.value" (click)="setType(type.value)">
+              {{ type.label }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="parent" class="field-label">Dentro de</label>
+        @if (parentOptions().length) {
+          <p-select inputId="parent" [options]="parentOptions()" optionLabel="label" optionValue="value"
+            [ngModel]="draft().sheet.parentId ?? null" (ngModelChange)="setSheet('parentId', $event)"
+            placeholder="Nenhum (lugar principal)" [showClear]="true" [filter]="parentOptions().length > 8"
+            filterBy="label" styleClass="full-width">
+            <ng-template #item let-option>
+              <span class="parent-option" [style.padding-left.rem]="option.depth * 1">
+                @if (option.depth) {
+                  <i class="pi pi-angle-right muted" aria-hidden="true"></i>
+                }
+                {{ option.label }}
+              </span>
+            </ng-template>
+          </p-select>
+          <small class="muted">Ex.: o café fica dentro do bairro; o bairro, dentro da cidade.</small>
+        } @else {
+          <small class="muted">Crie outros lugares para poder colocar este dentro de um deles.</small>
+        }
+      </div>
+
+      <div class="field">
+        <label for="aliases" class="field-label">Outros nomes</label>
+        <p-autocomplete inputId="aliases" [ngModel]="draft().aliases" (ngModelChange)="setAliases($event)"
+          [multiple]="true" [typeahead]="false" placeholder="Apelidos, nome antigo… (Enter para adicionar)"
+          styleClass="full-width" />
+      </div>
+
+      @for (field of fields; track field.key) {
+        <div class="field">
+          <label [for]="'place-' + field.key" class="field-label">{{ field.label }}</label>
+          @if (field.long) {
+            <textarea pTextarea [id]="'place-' + field.key" [autoResize]="true" rows="2"
+              [placeholder]="field.placeholder" [ngModel]="draft().sheet[field.key] ?? ''"
+              (ngModelChange)="setSheet(field.key, $event)" maxlength="4000"></textarea>
+          } @else {
+            <input pInputText [id]="'place-' + field.key" [placeholder]="field.placeholder"
+              [ngModel]="draft().sheet[field.key] ?? ''" (ngModelChange)="setSheet(field.key, $event)"
+              maxlength="200" />
+          }
+        </div>
+      }
+    </section>
+
+    @if (lore().length > 0 && loreDefinition(); as definition) {
+      <section class="glass-card here" aria-labelledby="here-title">
+        <h2 id="here-title" class="here-title">Aqui</h2>
+        <ul class="here-list">
+          @for (item of lore(); track item.id) {
+            <li>
+              <a [routerLink]="['/universes', place()?.universeId, 'mundo', item.id]">
+                <i class="pi" [class]="definition.types[item.type].icon" aria-hidden="true"></i>
+                <span class="muted small">{{ definition.types[item.type].label }}</span>
+                <strong>{{ item.name }}</strong>
+              </a>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
+    <p-button label="Excluir lugar" icon="pi pi-trash" severity="danger" [text]="true" styleClass="delete"
+      (onClick)="confirmDelete()" />
+
+    @if (dirty()) {
+      <div class="save-bar" role="region" aria-label="Alterações não salvas">
+        <span class="muted small">Alterações não salvas</span>
+        <div class="save-actions">
+          <p-button label="Descartar" severity="secondary" [text]="true" [disabled]="saving()" (onClick)="discard()" />
+          <p-button label="Salvar" icon="pi pi-check" [loading]="saving()" [disabled]="!draft().name.trim()"
+            (onClick)="save()" />
+        </div>
+      </div>
+    }
+  }
+</div>
+
+<p-confirmdialog [style]="{ width: 'min(420px, calc(100vw - 32px))' }" />

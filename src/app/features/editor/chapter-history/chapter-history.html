@@ -1,0 +1,60 @@
+<p-drawer [(visible)]="visible" position="right" [header]="preview() ? 'Versão' : 'Histórico do capítulo'"
+  [style]="{ width: 'min(440px, 100vw)' }" styleClass="history-drawer">
+  @if (message(); as text) {
+    <div class="message">{{ text }}</div>
+  }
+
+  @if (preview(); as version) {
+    <button type="button" class="back" (click)="preview.set(null)">
+      <i class="pi pi-arrow-left"></i> Todas as versões
+    </button>
+
+    <div class="preview-header">
+      <h3>{{ title(version) }}</h3>
+      <small class="muted">{{ when(version.createdAt) }} · {{ formatCount(version.wordCount) }} palavras</small>
+    </div>
+
+    <div class="preview" [innerHTML]="previewHtml()"></div>
+
+    <div class="preview-actions">
+      <p-button label="Restaurar esta versão" icon="pi pi-replay" styleClass="full-width" [loading]="busy()"
+        (onClick)="restore(version)" />
+      <small class="muted">O texto atual fica guardado no histórico antes. Nada se perde.</small>
+    </div>
+  } @else {
+    <form class="save-now" (ngSubmit)="saveNow()">
+      <input pInputText name="label" [(ngModel)]="label" maxlength="120"
+        placeholder="Nome da versão (opcional)" aria-label="Nome da versão" />
+      <p-button type="submit" label="Salvar versão agora" icon="pi pi-bookmark" [loading]="busy()"
+        styleClass="full-width" />
+    </form>
+
+    @if (loading()) {
+      <div class="center"><p-progress-spinner strokeWidth="4" /></div>
+    } @else if (versions().length === 0) {
+      <div class="empty">
+        <i class="pi pi-history"></i>
+        <p>Ainda não há versões.</p>
+        <small class="muted">Elas aparecem sozinhas enquanto você escreve (a cada 10 minutos de mudanças ou quando
+          muito texto muda) e sempre que você salvar uma.</small>
+      </div>
+    } @else {
+      <ul class="versions">
+        @for (version of versions(); track version.id) {
+          <li>
+            <button type="button" class="version" (click)="open(version)" [disabled]="busy()">
+              <i class="pi" [class.pi-bookmark-fill]="version.reason === 'MANUAL'"
+                [class.pi-clock]="version.reason === 'AUTOMATIC'"
+                [class.pi-replay]="version.reason === 'BEFORE_RESTORE'"></i>
+              <span class="version-text">
+                <span class="version-title">{{ title(version) }}</span>
+                <small class="muted">{{ when(version.createdAt) }} · {{ formatCount(version.wordCount) }} palavras</small>
+              </span>
+              <i class="pi pi-chevron-right chevron"></i>
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  }
+</p-drawer>

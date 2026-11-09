@@ -1,0 +1,109 @@
+<div class="page narrow">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">{{ isEdit() ? 'Editar livro' : 'Novo livro' }}</h1>
+      <p class="page-subtitle">{{ isEdit() ? 'Ajuste as informações do livro' : 'Comece sua próxima obra-prima' }}</p>
+    </div>
+  </div>
+
+  @if (message(); as text) {
+    <p-message severity="error" [text]="text" styleClass="mb-3" />
+  }
+
+  <form class="glass-card form" [formGroup]="form" (ngSubmit)="save()">
+    <div class="cover-row">
+      <label class="cover-picker" for="cover">
+        <app-book-cover [url]="coverPreview()" [title]="titleValue()" />
+        <span class="cover-action"><i class="pi pi-camera"></i> {{ coverPreview() ? 'Trocar capa' : 'Adicionar capa' }}</span>
+      </label>
+      <input id="cover" type="file" accept="image/*" class="visually-hidden" (change)="onCoverSelected($event)" />
+      <p class="field-hint">Opcional. Pode ser uma foto ou um desenho seu; a imagem é reduzida no aparelho antes do envio.</p>
+    </div>
+
+    <div class="field">
+      <label for="title">Título</label>
+      <input id="title" pInputText formControlName="title" placeholder="A Última Maga" />
+      @if (form.controls.title.invalid && form.controls.title.touched) {
+        <small class="error-text">Dê um título ao livro.</small>
+      }
+    </div>
+
+    <div class="field">
+      <label>Tipo de história</label>
+      <p-selectbutton [options]="kindOptions" formControlName="kind" optionLabel="label" optionValue="value"
+        [allowEmpty]="false" styleClass="full-width" />
+      @if (kind() === 'FANFIC') {
+        <small class="field-hint">Fanfics podem ser escritas, organizadas e compartilhadas de graça, mas não vendidas.</small>
+      }
+    </div>
+
+    @if (kind() === 'FANFIC') {
+      <div class="field">
+        <label for="fandom">Fandom (obra original)</label>
+        <input id="fandom" pInputText formControlName="fandom" placeholder="Harry Potter, Naruto, Percy Jackson…" />
+      </div>
+    }
+
+    <div class="field">
+      <label for="language">Idioma do livro</label>
+      <p-select inputId="language" [options]="languageOptions" formControlName="language" optionLabel="label"
+        optionValue="value" styleClass="full-width" />
+      <small class="field-hint">O corretor ortográfico do editor segue este idioma.</small>
+    </div>
+
+    @if (!isEdit() && universes().length > 0) {
+      <div class="field">
+        <label for="universe">Universo</label>
+        <p-select inputId="universe" [options]="universeOptions()" optionLabel="name" optionValue="id"
+          [ngModel]="universeId()" (ngModelChange)="universeId.set($event)" [ngModelOptions]="{ standalone: true }"
+          styleClass="full-width" />
+        <small class="field-hint">Continuação ou série? Escolha o universo do outro livro para usar os mesmos
+          personagens, lugares e linha do tempo.</small>
+      </div>
+    }
+
+    <div class="field">
+      <label for="synopsis">Sinopse <span class="muted small">(opcional)</span></label>
+      <textarea id="synopsis" pTextarea formControlName="synopsis" rows="5"
+        placeholder="Conte do que se trata a história…"></textarea>
+    </div>
+
+    @if (isEdit()) {
+      <div class="field">
+        <label>Situação</label>
+        <p-selectbutton [options]="statusOptions" formControlName="status" optionLabel="label" optionValue="value"
+          [allowEmpty]="false" styleClass="full-width" />
+      </div>
+    }
+
+    <div class="actions">
+      <p-button label="Cancelar" severity="secondary" [text]="true" [routerLink]="isEdit() ? ['/books', bookId()] : ['/books']" />
+      <p-button type="submit" [label]="isEdit() ? 'Salvar' : 'Criar livro'" icon="pi pi-check" [loading]="saving()"
+        [disabled]="loading()" />
+    </div>
+  </form>
+
+  @if (isEdit() && currentUniverse(); as current) {
+    <section class="glass-card form universe-card" aria-labelledby="universe-title">
+      <h2 id="universe-title" class="section-title"><i class="pi pi-globe"></i> Universo</h2>
+      <p>Este livro está em <strong>{{ current.name }}</strong>
+        <span class="muted small">· {{ current.characterCount }} personagens, {{ current.placeCount }} lugares</span>
+      </p>
+      @if (otherUniverses().length > 0) {
+        <div class="field">
+          <label for="move-universe">É continuação de outro livro? Leve-o para o universo dele</label>
+          <p-select inputId="move-universe" [options]="otherUniverses()" optionLabel="name" optionValue="id"
+            placeholder="Escolha o universo" [ngModel]="moveTarget()" (ngModelChange)="moveTarget.set($event)"
+            styleClass="full-width" />
+        </div>
+        <p-button label="Levar para este universo" icon="pi pi-arrow-right-arrow-left" severity="secondary"
+          [outlined]="true" [disabled]="!moveTarget()" [loading]="moving()" (onClick)="askMove()" />
+      } @else {
+        <p class="muted small">Quando você tiver outro livro, pode juntar os dois num universo só (uma série).</p>
+      }
+      <a routerLink="/universes" class="small">Ver todos os universos</a>
+    </section>
+  }
+</div>
+
+<p-confirmdialog [style]="{ width: 'min(420px, calc(100vw - 32px))' }" />

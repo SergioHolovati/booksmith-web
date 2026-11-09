@@ -1,35 +1,19 @@
 <div class="topbar-container">
-
-  <div>
-
-    <h3 class="m-0">
-      Welcome back,
-      {{ userName }}
-    </h3>
-
-    <small class="subtitle">
-      Ready to write today?
-    </small>
-
+  <!-- Celular: marca compacta. Desktop: saudação (a marca está na barra lateral) -->
+  <div class="brand mobile-only">
+    <span class="brand-icon" aria-hidden="true">⚒</span>
+    <span class="brand-name">Booksmith</span>
   </div>
 
-  <div class="avatar-area">
-
-    <p-avatar
-      [image]="avatarUrl"
-      shape="circle"
-      size="large"
-      styleClass="avatar-button"
-      (click)="toggleMenu($event)"
-    />
-
-    <p-menu
-      #menu
-      [model]="menuItems"
-      [popup]="true"
-      appendTo="body"
-    />
-
+  <div class="greeting desktop-only">
+    <h3>Bem-vindo de volta, {{ firstName() }}</h3>
+    <small class="subtitle">Pronto para escrever hoje?</small>
   </div>
 
+  <div class="account">
+    <button type="button" class="avatar-button" (click)="toggleMenu($event)" aria-label="Abrir menu da conta">
+      {{ initial() }}
+    </button>
+    <p-menu #menu [model]="menuItems" [popup]="true" appendTo="body" />
+  </div>
 </div>

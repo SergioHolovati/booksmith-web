@@ -1,140 +1,69 @@
-import {
-  Component
-} from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { MessageModule } from 'primeng/message';
 
-import {
-  CommonModule
-} from '@angular/common';
-
-import {
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators
-} from '@angular/forms';
-
-import {
-  RouterLink
-} from '@angular/router';
-
-import {
-  InputTextModule
-} from 'primeng/inputtext';
-
-import {
-  ButtonModule
-} from 'primeng/button';
-
-import {
-  CardModule
-} from 'primeng/card';
-
-import {
-  FloatLabelModule
-} from 'primeng/floatlabel';
+import { problemMessage } from '../../../core/api/problem';
+import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
-  selector:
-    'app-forgot-password',
+  selector: 'app-forgot-password',
+  imports: [FormsModule, RouterLink, ButtonModule, InputTextModule, MessageModule],
+  template: `
+    <div class="auth-page">
+      <div class="forge-glow"></div>
+      <div class="auth-card">
+        <div class="brand">
+          <div class="brand-icon">⚒</div>
+          <h1 class="brand-title">Esqueceu a senha?</h1>
+          <p class="brand-subtitle">Enviamos um link para você criar uma nova</p>
+        </div>
 
-  standalone:
-    true,
+        @if (sent()) {
+          <div class="success-box">
+            Se existir uma conta com este e-mail, você vai receber o link em instantes. Confira também o spam.
+          </div>
+        } @else {
+          @if (message(); as text) {
+            <p-message severity="error" [text]="text" />
+          }
+          <form class="form" (ngSubmit)="submit()" #form="ngForm">
+            <div class="field">
+              <label for="email">E-mail</label>
+              <input id="email" name="email" type="email" pInputText required email autocomplete="email"
+                inputmode="email" [(ngModel)]="email" />
+            </div>
+            <p-button label="Enviar link" type="submit" styleClass="full-width" [loading]="loading()"
+              [disabled]="form.invalid ?? true" />
+          </form>
+        }
 
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    RouterLink,
-    InputTextModule,
-    ButtonModule,
-    CardModule,
-    FloatLabelModule
-  ],
-
-  templateUrl:
-    './forgot-password.html',
-
-  styleUrl:
-    './forgot-password.scss'
+        <div class="footer-link"><a routerLink="/login">Voltar para o login</a></div>
+      </div>
+    </div>
+  `,
+  styleUrl: '../auth-page.scss',
 })
-export class
-ForgotPasswordComponent {
+export class ForgotPasswordComponent {
+  private readonly auth = inject(AuthService);
 
-  forgotForm:
-    FormGroup;
+  email = '';
+  readonly loading = signal(false);
+  readonly sent = signal(false);
+  readonly message = signal<string | null>(null);
 
-  loading =
-    false;
-
-  successMessage =
-    '';
-
-  constructor(
-    private fb:
-      FormBuilder
-  ) {
-
-    this.forgotForm =
-      this.fb.group({
-        email: [
-          '',
-          [
-            Validators.required,
-            Validators.email
-          ]
-        ]
-      });
-  }
-
-  async submit():
-  Promise<void> {
-
-    if (
-      this.forgotForm.invalid
-    ) {
-
-      this.forgotForm
-        .markAllAsTouched();
-
-      return;
-    }
-
-    this.loading =
-      true;
-
+  async submit(): Promise<void> {
+    this.loading.set(true);
+    this.message.set(null);
     try {
-
-      const email =
-        this
-          .forgotForm
-          .value
-          .email;
-
-      console.log(
-        'send forgot password',
-        email
-      );
-
-      // TODO:
-      // call backend
-
-      this.successMessage =
-        'If an account exists for this email, we sent a reset link.';
-
-    } catch (e) {
-
-      console.error(e);
-
+      await this.auth.forgotPassword(this.email.trim());
+      this.sent.set(true);
+    } catch (error) {
+      this.message.set(problemMessage(error));
     } finally {
-
-      this.loading =
-        false;
+      this.loading.set(false);
     }
-  }
-
-  get form() {
-
-    return this
-      .forgotForm
-      .controls;
   }
 }

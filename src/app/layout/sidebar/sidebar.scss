@@ -1,69 +1,52 @@
 .sidebar-container {
   height: 100%;
-
   padding: 1.5rem;
-
-  /* BLACK FORGE BASE */
-  background: #0b0b0b;
-
-  border-right: 1px solid rgba(255,255,255,.06);
-
+  background: var(--bs-sidebar);
+  border-right: 1px solid rgba(255, 255, 255, .06);
   backdrop-filter: blur(20px);
-
   display: flex;
   flex-direction: column;
+  gap: 2rem;
 }
 
-/* BRAND */
 .brand-area h2 {
   color: #ffffff;
   font-weight: 600;
 }
 
 .brand-area small {
-  color: #ea9846;
+  color: var(--bs-ember);
 }
 
-/* =========================
-   PRIME MENU RESET
-   ========================= */
-
-:host ::ng-deep .p-menu {
-  background: transparent;
-  border: none;
-  padding: 0;
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-/* ITEM BASE */
-:host ::ng-deep .p-menu .p-menuitem-link {
-  background: transparent;
-  color: #ea9846;
-
-  border-radius: 12px;
-
-  margin: 4px 0;
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  min-height: var(--bs-touch);
   padding: 10px 12px;
-
+  border-radius: 12px;
+  color: var(--bs-ember);
   transition: all .2s ease;
 }
 
-/* ICON DEFAULT (FORGE ORANGE SOFT) */
-:host ::ng-deep .p-menu .p-menuitem-icon {
-  color: #d6a06a; /* soft forge orange */
+.menu-item .pi {
+  color: var(--bs-sand);
 }
 
-/* HOVER STATE */
-:host ::ng-deep .p-menu .p-menuitem-link:hover {
-  background: rgba(214, 160, 106, 0.18) !important;
-  color: #ffe0c2 !important;
+.menu-item:hover {
+  background: rgba(214, 160, 106, 0.18);
+  color: #ffe0c2;
 }
 
-/* ACTIVE ITEM */
-:host ::ng-deep .p-menu .p-menuitem-link.p-menuitem-link-active {
-  background: rgba(214, 160, 106, 0.16);
-  color: #ea9846;
+.menu-item.active {
+  background: var(--bs-sand-soft);
   font-weight: 500;
-
-  border-left: 3px solid #ea9846;
+  border-left: 3px solid var(--bs-ember);
   padding-left: 9px;
 }

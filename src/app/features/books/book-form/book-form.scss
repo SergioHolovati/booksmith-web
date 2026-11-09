@@ -1,0 +1,74 @@
+.narrow {
+  max-width: 720px;
+}
+
+.cover-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .5rem;
+  text-align: center;
+}
+
+.cover-picker {
+  width: 140px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  color: var(--bs-ember);
+  font-size: .85rem;
+}
+
+.cover-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  min-height: var(--bs-touch);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: .5rem;
+}
+
+/* Celular: botão principal ocupa a largura toda, ao alcance do polegar */
+@media (max-width: 639px) {
+  .actions {
+    flex-direction: column-reverse;
+  }
+
+  .actions ::ng-deep .p-button {
+    width: 100%;
+  }
+}
+
+.universe-card {
+  margin-top: 1rem;
+}
+
+.universe-card p {
+  margin: 0;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.section-title i {
+  color: var(--bs-ember);
+}

@@ -1,0 +1,133 @@
+.message {
+  margin-bottom: 1rem;
+  padding: .6rem .9rem;
+  border-radius: var(--bs-radius);
+  background: rgba(239, 68, 68, .12);
+  color: #fca5a5;
+  font-size: .85rem;
+}
+
+.save-now {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  margin-bottom: 1.5rem;
+}
+
+.center,
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .5rem;
+  padding: 2rem 0;
+  text-align: center;
+}
+
+.empty .pi {
+  font-size: 2rem;
+  color: var(--bs-sand);
+}
+
+.versions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+
+.version {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  min-height: 56px;
+  padding: .5rem .75rem;
+  border: 1px solid rgba(255, 255, 255, .06);
+  border-radius: var(--bs-radius);
+  background: var(--bs-surface);
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.version > .pi:first-child {
+  color: var(--bs-ember);
+}
+
+.version-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.version-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  color: var(--bs-muted);
+  font-size: .8rem;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-height: var(--bs-touch);
+  border: none;
+  background: none;
+  color: var(--bs-ember);
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.preview-header {
+  margin: .5rem 0 1rem;
+}
+
+.preview-header h3 {
+  font-size: 1.05rem;
+}
+
+/* Mesma tipografia do editor, só leitura */
+.preview {
+  max-height: 50vh;
+  overflow-y: auto;
+  padding: 1rem;
+  border-radius: var(--bs-radius);
+  background: rgba(0, 0, 0, .25);
+  border: 1px solid var(--bs-border);
+  font-family: var(--bs-font-prose);
+  font-size: 16px;
+  line-height: 1.7;
+  color: #e6e6e6;
+}
+
+.preview ::ng-deep p {
+  margin: 0 0 .8em;
+}
+
+.preview ::ng-deep p[data-indent='true'] {
+  text-indent: 1.5em;
+}
+
+.preview ::ng-deep .scene-break {
+  text-align: center;
+  letter-spacing: .5em;
+  color: var(--bs-sand);
+}
+
+.preview-actions {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  margin-top: 1rem;
+}

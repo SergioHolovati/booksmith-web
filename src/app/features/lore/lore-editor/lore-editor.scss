@@ -1,0 +1,85 @@
+@use '../../../shared/builder/builder-layout';
+
+.narrow {
+  max-width: 720px;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-height: var(--bs-touch);
+  color: var(--bs-ember);
+  font-size: .9rem;
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  padding: 4rem 0;
+}
+
+.name-row {
+  margin: .5rem 0 1rem;
+}
+
+.name-row p {
+  margin: .4rem 0 0;
+}
+
+.kind {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  color: var(--bs-sand);
+  font-size: .85rem;
+}
+
+.name-input {
+  width: 100%;
+  padding: .25rem 0;
+  border: 0;
+  border-bottom: 1px solid var(--bs-border);
+  background: transparent;
+  color: var(--bs-text);
+  font-family: 'Literata', Georgia, serif;
+  /* Nomes como "Conselho dos Clãs de Fenren" são longos: a fonte diminui em telas estreitas */
+  font-size: clamp(1.2rem, 5.2vw, 1.75rem);
+  font-weight: 600;
+  outline: none;
+  text-overflow: ellipsis;
+}
+
+.name-input:focus {
+  border-bottom-color: var(--bs-ember);
+}
+
+.where {
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+}
+
+.field-label {
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--bs-text-soft);
+}
+
+:host ::ng-deep .block-message {
+  margin-bottom: 1rem;
+}
+
+:host ::ng-deep .delete {
+  margin-top: 2rem;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}

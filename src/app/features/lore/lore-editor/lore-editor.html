@@ -1,0 +1,64 @@
+<div class="page narrow">
+  <a [routerLink]="['/universes', universeId(), 'mundo']" [queryParams]="{ tipo: item()?.type }" class="back-link">
+    <i class="pi pi-arrow-left"></i> {{ type()?.plural ?? 'Mundo' }}
+  </a>
+
+  @if (loading()) {
+    <div class="center"><p-progress-spinner strokeWidth="4" /></div>
+  } @else if (error(); as message) {
+    <div class="glass-card empty-state">
+      <i class="pi pi-exclamation-circle"></i>
+      <p>{{ message }}</p>
+      <p-button label="Tentar de novo" severity="secondary" [outlined]="true" (onClick)="load()" />
+    </div>
+  } @else if (type(); as type) {
+    <div class="name-row">
+      <span class="kind"><i class="pi" [class]="type.icon"></i> {{ type.label }}</span>
+      <label for="lore-name" class="visually-hidden">Nome</label>
+      <input id="lore-name" class="name-input" [ngModel]="draft().name" (ngModelChange)="setName($event)"
+        maxlength="120" placeholder="Nome" autocomplete="off" />
+      <p class="muted small">{{ type.help }}</p>
+    </div>
+
+    @if (conflict()) {
+      <p-message severity="warn" styleClass="block-message">
+        <span>Esta ficha foi alterada em outro aparelho. Recarregue para ver a versão mais nova (as alterações feitas
+          aqui serão descartadas).</span>
+        <p-button label="Recarregar" size="small" severity="secondary" (onClick)="load()" />
+      </p-message>
+    }
+
+    <section class="glass-card where" aria-labelledby="where-label">
+      <span class="field-label" id="where-label">Onde está presente</span>
+      <p-multiselect inputId="lore-places" [options]="placeOptions()" optionLabel="label" optionValue="value"
+        [ngModel]="draft().placeIds" (ngModelChange)="setPlaces($event)" [filter]="true" filterPlaceHolder="Buscar lugar"
+        display="chip" placeholder="Escolha países, cidades…" emptyMessage="Nenhum lugar no universo ainda"
+        styleClass="full-width" ariaLabelledBy="where-label" />
+      @if (places().length === 0) {
+        <small class="muted">Crie lugares (ou gere o mapa) para ligar esta ficha a eles.</small>
+      }
+    </section>
+
+    <section class="fields" [attr.aria-label]="type.label">
+      @for (field of type.fields; track field.key) {
+        <app-builder-field [field]="field" [value]="value(field)" (valueChange)="setValue(field, $event)" />
+      }
+    </section>
+
+    <p-button label="Excluir" icon="pi pi-trash" severity="danger" [text]="true" styleClass="delete"
+      (onClick)="confirmDelete()" />
+
+    @if (dirty()) {
+      <div class="save-bar" role="region" aria-label="Alterações não salvas">
+        <span class="muted small">Alterações não salvas</span>
+        <div class="save-actions">
+          <p-button label="Descartar" severity="secondary" [text]="true" [disabled]="saving()" (onClick)="discard()" />
+          <p-button label="Salvar" icon="pi pi-check" [loading]="saving()" [disabled]="!draft().name.trim()"
+            (onClick)="save()" />
+        </div>
+      </div>
+    }
+  }
+</div>
+
+<p-confirmdialog [style]="{ width: 'min(420px, calc(100vw - 32px))' }" />

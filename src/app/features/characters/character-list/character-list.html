@@ -1,0 +1,60 @@
+<div class="page narrow">
+  <a [routerLink]="['/books', bookId()]" class="back-link"><i class="pi pi-arrow-left"></i>
+    {{ book()?.title ?? 'Livro' }}</a>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Personagens</h1>
+      <p class="page-subtitle">
+        Quem vive na sua história. A ficha fica à mão enquanto você escreve, e o agente de continuidade vai usá-la
+        para avisar quando o texto disser outra coisa, como olhos de outra cor.
+      </p>
+    </div>
+  </div>
+
+  <form class="create" (ngSubmit)="create()">
+    <label for="new-character" class="visually-hidden">Nome do personagem</label>
+    <input id="new-character" pInputText name="name" [(ngModel)]="newName" maxlength="120"
+      placeholder="Nome do novo personagem" autocomplete="off" />
+    <p-button type="submit" label="Criar" icon="pi pi-plus" [loading]="creating()" [disabled]="!newName.trim()" />
+  </form>
+
+  @if (loading()) {
+    <div class="center"><p-progress-spinner strokeWidth="4" /></div>
+  } @else if (error(); as message) {
+    <div class="glass-card empty-state">
+      <i class="pi pi-wifi"></i>
+      <p>{{ message }}</p>
+      <p-button label="Tentar de novo" severity="secondary" [outlined]="true" (onClick)="load()" />
+    </div>
+  } @else if (characters().length === 0) {
+    <div class="glass-card empty-state">
+      <i class="pi pi-users"></i>
+      <h3>Nenhum personagem ainda</h3>
+      <p class="muted">Comece pela protagonista: o nome basta, o resto você preenche quando quiser.</p>
+    </div>
+  } @else {
+    <ul class="items">
+      @for (character of characters(); track character.id) {
+        <li>
+          <a class="item" [routerLink]="['/books', bookId(), 'characters', character.id]">
+            <span class="avatar" aria-hidden="true">{{ initial(character.name) }}</span>
+            <span class="item-text">
+              <span class="item-title">
+                {{ character.name }}
+                @if (character.role) {
+                  <span class="status-chip">{{ roleLabel[character.role] }}</span>
+                }
+              </span>
+              @if (character.aliases.length) {
+                <small class="muted">Também: {{ character.aliases.join(', ') }}</small>
+              }
+              <small class="summary">{{ character.appearanceSummary || 'Aparência ainda não descrita' }}</small>
+            </span>
+            <i class="pi pi-chevron-right muted"></i>
+          </a>
+        </li>
+      }
+    </ul>
+  }
+</div>
