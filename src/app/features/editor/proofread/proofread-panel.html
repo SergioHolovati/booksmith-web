@@ -16,6 +16,7 @@
   }
   <div class="pf-actions">
     <button type="button" class="pf-link" (click)="ignore.emit()">Ignorar</button>
+  <button type="button" class="pf-link" (click)="skipParagraph.emit()">Não revisar este parágrafo</button>
     @if (issue().type === 'spelling') {
       <button type="button" class="pf-link" (click)="addToDictionary.emit()">Adicionar ao dicionário do livro</button>
     }

@@ -6,7 +6,7 @@ import { manuscriptExtensions } from './manuscript-extensions';
 
 /** Tipos e marcas que o backend aceita (ManuscriptDocument.java). Se este teste quebrar, o servidor recusará o salvamento. */
 const ALLOWED_NODES = new Set(['doc', 'text', 'hardBreak', 'mention', ...BLOCK_TYPES]); // BLOCK_TYPES inclui a ilustração
-const ALLOWED_MARKS = new Set(['bold', 'italic', 'underline', 'strike', 'commentAnchor']);
+const ALLOWED_MARKS = new Set(['bold', 'italic', 'underline', 'strike', 'commentAnchor', 'proofreadOff']);
 
 function collect(node: JSONContent, out: { nodes: Set<string>; marks: Set<string>; ids: string[]; missing: string[] }) {
   out.nodes.add(node.type!);

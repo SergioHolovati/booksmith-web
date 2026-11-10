@@ -31,6 +31,7 @@ import { UniverseApi } from '../../../core/api/universe.api';
 import { ChapterHistoryComponent, HistoryActions } from '../chapter-history/chapter-history';
 import { ChapterNotesComponent } from '../chapter-notes/chapter-notes';
 import { noteAt } from '../schema/comment-anchor';
+import { proofreadOffParagraph } from '../schema/proofread-off';
 import { PlacedIssue, Proofread, issueAt } from '../proofread/proofread';
 import { Proofreader } from '../proofread/proofreader';
 import { ProofreadPanelComponent } from '../proofread/proofread-panel';
@@ -49,6 +50,7 @@ interface ToolbarState {
   heading: boolean;
   blockquote: boolean;
   indent: boolean;
+  proofreadOff: boolean;
   canUndo: boolean;
   canRedo: boolean;
 }
@@ -122,7 +124,7 @@ export class ChapterEditorComponent {
   readonly focusMode = signal(false);
   readonly keyboardOffset = signal(0);
   readonly toolbar = signal<ToolbarState>({
-    bold: false, italic: false, underline: false, heading: false, blockquote: false, indent: false,
+    bold: false, italic: false, underline: false, heading: false, blockquote: false, indent: false, proofreadOff: false,
     canUndo: false, canRedo: false,
   });
 
@@ -384,6 +386,18 @@ export class ChapterEditorComponent {
     this.issue.set(null);
   }
 
+  /** Atalho do painel: o parágrafo do erro sai da revisão (fala de personagem que fala errado). */
+  skipParagraph(issue: PlacedIssue): void {
+    if (this.editor) {
+      proofreadOffParagraph(this.editor, issue.from);
+    }
+    this.issue.set(null);
+  }
+
+  toggleProofreadOff(): void {
+    this.editor?.chain().focus().toggleProofreadOff().run();
+  }
+
   ignoreIssue(issue: PlacedIssue): void {
     this.proofreader?.ignore(issue);
     this.issue.set(null);
@@ -636,6 +650,7 @@ export class ChapterEditorComponent {
       heading: editor.isActive('heading'),
       blockquote: editor.isActive('blockquote'),
       indent: editor.isActive('paragraph', { indent: true }),
+      proofreadOff: editor.isActive('proofreadOff'),
       canUndo: editor.can().undo(),
       canRedo: editor.can().redo(),
     });

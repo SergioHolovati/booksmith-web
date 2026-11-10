@@ -11,6 +11,8 @@ interface Segment {
   textEnd: number;
   docPos: number;
   isText: boolean;
+  /** Trecho marcado "não revisar" (fala de personagem que fala errado). */
+  skip: boolean;
 }
 
 /** Um parágrafo (ou título) como o corretor vê: o id do bloco, o texto puro e o mapa de volta para o documento. */
@@ -48,7 +50,8 @@ export function blockTexts(doc: PMNode): BlockText[] {
     node.forEach((child, offset) => {
       const docPos = pos + 1 + offset;
       const piece = child.isText ? (child.text ?? '') : child.type.name === 'mention' ? String(child.attrs['label'] ?? '') : '\n';
-      segments.push({ textStart: text.length, textEnd: text.length + piece.length, docPos, isText: child.isText });
+      const skip = child.marks.some((m) => m.type.name === 'proofreadOff');
+      segments.push({ textStart: text.length, textEnd: text.length + piece.length, docPos, isText: child.isText, skip });
       text += piece;
     });
     blocks.push({ id, text, segments });
@@ -79,7 +82,8 @@ export function placeIssues(block: BlockText, issues: ProofreadIssue[]): PlacedI
     const to = docPosition(block, issue.offset + issue.length, true);
     const end = issue.offset + issue.length;
     const crossesNonText = block.segments.some((s) => !s.isText && s.textStart < end && s.textEnd > issue.offset);
-    if (from === null || to === null || crossesNonText) {
+    const insideNoProofread = block.segments.some((s) => s.skip && s.textStart < end && s.textEnd > issue.offset);
+    if (from === null || to === null || crossesNonText || insideNoProofread) {
       continue;
     }
     placed.push({ ...issue, blockId: block.id, from, to, word: block.text.slice(issue.offset, end) });

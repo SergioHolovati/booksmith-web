@@ -16,5 +16,6 @@ export class ProofreadPanelComponent {
   readonly apply = output<string>();
   readonly ignore = output<void>();
   readonly addToDictionary = output<void>();
+  readonly skipParagraph = output<void>();
   readonly dismiss = output<void>();
 }

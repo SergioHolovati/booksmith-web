@@ -61,7 +61,7 @@
 
     @if (issue(); as found) {
       <app-proofread-panel [issue]="found" (apply)="applySuggestion(found, $event)" (ignore)="ignoreIssue(found)"
-        (addToDictionary)="addToDictionary(found)" (dismiss)="issue.set(null)" />
+        (addToDictionary)="addToDictionary(found)" (skipParagraph)="skipParagraph(found)" (dismiss)="issue.set(null)" />
     }
 
     <!-- Fica logo acima do teclado virtual no celular -->
@@ -84,6 +84,9 @@
         aria-label="Nota no trecho selecionado" title="Nota no trecho selecionado"><i class="pi pi-comment"></i></button>
       <button type="button" class="tool" (mousedown)="$event.preventDefault()" (click)="openIllustrationPicker()"
         aria-label="Inserir ilustração" title="Inserir ilustração"><i class="pi pi-image"></i></button>
+      <button type="button" class="tool" [class.active]="toolbar().proofreadOff" (mousedown)="$event.preventDefault()"
+        (click)="toggleProofreadOff()" aria-label="Não revisar este trecho" [attr.aria-pressed]="toolbar().proofreadOff"
+        title="Não revisar este trecho (fala de personagem)"><i class="pi pi-eye-slash"></i></button>
       <span class="tool-spacer"></span>
       <button type="button" class="tool" [disabled]="!toolbar().canUndo" (mousedown)="$event.preventDefault()"
         (click)="undo()" aria-label="Desfazer">↶</button>

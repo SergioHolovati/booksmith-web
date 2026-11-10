@@ -363,3 +363,9 @@
   outline: 2px solid var(--bs-accent);
   outline-offset: 4px;
 }
+
+/* Trecho sem revisão: fundo levíssimo, só para o autor saber que ficou de fora */
+:host ::ng-deep .manuscript .no-proofread {
+  background: rgba(214, 160, 106, .08);
+  border-radius: 3px;
+}

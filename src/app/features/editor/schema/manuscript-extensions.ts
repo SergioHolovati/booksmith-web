@@ -7,6 +7,7 @@ import { ParagraphIndent } from './paragraph-indent';
 import { SceneBreak } from './scene-break';
 import { MentionSource, mentionExtension } from './mention';
 import { CommentAnchor } from './comment-anchor';
+import { ProofreadOff } from './proofread-off';
 import { IllustrationSource, illustrationExtension } from './illustration';
 
 /**
@@ -35,6 +36,7 @@ export function manuscriptExtensions(
     CharacterCount,
     mentionExtension(mentions),
     CommentAnchor,
+    ProofreadOff,
     illustrationExtension(illustrations),
   ];
 }

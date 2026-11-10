@@ -61,6 +61,30 @@ describe('corretor no editor', () => {
     editor.destroy();
   });
 
+  it('erro dentro de trecho "não revisar" não aparece; o resto do parágrafo continua revisado', () => {
+    const editor = editorWith([
+      { type: 'text', text: 'Ele disse: ' },
+      { type: 'text', text: 'nóis vai', marks: [{ type: 'proofreadOff' }] },
+      { type: 'text', text: ' muinto cedo.' },
+    ]);
+    const [block] = blockTexts(editor.state.doc);
+    expect(block.text).toBe('Ele disse: nóis vai muinto cedo.');
+    const words = placeIssues(block, [issue(11, 8, 'grammar'), issue(20, 6)]).map((p) => p.word);
+    expect(words).toEqual(['muinto']);
+    editor.destroy();
+  });
+
+  it('sem seleção, o botão marca e desmarca o parágrafo inteiro', () => {
+    const editor = editorWith([{ type: 'text', text: 'Nóis vai amanhã.' }]);
+    editor.commands.setTextSelection(3);
+    editor.commands.toggleProofreadOff();
+    expect(JSON.stringify(editor.getJSON())).toContain('proofreadOff');
+    expect(editor.state.doc.rangeHasMark(1, 17, editor.schema.marks['proofreadOff'])).toBe(true);
+    editor.commands.toggleProofreadOff();
+    expect(JSON.stringify(editor.getJSON())).not.toContain('proofreadOff');
+    editor.destroy();
+  });
+
   it('divide em lotes que cabem na API e pula parágrafo gigante', () => {
     const block = (id: string, size: number) => ({ id, text: 'x'.repeat(size), segments: [] });
     const many = Array.from({ length: 130 }, (_, i) => block(`b${i}`, 10));
