@@ -29,6 +29,8 @@ import { manuscriptExtensions } from '../schema/manuscript-extensions';
 import { MentionTarget, refreshMentionLabels } from '../schema/mention';
 import { UniverseApi } from '../../../core/api/universe.api';
 import { ChapterHistoryComponent, HistoryActions } from '../chapter-history/chapter-history';
+import { ChapterNotesComponent } from '../chapter-notes/chapter-notes';
+import { noteAt } from '../schema/comment-anchor';
 import { ChapterAutosave, SaveStatus } from './chapter-autosave';
 import { MessageService } from 'primeng/api';
 
@@ -61,7 +63,7 @@ const LORE_HINT: Record<string, string> = {
 
 @Component({
   selector: 'app-chapter-editor',
-  imports: [FormsModule, ButtonModule, DialogModule, ProgressSpinnerModule, ChapterHistoryComponent],
+  imports: [FormsModule, ButtonModule, DialogModule, ProgressSpinnerModule, ChapterHistoryComponent, ChapterNotesComponent],
   templateUrl: './chapter-editor.html',
   styleUrl: './chapter-editor.scss',
   host: {
@@ -119,6 +121,11 @@ export class ChapterEditorComponent {
   readonly conflictServer = signal<Chapter | null>(null);
   readonly resolving = signal(false);
   readonly historyOpen = signal(false);
+  readonly notesOpen = signal(false);
+  /** O editor para o painel de notas (o campo `editor` não é um signal). */
+  readonly editorRef = signal<Editor | null>(null);
+  private readonly notesPanel = viewChild(ChapterNotesComponent);
+  readonly openNotes = computed(() => this.notesPanel()?.openCount() ?? 0);
   private readonly toast = inject(MessageService);
 
   /** O histórico passa pela fila do autosave: o texto pendente é enviado antes de salvar ou restaurar versões. */
@@ -250,6 +257,14 @@ export class ChapterEditorComponent {
           autocapitalize: 'sentences',
           'aria-label': 'Texto do capítulo',
         },
+        // Tocar num trecho com nota abre a nota (o cursor continua indo para onde a pessoa tocou)
+        handleClick: (_view, pos) => {
+          const id = this.editor ? noteAt(this.editor, pos) : null;
+          if (id) {
+            this.notesPanel()?.focus(id);
+          }
+          return false;
+        },
       },
       onUpdate: () => {
         this.autosave?.markChanged();
@@ -258,6 +273,7 @@ export class ChapterEditorComponent {
       onTransaction: () => this.updateToolbar(),
     });
 
+    this.editorRef.set(this.editor);
     const autosave = new ChapterAutosave(chapterId, baseVersion, this.api, this.drafts, () => this.editor!.getJSON());
     this.autosaveRef.set(autosave);
 
@@ -325,6 +341,24 @@ export class ChapterEditorComponent {
   /** No celular não há tecla Tab: o recuo também fica na barra. */
   toggleIndent(): void {
     this.editor?.chain().focus().toggleParagraphIndent().run();
+  }
+
+  openNotesPanel(): void {
+    this.notesPanel()?.open();
+  }
+
+  /** Nota no trecho selecionado. Sem seleção, pede para selecionar (nota sempre fala de um trecho). */
+  addNote(): void {
+    const editor = this.editor;
+    if (!editor) {
+      return;
+    }
+    const { from, to, empty } = editor.state.selection;
+    if (empty) {
+      this.toast.add({ severity: 'info', summary: 'Selecione o trecho da nota primeiro', life: 3000 });
+      return;
+    }
+    this.notesPanel()?.startNew(from, to, editor.state.doc.textBetween(from, to, ' '));
   }
 
   insertSceneBreak(): void {

@@ -799,3 +799,17 @@ export interface MentionedIn {
   /** Quantas vezes o capítulo menciona. */
   count: number;
 }
+
+// ===== Notas do autor =====
+
+export interface ChapterNote {
+  /** Também é o threadId da marca no trecho. */
+  id: string;
+  chapterId: string;
+  body: string;
+  /** O trecho quando a nota foi criada (o atual vem do texto). */
+  quote: string | null;
+  resolved: boolean;
+  createdAt: string;
+  updatedAt: string;
+}

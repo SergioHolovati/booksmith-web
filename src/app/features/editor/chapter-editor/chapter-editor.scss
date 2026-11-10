@@ -51,6 +51,39 @@
   cursor: pointer;
 }
 
+.notes-btn {
+  position: relative;
+}
+
+.badge {
+  position: absolute;
+  top: 4px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--bs-accent);
+  color: #111;
+  font-size: .65rem;
+  font-weight: 700;
+  line-height: 16px;
+}
+
+/* Trecho com nota: sublinhado pontilhado, discreto; resolvida fica quase invisível */
+:host ::ng-deep .manuscript .note-anchor {
+  text-decoration: underline dotted var(--bs-sand);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+:host ::ng-deep .manuscript .note-resolved .note-anchor,
+:host ::ng-deep .manuscript .note-anchor.note-resolved,
+:host ::ng-deep .manuscript .note-resolved {
+  text-decoration-color: color-mix(in srgb, var(--bs-sand) 35%, transparent);
+}
+
 .icon-btn:active {
   background: var(--bs-sand-soft);
 }

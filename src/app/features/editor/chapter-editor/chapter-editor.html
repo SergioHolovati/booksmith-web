@@ -33,6 +33,14 @@
         </div>
       </div>
 
+      <button type="button" class="icon-btn notes-btn" (click)="openNotesPanel()"
+        [attr.aria-label]="openNotes() ? 'Notas do capítulo (' + openNotes() + ' abertas)' : 'Notas do capítulo'">
+        <i class="pi pi-comment"></i>
+        @if (openNotes()) {
+          <span class="badge" aria-hidden="true">{{ openNotes() }}</span>
+        }
+      </button>
+
       <button type="button" class="icon-btn" (click)="historyOpen.set(true)" aria-label="Histórico de versões">
         <i class="pi pi-history"></i>
       </button>
@@ -67,6 +75,8 @@
         (click)="toggleIndent()" aria-label="Recuo de parágrafo" title="Recuo de parágrafo (Tab)">⇥</button>
       <button type="button" class="tool" (mousedown)="$event.preventDefault()" (click)="insertSceneBreak()"
         aria-label="Quebra de cena">✱✱✱</button>
+      <button type="button" class="tool" (mousedown)="$event.preventDefault()" (click)="addNote()"
+        aria-label="Nota no trecho selecionado" title="Nota no trecho selecionado"><i class="pi pi-comment"></i></button>
       <span class="tool-spacer"></span>
       <button type="button" class="tool" [disabled]="!toolbar().canUndo" (mousedown)="$event.preventDefault()"
         (click)="undo()" aria-label="Desfazer">↶</button>
@@ -94,4 +104,5 @@
 
 @if (!loading() && !loadError()) {
   <app-chapter-history [chapterId]="chapterId()" [actions]="historyActions" [(visible)]="historyOpen" />
+  <app-chapter-notes [chapterId]="chapterId()" [editor]="editorRef()" [(visible)]="notesOpen" />
 }

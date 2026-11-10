@@ -70,6 +70,18 @@ export const HELP_ARTICLES: HelpArticle[] = [
     ],
   },
   {
+    slug: 'notas',
+    title: 'Notas ao lado do texto',
+    summary: 'Lembretes num trecho do capítulo, que só você vê.',
+    topic: 'texto',
+    keywords: ['nota', 'notas', 'comentário', 'lembrete', 'anotação', 'revisar depois'],
+    body: [
+      { steps: ['No editor, selecione o trecho.', 'Toque em **Nota** (o balão) na barra de baixo.', 'Escreva e toque em **Salvar nota**.'] },
+      { p: 'O trecho fica com um sublinhado pontilhado. Tocar nele abre a nota. O botão **Notas**, no topo, mostra quantas estão abertas e abre o painel com todas, na ordem do texto.' },
+      { p: 'No painel dá para editar, **resolver** (o sublinhado fica mais apagado) ou excluir. As notas só aparecem para você e não saem no livro baixado.' },
+    ],
+  },
+  {
     slug: 'meta-diaria',
     title: 'Meta diária e sequência de dias',
     summary: 'Escolha quantas palavras quer escrever por dia e acompanhe a sequência.',

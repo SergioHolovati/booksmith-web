@@ -1,0 +1,55 @@
+<p-drawer [visible]="visible()" (visibleChange)="visible.set($event)" position="right" header="Notas do capítulo"
+  styleClass="notes-drawer" [style]="{ width: 'min(420px, 100vw)' }">
+  <p class="muted small intro">Só você vê. As notas não saem no livro baixado.</p>
+
+  @if (draft(); as pending) {
+    <section class="new-note" aria-label="Nova nota">
+      <blockquote class="quote">{{ pending.quote }}</blockquote>
+      <textarea pTextarea id="note-new" [(ngModel)]="newBody" rows="3" [autoResize]="true" maxlength="5000"
+        aria-label="Nota" placeholder="Ex.: conferir a data da guerra"></textarea>
+      <div class="actions">
+        <p-button label="Salvar nota" icon="pi pi-check" size="small" [loading]="busy()" [disabled]="!newBody.trim()"
+          (onClick)="create()" />
+        <p-button label="Cancelar" severity="secondary" [text]="true" size="small" (onClick)="cancelNew()" />
+      </div>
+    </section>
+  }
+
+  <ul class="notes">
+    @for (view of views(); track view.note.id) {
+      <li class="note" [class.resolved]="view.note.resolved" [class.focused]="focused() === view.note.id"
+        [attr.data-note-id]="view.note.id">
+        @if (view.orphan) {
+          <span class="orphan small">Trecho removido do texto</span>
+        }
+        @if (view.quote) {
+          <button type="button" class="quote quote-link" [disabled]="view.orphan" (click)="goTo(view)"
+            [attr.aria-label]="'Ir para o trecho: ' + view.quote">{{ view.quote }}</button>
+        }
+        @if (editing() === view.note.id) {
+          <textarea pTextarea [(ngModel)]="editBody" rows="3" [autoResize]="true" maxlength="5000"
+            aria-label="Editar nota"></textarea>
+          <div class="actions">
+            <p-button label="Salvar" size="small" [loading]="busy()" (onClick)="saveEdit(view.note)" />
+            <p-button label="Cancelar" severity="secondary" [text]="true" size="small" (onClick)="editing.set(null)" />
+          </div>
+        } @else {
+          <p class="body">{{ view.note.body }}</p>
+          <div class="actions">
+            <p-button [label]="view.note.resolved ? 'Reabrir' : 'Resolver'"
+              [icon]="view.note.resolved ? 'pi pi-replay' : 'pi pi-check'" severity="secondary" [text]="true"
+              size="small" [disabled]="busy()" (onClick)="toggleResolved(view.note)" />
+            <p-button label="Editar" icon="pi pi-pencil" severity="secondary" [text]="true" size="small"
+              (onClick)="startEdit(view.note)" />
+            <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" [disabled]="busy()"
+              ariaLabel="Excluir nota" (onClick)="remove(view.note)" />
+          </div>
+        }
+      </li>
+    } @empty {
+      @if (!draft()) {
+        <li class="empty muted small">Selecione um trecho e toque em <strong>Nota</strong> na barra de baixo.</li>
+      }
+    }
+  </ul>
+</p-drawer>

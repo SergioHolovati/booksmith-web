@@ -17,7 +17,7 @@ import {
   ImportPlan,
   Page,
   SaveResult,
-  TrashItem, MentionedIn } from '../models/api.models';
+  TrashItem, MentionedIn, ChapterNote } from '../models/api.models';
 
 @Injectable({ providedIn: 'root' })
 export class ManuscriptApi {
@@ -55,6 +55,24 @@ export class ManuscriptApi {
 
   reorderChapters(bookId: string, chapterIds: string[]): Observable<ChapterSummary[]> {
     return this.http.put<ChapterSummary[]>(`${this.base}/books/${bookId}/chapters/order`, { chapterIds });
+  }
+
+  /** Notas do autor no capítulo (privadas: não saem no livro exportado). */
+  listNotes(chapterId: string): Observable<ChapterNote[]> {
+    return this.http.get<ChapterNote[]>(`${this.base}/chapters/${chapterId}/notes`);
+  }
+
+  /** `id`: o threadId que o editor pôs na marca do trecho. */
+  createNote(chapterId: string, note: { id: string; body: string; quote: string | null }): Observable<ChapterNote> {
+    return this.http.post<ChapterNote>(`${this.base}/chapters/${chapterId}/notes`, note);
+  }
+
+  updateNote(id: string, change: { body?: string; resolved?: boolean }): Observable<ChapterNote> {
+    return this.http.patch<ChapterNote>(`${this.base}/notes/${id}`, change);
+  }
+
+  deleteNote(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/notes/${id}`);
   }
 
   /** Capítulos da pessoa que mencionam este personagem, lugar ou ficha com "@". */
