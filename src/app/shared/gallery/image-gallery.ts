@@ -87,7 +87,7 @@ export class ImageGalleryComponent {
     let failed = 0;
     for (const file of files) {
       try {
-        const dataUrl = await compressImage(file, GALLERY_MAX_DIMENSION);
+        const dataUrl = await compressImage(file, GALLERY_MAX_DIMENSION, 0.85, 'portable'); // pode virar ilustração no PDF
         const image = await firstValueFrom(this.api.uploadImage(this.universeId(), dataUrl, null, links));
         this.images.update((list) => [image, ...list]);
       } catch (error) {

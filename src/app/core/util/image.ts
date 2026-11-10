@@ -2,7 +2,12 @@
  * Reduz uma foto antes do upload. Fotos de celular passam fácil de 5 MB (limite da API);
  * redimensionar no aparelho economiza o plano de dados de quem envia.
  */
-export async function compressImage(file: File, maxDimension = 1600, quality = 0.85): Promise<string> {
+export async function compressImage(
+  file: File,
+  maxDimension = 1600,
+  quality = 0.85,
+  format: 'webp' | 'portable' = 'webp',
+): Promise<string> {
   if (!file.type.startsWith('image/')) {
     throw new Error('Escolha um arquivo de imagem.');
   }
@@ -22,6 +27,10 @@ export async function compressImage(file: File, maxDimension = 1600, quality = 0
   context.drawImage(bitmap, 0, 0, width, height);
   bitmap.close();
 
+  // "portable": PNG (mantém transparência de desenho) ou JPEG, que todo leitor de PDF e ePub abre
+  if (format === 'portable') {
+    return file.type === 'image/png' ? canvas.toDataURL('image/png') : canvas.toDataURL('image/jpeg', quality);
+  }
   // WebP quando o navegador suporta codificar; senão JPEG (Safari antigo)
   const webp = canvas.toDataURL('image/webp', quality);
   return webp.startsWith('data:image/webp') ? webp : canvas.toDataURL('image/jpeg', quality);

@@ -7,6 +7,7 @@ export const BLOCK_TYPES = [
   'heading',
   'blockquote',
   'sceneBreak',
+  'illustration',
   'bulletList',
   'orderedList',
   'listItem',

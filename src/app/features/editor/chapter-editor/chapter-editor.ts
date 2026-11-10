@@ -34,6 +34,11 @@ import { noteAt } from '../schema/comment-anchor';
 import { PlacedIssue, Proofread, issueAt } from '../proofread/proofread';
 import { Proofreader } from '../proofread/proofreader';
 import { ProofreadPanelComponent } from '../proofread/proofread-panel';
+import { IllustrationPickerComponent } from '../illustration/illustration-picker';
+import { IllustrationPanelComponent } from '../illustration/illustration-panel';
+import { ILLUSTRATIONS_LOADED } from '../schema/illustration';
+import { NodeSelection } from '@tiptap/pm/state';
+import { UniverseImage } from '../../../core/models/api.models';
 import { ChapterAutosave, SaveStatus } from './chapter-autosave';
 import { MessageService } from 'primeng/api';
 
@@ -66,7 +71,7 @@ const LORE_HINT: Record<string, string> = {
 
 @Component({
   selector: 'app-chapter-editor',
-  imports: [FormsModule, ButtonModule, DialogModule, ProgressSpinnerModule, ChapterHistoryComponent, ChapterNotesComponent, ProofreadPanelComponent],
+  imports: [FormsModule, ButtonModule, DialogModule, ProgressSpinnerModule, ChapterHistoryComponent, ChapterNotesComponent, ProofreadPanelComponent, IllustrationPickerComponent, IllustrationPanelComponent],
   templateUrl: './chapter-editor.html',
   styleUrl: './chapter-editor.scss',
   host: {
@@ -125,6 +130,11 @@ export class ChapterEditorComponent {
   readonly resolving = signal(false);
   readonly historyOpen = signal(false);
   readonly notesOpen = signal(false);
+  /** Ilustrações: o universo do livro (para a biblioteca), o endereço de cada imagem e a selecionada no texto. */
+  readonly universeId = signal<string | null>(null);
+  readonly pickerOpen = signal(false);
+  readonly selectedIllustration = signal<{ pos: number; caption: string | null } | null>(null);
+  private readonly imageUrls = new Map<string, string>();
   /** Corretor próprio: o erro tocado (painel de sugestões) e o corretor em si, criado com o editor. */
   readonly issue = signal<PlacedIssue | null>(null);
   private proofreader: Proofreader | null = null;
@@ -254,7 +264,10 @@ export class ChapterEditorComponent {
 
     this.editor = new Editor({
       element: host,
-      extensions: [...manuscriptExtensions('Comece a escrever… (@ menciona um personagem ou lugar)', () => this.mentionTargets), Proofread],
+      extensions: [
+        ...manuscriptExtensions('Comece a escrever… (@ menciona um personagem ou lugar)', () => this.mentionTargets, () => this.imageUrls),
+        Proofread,
+      ],
       content,
       editorProps: {
         attributes: {
@@ -285,7 +298,10 @@ export class ChapterEditorComponent {
         this.proofreader?.schedule();
         this.issue.set(null);
       },
-      onTransaction: () => this.updateToolbar(),
+      onTransaction: () => {
+        this.updateToolbar();
+        this.updateSelectedIllustration();
+      },
     });
 
     this.editorRef.set(this.editor);
@@ -386,6 +402,62 @@ export class ChapterEditorComponent {
       this.toast.add({ severity: 'success', summary: `"${issue.word}" no dicionário do livro`, life: 2500 });
     } catch (error) {
       this.toast.add({ severity: 'error', summary: problemMessage(error), life: 5000 });
+    }
+  }
+
+  openIllustrationPicker(): void {
+    if (!this.universeId()) {
+      this.toast.add({ severity: 'info', summary: 'Abrindo a biblioteca do universo… tente de novo em instantes', life: 3000 });
+      return;
+    }
+    this.pickerOpen.set(true);
+  }
+
+  insertIllustration(image: UniverseImage): void {
+    this.imageUrls.set(image.id, image.url);
+    this.editor?.chain().focus().insertIllustration({ imageId: image.id, caption: image.caption }).run();
+  }
+
+  setIllustrationCaption(caption: string): void {
+    const selected = this.selectedIllustration();
+    const editor = this.editor;
+    if (!selected || !editor) {
+      return;
+    }
+    const node = editor.state.doc.nodeAt(selected.pos);
+    if (node?.type.name === 'illustration') {
+      editor.view.dispatch(editor.state.tr.setNodeMarkup(selected.pos, undefined, { ...node.attrs, caption: caption || null }));
+    }
+  }
+
+  removeIllustration(): void {
+    const selected = this.selectedIllustration();
+    const editor = this.editor;
+    const node = selected && editor ? editor.state.doc.nodeAt(selected.pos) : null;
+    if (editor && selected && node?.type.name === 'illustration') {
+      editor.view.dispatch(editor.state.tr.delete(selected.pos, selected.pos + node.nodeSize));
+      this.selectedIllustration.set(null);
+    }
+  }
+
+  private updateSelectedIllustration(): void {
+    const selection = this.editor?.state.selection;
+    if (selection instanceof NodeSelection && selection.node.type.name === 'illustration') {
+      this.selectedIllustration.set({ pos: selection.from, caption: selection.node.attrs['caption'] as string | null });
+    } else if (this.selectedIllustration()) {
+      this.selectedIllustration.set(null);
+    }
+  }
+
+  /** Endereço das imagens da biblioteca, para desenhar as ilustrações do capítulo. */
+  private async loadImageUrls(universeId: string): Promise<void> {
+    try {
+      for (const image of await firstValueFrom(this.universeApi.listImages(universeId))) {
+        this.imageUrls.set(image.id, image.url);
+      }
+      window.dispatchEvent(new Event(ILLUSTRATIONS_LOADED));
+    } catch {
+      // sem a lista, a ilustração mostra só a legenda
     }
   }
 
@@ -506,6 +578,8 @@ export class ChapterEditorComponent {
     try {
       const book = await firstValueFrom(this.api.getBook(bookId));
       const universeId = book.universeId;
+      this.universeId.set(universeId);
+      void this.loadImageUrls(universeId);
       const [characters, places, lore] = await Promise.all([
         firstValueFrom(this.universeApi.listCharacters(universeId)),
         firstValueFrom(this.universeApi.listPlaces(universeId)),

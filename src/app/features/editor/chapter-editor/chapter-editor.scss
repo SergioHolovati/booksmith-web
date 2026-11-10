@@ -339,3 +339,27 @@
   text-decoration-style: dashed;
   text-decoration-color: #d6a06a;
 }
+
+/* Ilustração no texto: centralizada, como vai sair no livro */
+:host ::ng-deep .manuscript figure.illustration {
+  margin: 1.5rem 0;
+  text-align: center;
+}
+
+:host ::ng-deep .manuscript figure.illustration img {
+  max-width: 100%;
+  max-height: 60vh;
+  border-radius: 4px;
+}
+
+:host ::ng-deep .manuscript figure.illustration figcaption {
+  margin-top: .4rem;
+  font-size: .85em;
+  font-style: italic;
+  color: var(--bs-text-soft);
+}
+
+:host ::ng-deep .manuscript figure.illustration.ProseMirror-selectednode {
+  outline: 2px solid var(--bs-accent);
+  outline-offset: 4px;
+}

@@ -7,6 +7,7 @@ import { ParagraphIndent } from './paragraph-indent';
 import { SceneBreak } from './scene-break';
 import { MentionSource, mentionExtension } from './mention';
 import { CommentAnchor } from './comment-anchor';
+import { IllustrationSource, illustrationExtension } from './illustration';
 
 /**
  * Esquema do manuscrito. Precisa bater com o validador do backend (ManuscriptDocument.java):
@@ -14,7 +15,11 @@ import { CommentAnchor } from './comment-anchor';
  * marcas bold, italic, underline, strike e commentAnchor (nota do autor); menção (@) a personagem, lugar ou ficha do mundo.
  * Um nó ou marca a mais aqui faz o servidor recusar o salvamento (422).
  */
-export function manuscriptExtensions(placeholder: string, mentions?: MentionSource): AnyExtension[] {
+export function manuscriptExtensions(
+  placeholder: string,
+  mentions?: MentionSource,
+  illustrations?: IllustrationSource,
+): AnyExtension[] {
   return [
     StarterKit.configure({
       heading: { levels: [1, 2, 3] },
@@ -30,5 +35,6 @@ export function manuscriptExtensions(placeholder: string, mentions?: MentionSour
     CharacterCount,
     mentionExtension(mentions),
     CommentAnchor,
+    illustrationExtension(illustrations),
   ];
 }

@@ -82,6 +82,8 @@
         aria-label="Quebra de cena">✱✱✱</button>
       <button type="button" class="tool" (mousedown)="$event.preventDefault()" (click)="addNote()"
         aria-label="Nota no trecho selecionado" title="Nota no trecho selecionado"><i class="pi pi-comment"></i></button>
+      <button type="button" class="tool" (mousedown)="$event.preventDefault()" (click)="openIllustrationPicker()"
+        aria-label="Inserir ilustração" title="Inserir ilustração"><i class="pi pi-image"></i></button>
       <span class="tool-spacer"></span>
       <button type="button" class="tool" [disabled]="!toolbar().canUndo" (mousedown)="$event.preventDefault()"
         (click)="undo()" aria-label="Desfazer">↶</button>
@@ -110,4 +112,9 @@
 @if (!loading() && !loadError()) {
   <app-chapter-history [chapterId]="chapterId()" [actions]="historyActions" [(visible)]="historyOpen" />
   <app-chapter-notes [chapterId]="chapterId()" [editor]="editorRef()" [(visible)]="notesOpen" />
+  <app-illustration-picker [universeId]="universeId()" [(visible)]="pickerOpen" (picked)="insertIllustration($event)" />
+  @if (selectedIllustration(); as selected) {
+    <app-illustration-panel [caption]="selected.caption" (captionChange)="setIllustrationCaption($event)"
+      (remove)="removeIllustration()" />
+  }
 }

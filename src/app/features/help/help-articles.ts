@@ -168,6 +168,18 @@ export const HELP_ARTICLES: HelpArticle[] = [
     ],
   },
   {
+    slug: 'ilustracoes',
+    title: 'Ilustrações no meio do texto',
+    summary: 'Coloque um desenho ou mapa no capítulo, com legenda.',
+    topic: 'livros',
+    keywords: ['ilustração', 'imagem no texto', 'desenho', 'mapa', 'figura', 'legenda'],
+    body: [
+      { steps: ['No editor, deixe o cursor onde a imagem deve ficar.', 'Toque em **Inserir ilustração** (a moldura) na barra de baixo.', 'Escolha uma imagem da biblioteca do universo ou envie uma nova.'] },
+      { p: 'Toque na ilustração para mudar a legenda ou **tirar do texto**.' },
+      { p: 'No livro baixado, ela sai no ePub e no PDF com a legenda. No Word sai um marcador "[Ilustração: legenda]", como as editoras pedem nos manuscritos.' },
+    ],
+  },
+  {
     slug: 'universos',
     title: 'Universos, séries e personagens compartilhados',
     summary: 'Vários livros no mesmo mundo, com os mesmos personagens, lugares e linha do tempo.',
