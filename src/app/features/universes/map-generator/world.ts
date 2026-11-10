@@ -171,8 +171,9 @@ export function generateWorld(settings: MapSettings): World {
       queue.push(i);
     }
   }
-  for (let q = 0; q < queue.length; q++) {
-    forNeighbors4(queue[q], W, H, (n) => {
+  // for...of também visita o que entra na fila durante o laço (busca em largura)
+  for (const cell of queue) {
+    forNeighbors4(cell, W, H, (n) => {
       if (water[n] && !ocean[n]) {
         ocean[n] = 1;
         queue.push(n);
@@ -636,8 +637,8 @@ function components(member: (i: number) => boolean, W: number, H: number): numbe
     }
     const group = [start];
     seen[start] = 1;
-    for (let q = 0; q < group.length; q++) {
-      forNeighbors8(group[q], W, H, (n) => {
+    for (const cell of group) {
+      forNeighbors8(cell, W, H, (n) => {
         if (!seen[n] && member(n)) {
           seen[n] = 1;
           group.push(n);
@@ -723,8 +724,7 @@ function bfsDistance(N: number, W: number, H: number, source: (i: number) => boo
       queue.push(i);
     }
   }
-  for (let q = 0; q < queue.length; q++) {
-    const c = queue[q];
+  for (const c of queue) {
     forNeighbors4(c, W, H, (n) => {
       if (dist[n] === Infinity) {
         dist[n] = dist[c] + 1;

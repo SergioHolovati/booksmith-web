@@ -5,7 +5,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 
 import { AppearanceField, AppearanceValue } from '../../core/models/api.models';
-import { asList, isCustom } from '../../features/characters/appearance-values';
+import { asList, isCustom } from './field-values';
 
 /**
  * Um campo de formulário definido por dados (montador de personagem, construtor de universo): opções em

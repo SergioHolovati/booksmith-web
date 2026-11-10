@@ -29,8 +29,8 @@
     </div>
 
     <div class="field">
-      <label>Tipo de história</label>
-      <p-selectbutton [options]="kindOptions" formControlName="kind" optionLabel="label" optionValue="value"
+      <span class="field-label" id="kind-label">Tipo de história</span>
+      <p-selectbutton ariaLabelledBy="kind-label" [options]="kindOptions" formControlName="kind" optionLabel="label" optionValue="value"
         [allowEmpty]="false" styleClass="full-width" />
       @if (kind() === 'FANFIC') {
         <small class="field-hint">Fanfics podem ser escritas, organizadas e compartilhadas de graça, mas não vendidas.</small>
@@ -70,8 +70,8 @@
 
     @if (isEdit()) {
       <div class="field">
-        <label>Situação</label>
-        <p-selectbutton [options]="statusOptions" formControlName="status" optionLabel="label" optionValue="value"
+        <span class="field-label" id="status-label">Situação</span>
+        <p-selectbutton ariaLabelledBy="status-label" [options]="statusOptions" formControlName="status" optionLabel="label" optionValue="value"
           [allowEmpty]="false" styleClass="full-width" />
       </div>
     }

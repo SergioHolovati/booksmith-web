@@ -29,7 +29,7 @@ const httpError = (status: number) => new HttpErrorResponse({ status, error: sta
 
 describe('ChapterAutosave', () => {
   let drafts: FakeDrafts;
-  let responses: Array<() => Observable<SaveResult>>;
+  let responses: (() => Observable<SaveResult>)[];
   let calls: { version: number; content: JSONContent }[];
   let restoreCalls: { versionId: string; currentVersion: number }[];
   let content: JSONContent;

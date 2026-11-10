@@ -203,7 +203,9 @@ a:hover {
   gap: .5rem;
 }
 
-.field label {
+/* .field-label: título de um grupo (botões, chips) ligado por aria-labelledby, que não é <label> de um campo */
+.field label,
+.field .field-label {
   font-size: .95rem;
   font-weight: 500;
   color: var(--bs-text-soft);

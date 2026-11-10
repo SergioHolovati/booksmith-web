@@ -13,7 +13,11 @@ function collect(node: JSONContent, out: { nodes: Set<string>; marks: Set<string
   node.marks?.forEach((mark) => out.marks.add(mark.type));
   if ((BLOCK_TYPES as readonly string[]).includes(node.type!)) {
     const id = node.attrs?.['id'] as string | undefined;
-    id ? out.ids.push(id) : out.missing.push(node.type!);
+    if (id) {
+      out.ids.push(id);
+    } else {
+      out.missing.push(node.type!);
+    }
   }
   node.content?.forEach((child) => collect(child, out));
   return out;

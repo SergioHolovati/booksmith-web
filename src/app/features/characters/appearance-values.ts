@@ -6,11 +6,10 @@ import {
   AppearanceValue,
   AppearanceValues,
 } from '../../core/models/api.models';
+import { asList, isCustom } from '../../shared/builder/field-values';
 
-/** Valor que não é uma das opções do campo: texto livre ("Outro"). */
-export function isCustom(field: AppearanceField, value: unknown): value is string {
-  return typeof value === 'string' && value !== '' && !(field.options ?? []).some((o) => o.value === value);
-}
+// Reexporta para quem já importava daqui
+export { asList, isCustom };
 
 /** Cópia dos valores com {@code key} trocado; valor vazio remove a chave. */
 export function withValue(values: AppearanceValues, key: string, value: AppearanceValue | null): AppearanceValues {
@@ -35,10 +34,6 @@ export function toggleMulti(values: AppearanceValues, key: string, option: strin
   const current = asList(values[key]);
   const next = current.includes(option) ? current.filter((v) => v !== option) : [...current, option];
   return withValue(values, key, next);
-}
-
-export function asList(value: AppearanceValue | undefined): string[] {
-  return Array.isArray(value) ? value : [];
 }
 
 /**
