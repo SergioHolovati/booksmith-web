@@ -813,3 +813,23 @@ export interface ChapterNote {
   createdAt: string;
   updatedAt: string;
 }
+
+// ===== Corretor =====
+
+export interface ProofreadIssue {
+  /** Posição no texto do parágrafo (com a menção valendo o nome). */
+  offset: number;
+  length: number;
+  /** spelling (ortografia), grammar (gramática) ou style (estilo). */
+  type: 'spelling' | 'grammar' | 'style';
+  message: string;
+  shortMessage: string;
+  /** Até 5 sugestões. */
+  replacements: string[];
+  ruleId: string;
+}
+
+export interface ProofreadBlock {
+  id: string;
+  issues: ProofreadIssue[];
+}

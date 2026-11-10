@@ -31,6 +31,9 @@ import { UniverseApi } from '../../../core/api/universe.api';
 import { ChapterHistoryComponent, HistoryActions } from '../chapter-history/chapter-history';
 import { ChapterNotesComponent } from '../chapter-notes/chapter-notes';
 import { noteAt } from '../schema/comment-anchor';
+import { PlacedIssue, Proofread, issueAt } from '../proofread/proofread';
+import { Proofreader } from '../proofread/proofreader';
+import { ProofreadPanelComponent } from '../proofread/proofread-panel';
 import { ChapterAutosave, SaveStatus } from './chapter-autosave';
 import { MessageService } from 'primeng/api';
 
@@ -63,7 +66,7 @@ const LORE_HINT: Record<string, string> = {
 
 @Component({
   selector: 'app-chapter-editor',
-  imports: [FormsModule, ButtonModule, DialogModule, ProgressSpinnerModule, ChapterHistoryComponent, ChapterNotesComponent],
+  imports: [FormsModule, ButtonModule, DialogModule, ProgressSpinnerModule, ChapterHistoryComponent, ChapterNotesComponent, ProofreadPanelComponent],
   templateUrl: './chapter-editor.html',
   styleUrl: './chapter-editor.scss',
   host: {
@@ -122,6 +125,9 @@ export class ChapterEditorComponent {
   readonly resolving = signal(false);
   readonly historyOpen = signal(false);
   readonly notesOpen = signal(false);
+  /** Corretor próprio: o erro tocado (painel de sugestões) e o corretor em si, criado com o editor. */
+  readonly issue = signal<PlacedIssue | null>(null);
+  private proofreader: Proofreader | null = null;
   /** O editor para o painel de notas (o campo `editor` não é um signal). */
   readonly editorRef = signal<Editor | null>(null);
   private readonly notesPanel = viewChild(ChapterNotesComponent);
@@ -185,6 +191,7 @@ export class ChapterEditorComponent {
       viewport?.removeEventListener('resize', updateKeyboard);
       viewport?.removeEventListener('scroll', updateKeyboard);
       void this.autosave?.flush().finally(() => this.autosave?.dispose());
+      this.proofreader?.destroy();
       this.editor?.destroy();
     });
 
@@ -247,7 +254,7 @@ export class ChapterEditorComponent {
 
     this.editor = new Editor({
       element: host,
-      extensions: manuscriptExtensions('Comece a escrever… (@ menciona um personagem ou lugar)', () => this.mentionTargets),
+      extensions: [...manuscriptExtensions('Comece a escrever… (@ menciona um personagem ou lugar)', () => this.mentionTargets), Proofread],
       content,
       editorProps: {
         attributes: {
@@ -258,7 +265,13 @@ export class ChapterEditorComponent {
           'aria-label': 'Texto do capítulo',
         },
         // Tocar num trecho com nota abre a nota (o cursor continua indo para onde a pessoa tocou)
-        handleClick: (_view, pos) => {
+        handleClick: (view, pos) => {
+          // Erro do corretor tem prioridade: o toque abre as sugestões
+          const found = issueAt(view.state, pos);
+          this.issue.set(found);
+          if (found) {
+            return false;
+          }
           const id = this.editor ? noteAt(this.editor, pos) : null;
           if (id) {
             this.notesPanel()?.focus(id);
@@ -269,11 +282,18 @@ export class ChapterEditorComponent {
       onUpdate: () => {
         this.autosave?.markChanged();
         this.updateWords();
+        this.proofreader?.schedule();
+        this.issue.set(null);
       },
       onTransaction: () => this.updateToolbar(),
     });
 
     this.editorRef.set(this.editor);
+    // Com o corretor próprio no ar, o do navegador sai (senão o texto fica com dois sublinhados)
+    this.proofreader = new Proofreader(this.editor, chapterId, this.api, (available) =>
+      this.editor?.view.dom.setAttribute('spellcheck', available ? 'false' : 'true'),
+    );
+    this.proofreader.schedule(300);
     const autosave = new ChapterAutosave(chapterId, baseVersion, this.api, this.drafts, () => this.editor!.getJSON());
     this.autosaveRef.set(autosave);
 
@@ -341,6 +361,32 @@ export class ChapterEditorComponent {
   /** No celular não há tecla Tab: o recuo também fica na barra. */
   toggleIndent(): void {
     this.editor?.chain().focus().toggleParagraphIndent().run();
+  }
+
+  applySuggestion(issue: PlacedIssue, replacement: string): void {
+    this.proofreader?.apply(issue, replacement);
+    this.issue.set(null);
+  }
+
+  ignoreIssue(issue: PlacedIssue): void {
+    this.proofreader?.ignore(issue);
+    this.issue.set(null);
+  }
+
+  /** A palavra entra no dicionário do livro e deixa de ser marcada em todos os capítulos. */
+  async addToDictionary(issue: PlacedIssue): Promise<void> {
+    const bookId = this.bookId();
+    if (!bookId) {
+      return;
+    }
+    try {
+      await firstValueFrom(this.api.addDictionaryWord(bookId, issue.word));
+      this.proofreader?.accept(issue.word);
+      this.issue.set(null);
+      this.toast.add({ severity: 'success', summary: `"${issue.word}" no dicionário do livro`, life: 2500 });
+    } catch (error) {
+      this.toast.add({ severity: 'error', summary: problemMessage(error), life: 5000 });
+    }
   }
 
   openNotesPanel(): void {

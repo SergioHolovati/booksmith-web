@@ -59,6 +59,11 @@
       <div #editorHost class="editor-host"></div>
     </main>
 
+    @if (issue(); as found) {
+      <app-proofread-panel [issue]="found" (apply)="applySuggestion(found, $event)" (ignore)="ignoreIssue(found)"
+        (addToDictionary)="addToDictionary(found)" (dismiss)="issue.set(null)" />
+    }
+
     <!-- Fica logo acima do teclado virtual no celular -->
     <nav class="toolbar" aria-label="Formatação">
       <button type="button" class="tool" [class.active]="toolbar().bold" (mousedown)="$event.preventDefault()"

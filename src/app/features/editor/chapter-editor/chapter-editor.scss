@@ -316,3 +316,26 @@
 .goal-progress.done {
   color: var(--bs-accent-light);
 }
+
+/* Corretor próprio: ortografia em vermelho, gramática em azul (ondulado), estilo tracejado */
+:host ::ng-deep .manuscript .pf {
+  text-decoration-line: underline;
+  text-decoration-style: wavy;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+  text-decoration-skip-ink: none;
+  cursor: pointer;
+}
+
+:host ::ng-deep .manuscript .pf-spelling {
+  text-decoration-color: #ef4444;
+}
+
+:host ::ng-deep .manuscript .pf-grammar {
+  text-decoration-color: #60a5fa;
+}
+
+:host ::ng-deep .manuscript .pf-style {
+  text-decoration-style: dashed;
+  text-decoration-color: #d6a06a;
+}

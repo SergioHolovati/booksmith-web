@@ -1,0 +1,23 @@
+<section class="pf-panel" role="dialog" [attr.aria-label]="issue().type === 'spelling' ? 'Erro de ortografia' : 'Sugestão de revisão'">
+  <div class="pf-head">
+    <span class="pf-kind" [attr.data-type]="issue().type">
+      {{ issue().type === 'spelling' ? 'Ortografia' : issue().type === 'grammar' ? 'Gramática' : 'Estilo' }}
+    </span>
+    <button type="button" class="pf-close" (click)="dismiss.emit()" aria-label="Fechar"><i class="pi pi-times"></i></button>
+  </div>
+  <p class="pf-message">{{ issue().message }}</p>
+  @if (issue().replacements.length) {
+    <div class="pf-suggestions">
+      @for (replacement of issue().replacements; track replacement) {
+        <button type="button" class="pf-suggestion" (mousedown)="$event.preventDefault()"
+          (click)="apply.emit(replacement)">{{ replacement || '(apagar)' }}</button>
+      }
+    </div>
+  }
+  <div class="pf-actions">
+    <button type="button" class="pf-link" (click)="ignore.emit()">Ignorar</button>
+    @if (issue().type === 'spelling') {
+      <button type="button" class="pf-link" (click)="addToDictionary.emit()">Adicionar ao dicionário do livro</button>
+    }
+  </div>
+</section>

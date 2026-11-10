@@ -17,7 +17,7 @@ import {
   ImportPlan,
   Page,
   SaveResult,
-  TrashItem, MentionedIn, ChapterNote } from '../models/api.models';
+  TrashItem, MentionedIn, ChapterNote, ProofreadBlock } from '../models/api.models';
 
 @Injectable({ providedIn: 'root' })
 export class ManuscriptApi {
@@ -55,6 +55,16 @@ export class ManuscriptApi {
 
   reorderChapters(bookId: string, chapterIds: string[]): Observable<ChapterSummary[]> {
     return this.http.put<ChapterSummary[]>(`${this.base}/books/${bookId}/chapters/order`, { chapterIds });
+  }
+
+  /** Corretor próprio: os parágrafos que mudaram (id do bloco e texto); devolve os erros de cada um. */
+  proofread(chapterId: string, blocks: { id: string; text: string }[]): Observable<{ blocks: ProofreadBlock[] }> {
+    return this.http.post<{ blocks: ProofreadBlock[] }>(`${this.base}/chapters/${chapterId}/proofread`, { blocks });
+  }
+
+  /** "Adicionar ao dicionário do livro": a palavra deixa de ser marcada como erro. */
+  addDictionaryWord(bookId: string, word: string): Observable<string[]> {
+    return this.http.post<string[]>(`${this.base}/books/${bookId}/dictionary`, { word });
   }
 
   /** Notas do autor no capítulo (privadas: não saem no livro exportado). */

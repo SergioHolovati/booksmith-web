@@ -70,6 +70,19 @@ export const HELP_ARTICLES: HelpArticle[] = [
     ],
   },
   {
+    slug: 'corretor',
+    title: 'Corretor de ortografia e gramática',
+    summary: 'Sublinhado vermelho, azul ou tracejado: toque para ver as sugestões.',
+    topic: 'texto',
+    keywords: ['corretor', 'ortografia', 'gramática', 'erro', 'sublinhado', 'crase', 'concordância', 'dicionário'],
+    body: [
+      { p: 'Enquanto você escreve, o Booksmith revisa o texto: **vermelho** é ortografia, **azul** é gramática (crase, concordância, regência) e **tracejado** é sugestão de estilo.' },
+      { steps: ['Toque na palavra sublinhada.', 'Toque na sugestão certa para trocar, ou em **Ignorar**.'] },
+      { p: 'Nomes de personagens, lugares e do seu mundo nunca são marcados. Inventou uma palavra? Toque nela e em **Adicionar ao dicionário do livro**: ela deixa de ser marcada em todos os capítulos.' },
+      { p: 'O texto é revisado no servidor do Booksmith e não fica guardado lá. Sem internet, o corretor do celular ou do navegador continua funcionando.' },
+    ],
+  },
+  {
     slug: 'notas',
     title: 'Notas ao lado do texto',
     summary: 'Lembretes num trecho do capítulo, que só você vê.',
