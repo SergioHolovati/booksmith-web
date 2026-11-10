@@ -25,6 +25,13 @@ import {
   MapPlace,
   Universe,
   UniverseBuilderDefinition,
+  WorldCalendar,
+  UniverseTrashItem,
+  UniverseImage,
+  Portrait,
+  Relation,
+  RelationRequest,
+  UpdateRelationRequest,
   UniverseDetail,
   UniverseDetails,
 } from '../models/api.models';
@@ -201,6 +208,70 @@ export class UniverseApi {
   /** Move para logo depois de {@code afterId}; nulo leva para o começo. */
   moveEvent(id: string, afterId: string | null): Observable<TimelineEvent> {
     return this.http.post<TimelineEvent>(`${this.base}/timeline/${id}/move`, { afterId });
+  }
+
+  /** Põe os eventos datados em ordem cronológica; os sem data ficam onde estavam. */
+  sortTimelineByDate(universeId: string): Observable<TimelineEvent[]> {
+    return this.http.post<TimelineEvent[]>(`${this.base}/universes/${universeId}/timeline/sort-by-date`, {});
+  }
+
+  calendar(universeId: string): Observable<WorldCalendar> {
+    return this.http.get<WorldCalendar>(`${this.base}/universes/${universeId}/calendar`);
+  }
+
+  saveCalendar(universeId: string, calendar: WorldCalendar): Observable<WorldCalendar> {
+    return this.http.put<WorldCalendar>(`${this.base}/universes/${universeId}/calendar`, calendar);
+  }
+
+  /** Personagens, lugares, fichas do mundo, eventos e relações excluídos nos últimos 30 dias. */
+  listUniverseTrash(): Observable<UniverseTrashItem[]> {
+    return this.http.get<UniverseTrashItem[]>(`${this.base}/me/trash/universe`);
+  }
+
+  restoreUniverseItem(item: Pick<UniverseTrashItem, 'type' | 'id'>): Observable<UniverseTrashItem> {
+    return this.http.post<UniverseTrashItem>(
+      `${this.base}/me/trash/universe/${item.type.toLowerCase()}/${item.id}/restore`,
+      {},
+    );
+  }
+
+  /** Imagens do universo, mais novas primeiro; com `entityId`, só as ligadas a ele. */
+  listImages(universeId: string, entityId?: string): Observable<UniverseImage[]> {
+    const params = entityId ? { entityId } : undefined;
+    return this.http.get<UniverseImage[]>(`${this.base}/universes/${universeId}/images`, { params });
+  }
+
+  uploadImage(universeId: string, dataUrl: string, caption: string | null, entityIds: string[]): Observable<UniverseImage> {
+    return this.http.post<UniverseImage>(`${this.base}/universes/${universeId}/images`, { dataUrl, caption, entityIds });
+  }
+
+  updateImage(id: string, update: { version: number; caption: string | null; entityIds: string[] }): Observable<UniverseImage> {
+    return this.http.put<UniverseImage>(`${this.base}/images/${id}`, update);
+  }
+
+  deleteImage(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/images/${id}`);
+  }
+
+  /** Retrato de um personagem ou lugar; `imageId` null tira o retrato. */
+  setPortrait(entityId: string, imageId: string | null): Observable<Portrait> {
+    return this.http.put<Portrait>(`${this.base}/entities/${entityId}/portrait`, { imageId });
+  }
+
+  listRelations(universeId: string): Observable<Relation[]> {
+    return this.http.get<Relation[]>(`${this.base}/universes/${universeId}/relations`);
+  }
+
+  createRelation(universeId: string, request: RelationRequest): Observable<Relation> {
+    return this.http.post<Relation>(`${this.base}/universes/${universeId}/relations`, request);
+  }
+
+  updateRelation(id: string, request: UpdateRelationRequest): Observable<Relation> {
+    return this.http.put<Relation>(`${this.base}/relations/${id}`, request);
+  }
+
+  deleteRelation(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/relations/${id}`);
   }
 
   deleteEvent(id: string): Observable<void> {

@@ -201,3 +201,61 @@
   opacity: 0;
   pointer-events: none;
 }
+
+.tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .25rem 1rem;
+  margin: -.5rem 0 1rem;
+}
+
+.tool {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-height: var(--bs-touch);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--bs-ember);
+  font: inherit;
+  font-size: .9rem;
+  cursor: pointer;
+}
+
+.tool:disabled {
+  opacity: .5;
+}
+
+.when .pi {
+  margin-right: .25rem;
+}
+
+.age {
+  color: var(--bs-sand);
+}
+
+.date {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.date-row {
+  display: flex;
+  gap: .5rem;
+  margin-bottom: .5rem;
+}
+
+.date-year,
+.date-day {
+  width: 6.5rem;
+  flex: 0 0 auto;
+}
+
+:host ::ng-deep .date-era,
+:host ::ng-deep .date-month {
+  flex: 1;
+  min-width: 0;
+}

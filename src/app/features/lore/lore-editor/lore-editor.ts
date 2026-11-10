@@ -180,7 +180,7 @@ export class LoreEditorComponent implements HasUnsavedChanges {
     }
     this.confirm.confirm({
       header: `Excluir "${item.name}"?`,
-      message: 'A ficha é apagada. Os lugares e o texto do livro não mudam.',
+      message: 'A ficha vai para a lixeira, onde fica 30 dias. Os lugares e o texto do livro não mudam.',
       acceptLabel: 'Excluir',
       rejectLabel: 'Cancelar',
       acceptButtonStyleClass: 'p-button-danger',

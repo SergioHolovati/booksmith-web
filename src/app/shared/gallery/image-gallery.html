@@ -1,0 +1,78 @@
+<section class="gallery" [class.glass-card]="card()" [class.as-card]="card()" aria-label="Imagens">
+  @if (card()) {
+    <h2 class="title">Imagens</h2>
+  }
+
+  <div class="grid">
+    <label class="add" [class.busy]="uploading() > 0">
+      <input type="file" accept="image/*" multiple class="file-input" (change)="upload($event)"
+        aria-label="Adicionar imagens" [disabled]="uploading() > 0" />
+      @if (uploading() > 0) {
+        <p-progress-spinner strokeWidth="5" styleClass="spinner" />
+        <small>Enviando {{ uploading() }}…</small>
+      } @else {
+        <i class="pi pi-plus" aria-hidden="true"></i>
+        <small>Adicionar</small>
+      }
+    </label>
+
+    @for (image of images(); track image.id) {
+      <button type="button" class="thumb" [class.portrait]="portraitId() === image.id" (click)="open(image)"
+        [attr.aria-label]="image.caption || 'Imagem' + (image.entities.length ? ' de ' + linkNames(image) : '')">
+        <img [src]="image.url" alt="" loading="lazy" />
+        @if (portraitId() === image.id) {
+          <span class="badge"><i class="pi pi-star-fill" aria-hidden="true"></i> Retrato</span>
+        }
+        @if (image.caption) {
+          <span class="caption">{{ image.caption }}</span>
+        }
+      </button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="center"><p-progress-spinner strokeWidth="4" styleClass="spinner" /></div>
+  } @else if (empty()) {
+    <p class="muted small">
+      @if (entityId()) {
+        Retratos, referências de roupa, de rosto, do lugar: o que ajudar a descrever. Uma delas pode virar o retrato.
+      } @else {
+        Fotos de referência, retratos, desenhos e mapas feitos à mão. Cada imagem pode ser ligada a personagens,
+        lugares e fichas do mundo.
+      }
+    </p>
+  }
+</section>
+
+<p-drawer [(visible)]="drawerOpen" position="bottom" header="Imagem" styleClass="image-drawer"
+  [style]="{ height: 'auto', maxHeight: '92dvh' }">
+  @if (selected(); as image) {
+    <div class="detail">
+      <a [href]="image.url" target="_blank" rel="noopener" class="full">
+        <img [src]="image.url" [alt]="image.caption || 'Imagem'" />
+      </a>
+
+      <label for="image-caption" class="field-label">Legenda</label>
+      <textarea pTextarea id="image-caption" [(ngModel)]="caption" rows="2" [autoResize]="true" maxlength="500"
+        placeholder="Ex.: Lia na noite da fuga"></textarea>
+
+      @if (linkGroups().length > 0) {
+        <label for="image-links" class="field-label">Quem ou o que aparece</label>
+        <p-multiselect inputId="image-links" [options]="linkGroups()" [group]="true" optionGroupLabel="label"
+          optionGroupChildren="items" optionLabel="label" optionValue="value" [(ngModel)]="links" display="chip"
+          placeholder="Personagens, lugares, fichas" [filter]="true" styleClass="full-width" appendTo="body" />
+      }
+
+      <div class="actions">
+        <p-button label="Salvar" icon="pi pi-check" [loading]="saving()" (onClick)="save()" />
+        @if (entityId()) {
+          <p-button [label]="portraitId() === image.id ? 'Tirar do retrato' : 'Usar como retrato'"
+            [icon]="portraitId() === image.id ? 'pi pi-star' : 'pi pi-star-fill'" severity="secondary"
+            [outlined]="true" [disabled]="saving()" (onClick)="makePortrait(image)" />
+        }
+        <p-button label="Excluir" icon="pi pi-trash" severity="danger" [text]="true" [disabled]="saving()"
+          (onClick)="remove(image)" />
+      </div>
+    </div>
+  }
+</p-drawer>

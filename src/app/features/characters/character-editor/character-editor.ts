@@ -1,4 +1,4 @@
-import { Component, HostListener, computed, inject, input, signal } from '@angular/core';
+import { Component, HostListener, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -22,10 +22,11 @@ import {
   AppearanceValues,
   Character,
   CharacterRole,
-  CharacterSheet,
-} from '../../../core/models/api.models';
+  CharacterSheet, Portrait } from '../../../core/models/api.models';
 import { HasUnsavedChanges } from '../../../core/util/unsaved-changes.guard';
 import { BuilderFieldComponent } from '../../../shared/builder/builder-field';
+import { ImageGalleryComponent } from '../../../shared/gallery/image-gallery';
+import { RelationsCardComponent } from '../relations-card/relations-card';
 import { describe, progress, rollEmpty, stableJson, tabsOf, withValue } from '../appearance-values';
 import { ROLE_OPTIONS, SHEET_FIELDS } from '../character-labels';
 
@@ -57,6 +58,8 @@ interface Draft {
     SelectButtonModule,
     TextareaModule,
     BuilderFieldComponent,
+    RelationsCardComponent,
+    ImageGalleryComponent,
   ],
   providers: [ConfirmationService],
   templateUrl: './character-editor.html',
@@ -119,7 +122,12 @@ export class CharacterEditorComponent implements HasUnsavedChanges {
   readonly sheetFields = SHEET_FIELDS;
 
   constructor() {
-    queueMicrotask(() => void this.load());
+    // Recarrega quando o personagem da rota muda: indo de uma ficha para outra (pelo link de uma relação), o
+    // Angular reaproveita este componente e só troca o id
+    effect(() => {
+      this.characterId();
+      untracked(() => void this.load());
+    });
   }
 
   @HostListener('window:beforeunload', ['$event'])
@@ -131,6 +139,11 @@ export class CharacterEditorComponent implements HasUnsavedChanges {
 
   hasUnsavedChanges(): boolean {
     return this.dirty();
+  }
+
+  /** O retrato mudou na galeria: só a imagem do topo muda; a ficha em edição continua como está. */
+  onPortrait(portrait: Portrait): void {
+    this.character.update((c) => (c ? { ...c, portraitId: portrait.imageId, portraitUrl: portrait.url } : c));
   }
 
   async load(): Promise<void> {
@@ -253,7 +266,7 @@ export class CharacterEditorComponent implements HasUnsavedChanges {
     }
     this.confirm.confirm({
       header: 'Excluir personagem?',
-      message: `A ficha de ${character.name} será apagada. O texto do livro não muda.`,
+      message: `A ficha de ${character.name} vai para a lixeira, onde fica 30 dias. O texto do livro não muda.`,
       acceptLabel: 'Excluir',
       rejectLabel: 'Cancelar',
       acceptButtonStyleClass: 'p-button-danger',

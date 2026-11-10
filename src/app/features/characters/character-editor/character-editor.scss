@@ -23,6 +23,26 @@
   margin: .5rem 0 1rem;
 }
 
+.name-row.with-portrait {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+
+.name-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.portrait-img {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--bs-sand-soft);
+}
+
 .name-input {
   width: 100%;
   padding: .25rem 0;

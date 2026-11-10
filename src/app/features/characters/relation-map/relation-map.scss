@@ -1,0 +1,90 @@
+.narrow {
+  max-width: 720px;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-height: var(--bs-touch);
+  color: var(--bs-ember);
+  font-size: .9rem;
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  padding: 4rem 0;
+}
+
+.map {
+  padding: .75rem;
+}
+
+svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.edge {
+  fill: none;
+  stroke-width: .7;
+  stroke-linecap: round;
+  opacity: .9;
+}
+
+.edge.ended {
+  stroke-dasharray: 1.5 1.2;
+  opacity: .55;
+}
+
+.node circle {
+  /* Cor sólida: as linhas das relações não podem aparecer por dentro do círculo */
+  fill: #1c1c1c;
+  stroke: var(--bs-ember);
+  stroke-width: .6;
+}
+
+.node text {
+  fill: var(--bs-text);
+  font-size: 3.4px;
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: var(--bs-bg);
+  stroke-width: .8px;
+}
+
+.node:hover circle,
+.node:focus-visible circle {
+  fill: #3a2a1c;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem 1rem;
+  margin: .75rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: .85rem;
+  color: var(--bs-text-soft);
+}
+
+.legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+}
+
+.swatch {
+  display: inline-block;
+  width: 1rem;
+  height: .3rem;
+  border-radius: 2px;
+}
+
+.loose {
+  margin-top: .75rem;
+}

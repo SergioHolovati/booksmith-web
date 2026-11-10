@@ -1,0 +1,68 @@
+<div class="page narrow">
+  <a routerLink="/ajuda" class="back-link"><i class="pi pi-arrow-left"></i> Ajuda</a>
+
+  @if (sent(); as request) {
+    <section class="glass-card done" aria-live="polite">
+      <i class="pi pi-check-circle" aria-hidden="true"></i>
+      <h1 class="page-title">Pedido enviado</h1>
+      <p>Protocolo <strong class="protocol">{{ request.protocol }}</strong></p>
+      <p class="muted">A resposta chega em <strong>{{ request.email }}</strong>.
+        @if (request.priority === 'high') { Pedidos como o seu são atendidos primeiro. }
+      </p>
+      <div class="actions">
+        <p-button label="Meus pedidos" icon="pi pi-inbox" severity="secondary" [outlined]="true" routerLink="/ajuda/pedidos" />
+        <p-button label="Voltar ao app" [text]="true" [routerLink]="context().route" />
+      </div>
+    </section>
+  } @else {
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Falar com o suporte</h1>
+        <p class="page-subtitle">Conte o que aconteceu. A resposta chega no e-mail da sua conta.</p>
+      </div>
+    </div>
+
+    <form class="form" (ngSubmit)="send()">
+      <div class="field">
+        <span class="field-label" id="category-label">Assunto</span>
+        <div class="chips" role="radiogroup" aria-labelledby="category-label">
+          @for (option of categories; track option.value) {
+            <button type="button" class="chip" role="radio" [class.on]="category() === option.value"
+              [attr.aria-checked]="category() === option.value" (click)="category.set(option.value)">
+              {{ option.label }}
+            </button>
+          }
+        </div>
+        @if (category() === 'lost_text') {
+          <p class="muted small tip">
+            Antes, veja o <a routerLink="/ajuda/texto-sumiu">passo a passo</a>: quase sempre o texto está no histórico
+            ou na lixeira.
+          </p>
+        }
+      </div>
+
+      <div class="field">
+        <label for="support-message" class="field-label">Mensagem</label>
+        <textarea pTextarea id="support-message" name="message" rows="6" [autoResize]="true" maxlength="5000"
+          [ngModel]="message()" (ngModelChange)="message.set($event)"
+          placeholder="O que você estava fazendo, o que esperava e o que aconteceu"></textarea>
+        <small class="muted">Não cole trechos do livro aqui: não precisamos deles para ajudar.</small>
+      </div>
+
+      <details class="glass-card context">
+        <summary>O que vai junto, para a equipe achar o problema</summary>
+        <ul class="small">
+          <li>Tela onde você estava: <code>{{ context().route }}</code></li>
+          <li>Aparelho e navegador: {{ context().userAgent }}</li>
+          <li>Tela {{ context().screen }}, idioma {{ context().language }}, {{ context().online ? 'com' : 'sem' }} internet</li>
+          <li>Versão do app: {{ context().appVersion }}</li>
+          <li>{{ context().traceIds.length }} {{ context().traceIds.length === 1 ? 'erro recente' : 'erros recentes' }} (só o código de cada um)</li>
+        </ul>
+        <p class="muted small">Nunca o texto do seu livro.</p>
+      </details>
+
+      <p-button type="submit" label="Enviar pedido" icon="pi pi-send" [loading]="sending()" [disabled]="!canSend()"
+        styleClass="send" />
+    </form>
+  }
+</div>

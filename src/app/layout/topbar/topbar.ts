@@ -21,6 +21,7 @@ export class TopbarComponent {
 
   readonly menuItems: MenuItem[] = [
     { label: 'Meu perfil', icon: 'pi pi-user-edit', command: () => this.router.navigate(['/profile']) },
+    { label: 'Ajuda', icon: 'pi pi-question-circle', command: () => this.router.navigate(['/ajuda']) },
     { separator: true },
     { label: 'Sair', icon: 'pi pi-sign-out', command: () => this.auth.logout() },
   ];

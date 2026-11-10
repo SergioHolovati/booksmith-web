@@ -1,0 +1,92 @@
+<div class="page narrow">
+  <a [routerLink]="['/universes', universeId(), 'timeline']" class="back-link">
+    <i class="pi pi-arrow-left"></i> Linha do tempo
+  </a>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Calendário</h1>
+      <p class="page-subtitle">
+        Como {{ universe()?.name ?? 'este mundo' }} conta o tempo. As datas da linha do tempo e as idades dos
+        personagens usam este calendário.
+      </p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="center"><p-progress-spinner strokeWidth="4" /></div>
+  } @else if (error(); as message) {
+    <div class="glass-card empty-state">
+      <i class="pi pi-exclamation-circle"></i>
+      <p>{{ message }}</p>
+      <p-button label="Tentar de novo" severity="secondary" [outlined]="true" (onClick)="load()" />
+    </div>
+  } @else {
+    <p class="sample glass-card"><i class="pi pi-calendar"></i> Exemplo: <strong>{{ sample() }}</strong></p>
+
+    <section class="glass-card block" aria-labelledby="eras-title">
+      <h2 id="eras-title" class="block-title">Eras</h2>
+      <p class="muted small">Em ordem, da mais antiga à atual. A última não tem fim; as outras dizem quantos anos durou.</p>
+      @for (era of draft().eras; track era.key; let i = $index; let last = $last) {
+        <div class="row era" [attr.data-era]="i">
+          <input pInputText [ngModel]="era.name" (ngModelChange)="setEra(i, { name: $event })" placeholder="Nome da era"
+            [attr.aria-label]="'Nome da era ' + (i + 1)" maxlength="60" class="grow" />
+          <input pInputText [ngModel]="era.abbreviation" (ngModelChange)="setEra(i, { abbreviation: $event })"
+            placeholder="Sigla" [attr.aria-label]="'Sigla da era ' + (i + 1)" maxlength="12" class="short" />
+          @if (last) {
+            <span class="muted small open">atual</span>
+          } @else {
+            <input pInputText type="number" inputmode="numeric" min="1" [ngModel]="era.years"
+              (ngModelChange)="setEra(i, { years: $event || null })" placeholder="Anos"
+              [attr.aria-label]="'Anos da era ' + (i + 1)" class="short" />
+          }
+          @if (draft().eras.length > 1) {
+            <p-button icon="pi pi-times" severity="secondary" [text]="true" size="small"
+              [ariaLabel]="'Tirar a era ' + (era.name || i + 1)" (onClick)="removeEra(i)" />
+          }
+        </div>
+      }
+      <p-button label="Nova era" icon="pi pi-plus" severity="secondary" [text]="true" size="small" (onClick)="addEra()" />
+    </section>
+
+    <section class="glass-card block" aria-labelledby="months-title">
+      <h2 id="months-title" class="block-title">Meses <span class="muted small">· {{ daysPerYear() }} dias por ano</span></h2>
+      <div class="presets">
+        @for (preset of presets; track preset.label) {
+          <button type="button" class="chip" (click)="usePreset(preset)">{{ preset.label }}</button>
+        }
+      </div>
+      @for (month of draft().months; track $index; let i = $index) {
+        <div class="row" [attr.data-month]="i">
+          <span class="muted small index">{{ i + 1 }}</span>
+          <input pInputText [ngModel]="month.name" (ngModelChange)="setMonth(i, { name: $event })"
+            [attr.aria-label]="'Nome do mês ' + (i + 1)" maxlength="60" class="grow" />
+          <input pInputText type="number" inputmode="numeric" min="1" max="100" [ngModel]="month.days"
+            (ngModelChange)="setMonth(i, { days: $event })" [attr.aria-label]="'Dias do mês ' + (i + 1)" class="short" />
+          @if (draft().months.length > 1) {
+            <p-button icon="pi pi-times" severity="secondary" [text]="true" size="small"
+              [ariaLabel]="'Tirar ' + month.name" (onClick)="removeMonth(i)" />
+          }
+        </div>
+      }
+      <p-button label="Novo mês" icon="pi pi-plus" severity="secondary" [text]="true" size="small" (onClick)="addMonth()" />
+    </section>
+
+    <section class="glass-card block" aria-labelledby="week-title">
+      <h2 id="week-title" class="block-title">Dias da semana <span class="muted small">(opcional)</span></h2>
+      <p-autocomplete inputId="weekdays" [ngModel]="draft().weekdays" (ngModelChange)="setWeekdays($event)"
+        [multiple]="true" [typeahead]="false" [addOnBlur]="true" separator="," placeholder="Separe com vírgula"
+        styleClass="full-width" ariaLabelledBy="week-title" />
+    </section>
+
+    @if (dirty()) {
+      <div class="save-bar" role="region" aria-label="Alterações não salvas">
+        <span class="muted small">Alterações não salvas</span>
+        <div class="save-actions">
+          <p-button label="Descartar" severity="secondary" [text]="true" [disabled]="saving()" (onClick)="discard()" />
+          <p-button label="Salvar" icon="pi pi-check" [loading]="saving()" (onClick)="save()" />
+        </div>
+      </div>
+    }
+  }
+</div>

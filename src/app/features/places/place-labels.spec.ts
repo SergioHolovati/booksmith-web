@@ -2,7 +2,7 @@ import { PlaceSummary } from '../../core/models/api.models';
 import { placeTree, selfAndDescendants } from './place-labels';
 
 function place(id: string, name: string, parentId: string | null = null): PlaceSummary {
-  return { id, name, parentId, aliases: [], type: null, parentName: null, excerpt: null, mapX: null, mapY: null, updatedAt: '' };
+  return { id, name, parentId, aliases: [], type: null, parentName: null, excerpt: null, mapX: null, mapY: null, portraitUrl: null, updatedAt: '' };
 }
 
 describe('lugares em árvore', () => {

@@ -80,9 +80,10 @@
         }
         <div class="links">
           <a [routerLink]="['/universes', card.universe.id, 'places']"><i class="pi pi-map"></i> Lugares</a>
+          <a [routerLink]="['/universes', card.universe.id, 'timeline']"><i class="pi pi-clock"></i> Linha do tempo</a>
+          <a [routerLink]="['/universes', card.universe.id, 'imagens']"><i class="pi pi-images"></i> Imagens</a>
           @if (card.books.length > 0) {
             <a [routerLink]="['/books', card.books[0].id, 'characters']"><i class="pi pi-users"></i> Personagens</a>
-            <a [routerLink]="['/books', card.books[0].id, 'timeline']"><i class="pi pi-clock"></i> Linha do tempo</a>
           }
         </div>
 

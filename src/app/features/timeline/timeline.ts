@@ -18,16 +18,22 @@ import { UniverseApi } from '../../core/api/universe.api';
 import {
   BookDetail,
   CharacterSummary,
+  LoreSummary,
   PlaceSummary,
   TimelineEvent,
   TimelineEventUpdate,
+  UniverseDetail,
+  WorldCalendar,
 } from '../../core/models/api.models';
+import { DateDraft, EVENT_KINDS, daysIn, fromDraft, kindOf, toDraft } from './event-kinds';
 
-type Draft = Omit<TimelineEventUpdate, 'version'>;
+type Draft = Omit<TimelineEventUpdate, 'version' | 'date'> & { date: DateDraft };
 
 /**
- * Linha do tempo do livro: eventos na ordem que o autor escolhe (sobe e desce), cada um com "quando",
- * capítulo, lugar e personagens. Tocar no evento abre a edição numa gaveta.
+ * Linha do tempo do universo: eventos na ordem que o autor escolhe (sobe e desce), cada um com tipo, data no
+ * calendário do mundo (ou "quando" em texto), capítulo, lugar, personagens e o que do mundo está envolvido
+ * (religiões, governos, organizações). Com o nascimento de um personagem, cada evento datado mostra a idade
+ * dele. Abre pelo livro (`/books/:bookId/timeline`) ou pelo universo (`/universes/:universeId/timeline`).
  */
 @Component({
   selector: 'app-timeline',
@@ -53,9 +59,33 @@ export class TimelineComponent {
   private readonly toast = inject(MessageService);
   private readonly confirm = inject(ConfirmationService);
 
-  readonly bookId = input.required<string>();
+  readonly bookId = input<string>();
+  readonly universeId = input<string>();
 
   readonly book = signal<BookDetail | null>(null);
+  readonly universeDetail = signal<UniverseDetail | null>(null);
+  readonly calendar = signal<WorldCalendar | null>(null);
+  readonly lore = signal<LoreSummary[]>([]);
+  readonly currentUniverseId = computed(() => this.universeId() ?? this.book()?.universeId ?? null);
+  readonly backRoute = computed(() =>
+    this.bookId() ? ['/books', this.bookId() as string] : ['/universes', this.universeId() as string],
+  );
+  readonly backLabel = computed(() => this.book()?.title ?? this.universeDetail()?.name ?? 'Voltar');
+  readonly datedCount = computed(() => this.events().filter((e) => e.date).length);
+  readonly kindOf = kindOf;
+  readonly kindOptions = EVENT_KINDS;
+  readonly eraOptions = computed(() =>
+    (this.calendar()?.eras ?? []).map((e) => ({ value: e.key, label: e.name || e.abbreviation || 'Era' })),
+  );
+  readonly monthOptions = computed(() =>
+    (this.calendar()?.months ?? []).map((m, i) => ({ value: i + 1, label: m.name })),
+  );
+  readonly loreOptions = computed(() => this.lore().map((l) => ({ value: l.id, label: l.name })));
+  readonly maxDay = computed(() => {
+    const calendar = this.calendar();
+    const month = this.draft()?.date.month ?? null;
+    return calendar ? daysIn(calendar, month) : 31;
+  });
   readonly events = signal<TimelineEvent[]>([]);
   readonly characters = signal<CharacterSummary[]>([]);
   readonly places = signal<PlaceSummary[]>([]);
@@ -88,16 +118,25 @@ export class TimelineComponent {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const book = await firstValueFrom(this.manuscript.getBook(this.bookId()));
-      this.book.set(book);
-      const [events, characters, places] = await Promise.all([
-        firstValueFrom(this.universe.timeline(book.universeId)),
-        firstValueFrom(this.universe.listCharacters(book.universeId)),
-        firstValueFrom(this.universe.listPlaces(book.universeId)),
+      const bookId = this.bookId();
+      if (bookId) {
+        this.book.set(await firstValueFrom(this.manuscript.getBook(bookId)));
+      } else {
+        this.universeDetail.set(await firstValueFrom(this.universe.getUniverse(this.universeId() as string)));
+      }
+      const universeId = this.currentUniverseId() as string;
+      const [events, characters, places, calendar, lore] = await Promise.all([
+        firstValueFrom(this.universe.timeline(universeId)),
+        firstValueFrom(this.universe.listCharacters(universeId)),
+        firstValueFrom(this.universe.listPlaces(universeId)),
+        firstValueFrom(this.universe.calendar(universeId)),
+        firstValueFrom(this.universe.listLore(universeId)),
       ]);
       this.events.set(events);
       this.characters.set(characters);
       this.places.set(places);
+      this.calendar.set(calendar);
+      this.lore.set(lore.filter((l) => l.type !== 'language'));
     } catch (error) {
       this.error.set(problemMessage(error, 'Não foi possível abrir a linha do tempo.'));
     } finally {
@@ -106,21 +145,21 @@ export class TimelineComponent {
   }
 
   private async reloadEvents(): Promise<void> {
-    const book = this.book();
-    if (book) {
-      this.events.set(await firstValueFrom(this.universe.timeline(book.universeId)));
+    const universeId = this.currentUniverseId();
+    if (universeId) {
+      this.events.set(await firstValueFrom(this.universe.timeline(universeId)));
     }
   }
 
   async create(): Promise<void> {
-    const book = this.book();
+    const universeId = this.currentUniverseId();
     const title = this.newTitle.trim();
-    if (!book || !title) {
+    if (!universeId || !title) {
       return;
     }
     this.busy.set(true);
     try {
-      const event = await firstValueFrom(this.universe.createEvent(book.universeId, title));
+      const event = await firstValueFrom(this.universe.createEvent(universeId, title));
       this.newTitle = '';
       await this.reloadEvents();
       this.open(this.events().find((e) => e.id === event.id) ?? event);
@@ -152,6 +191,23 @@ export class TimelineComponent {
     }
   }
 
+  /** Põe os eventos datados em ordem cronológica; os sem data ficam onde estavam. */
+  async sortByDate(): Promise<void> {
+    const universeId = this.currentUniverseId();
+    if (!universeId) {
+      return;
+    }
+    this.busy.set(true);
+    try {
+      this.events.set(await firstValueFrom(this.universe.sortTimelineByDate(universeId)));
+      this.toast.add({ severity: 'success', summary: 'Eventos com data em ordem cronológica', life: 2500 });
+    } catch (error) {
+      this.toast.add({ severity: 'error', summary: problemMessage(error) });
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
   // ===== Edição =====
 
   open(event: TimelineEvent): void {
@@ -164,12 +220,19 @@ export class TimelineComponent {
       chapterId: event.chapterId,
       placeId: event.place?.id ?? null,
       characterIds: event.characters.map((c) => c.id),
+      kind: event.kind,
+      loreIds: event.lore.map((l) => l.id),
+      date: toDraft(event.date, this.calendar() ?? { eras: [], months: [], weekdays: [] }),
     });
     this.drawerOpen = true;
   }
 
   patch(change: Partial<Draft>): void {
     this.draft.update((d) => (d ? { ...d, ...change } : d));
+  }
+
+  patchDate(change: Partial<DateDraft>): void {
+    this.draft.update((d) => (d ? { ...d, date: { ...d.date, ...change } } : d));
   }
 
   async save(): Promise<void> {
@@ -180,7 +243,10 @@ export class TimelineComponent {
     }
     this.saving.set(true);
     try {
-      await firstValueFrom(this.universe.updateEvent(event.id, { version: event.version, ...draft }));
+      const { date, ...rest } = draft;
+      await firstValueFrom(
+        this.universe.updateEvent(event.id, { version: event.version, ...rest, date: fromDraft(date) }),
+      );
       await this.reloadEvents();
       this.drawerOpen = false;
       this.toast.add({ severity: 'success', summary: 'Evento salvo', life: 2500 });
@@ -213,7 +279,7 @@ export class TimelineComponent {
     }
     this.confirm.confirm({
       header: 'Excluir evento?',
-      message: `"${event.title}" sai da linha do tempo. O texto do livro não muda.`,
+      message: `"${event.title}" vai para a lixeira por 30 dias. O texto do livro não muda.`,
       acceptLabel: 'Excluir',
       rejectLabel: 'Cancelar',
       acceptButtonStyleClass: 'p-button-danger',

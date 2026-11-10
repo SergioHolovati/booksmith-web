@@ -21,6 +21,10 @@
           placeholder="Título do capítulo" />
         <div class="meta" aria-live="polite">
           <span>{{ wordsLabel() }}</span>
+          @if (goalLabel(); as goal) {
+            <span class="dot">·</span>
+            <span class="goal-progress" [class.done]="goalReached()">{{ goal }}</span>
+          }
           <span class="dot">·</span>
           <span class="save-status" [attr.data-status]="status()">{{ statusLabel() }}</span>
           @if (status() === 'error' || status() === 'offline') {

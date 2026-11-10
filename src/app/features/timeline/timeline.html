@@ -1,6 +1,5 @@
 <div class="page narrow">
-  <a [routerLink]="['/books', bookId()]" class="back-link"><i class="pi pi-arrow-left"></i>
-    {{ book()?.title ?? 'Livro' }}</a>
+  <a [routerLink]="backRoute()" class="back-link"><i class="pi pi-arrow-left"></i> {{ backLabel() }}</a>
 
   <div class="page-header">
     <div>
@@ -11,6 +10,17 @@
       </p>
     </div>
   </div>
+
+  @if (currentUniverseId(); as universeId) {
+    <div class="tools">
+      <a class="tool" [routerLink]="['/universes', universeId, 'calendario']"><i class="pi pi-calendar"></i> Calendário</a>
+      @if (datedCount() > 1) {
+        <button type="button" class="tool" [disabled]="busy()" (click)="sortByDate()">
+          <i class="pi pi-sort-numeric-down"></i> Ordenar pelas datas
+        </button>
+      }
+    </div>
+  }
 
   @if (loading()) {
     <div class="center"><p-progress-spinner strokeWidth="4" /></div>
@@ -34,14 +44,19 @@
             <span class="dot" aria-hidden="true"></span>
             <div class="card">
               <button type="button" class="card-main" (click)="open(event)" [attr.aria-label]="'Editar ' + event.title">
-                @if (event.whenLabel) {
-                  <span class="when">{{ event.whenLabel }}</span>
+                @if (event.dateLabel || event.whenLabel || event.kind) {
+                  <span class="when">
+                    @if (kindOf(event.kind); as kind) {
+                      <i class="pi" [class]="kind.icon" [attr.aria-label]="kind.label"></i>
+                    }
+                    {{ event.dateLabel }}{{ event.dateLabel && event.whenLabel ? ' · ' : '' }}{{ event.whenLabel }}
+                  </span>
                 }
                 <span class="title">{{ event.title }}</span>
                 @if (event.description) {
                   <span class="description">{{ event.description }}</span>
                 }
-                @if (event.chapterId || event.place || event.characters.length) {
+                @if (event.chapterId || event.place || event.characters.length || event.lore.length) {
                   <span class="links">
                     @if (event.chapterId && chapterTitles().get(event.chapterId); as chapter) {
                       <span class="link"><i class="pi pi-book"></i>{{ chapter }}</span>
@@ -51,6 +66,12 @@
                     }
                     @for (character of event.characters; track character.id) {
                       <span class="link"><i class="pi pi-user"></i>{{ character.name }}</span>
+                    }
+                    @for (age of event.ages; track age.id) {
+                      <span class="link age">{{ age.name }}, {{ age.years }} {{ age.years === 1 ? 'ano' : 'anos' }}</span>
+                    }
+                    @for (item of event.lore; track item.id) {
+                      <span class="link"><i class="pi pi-sun"></i>{{ item.name }}</span>
                     }
                   </span>
                 }
@@ -95,7 +116,38 @@
       </div>
 
       <div class="field">
-        <label for="event-when" class="field-label">Quando</label>
+        <label for="event-kind" class="field-label">Tipo</label>
+        <p-select inputId="event-kind" name="kind" [options]="kindOptions" optionLabel="label" optionValue="value"
+          [ngModel]="draft.kind" (ngModelChange)="patch({ kind: $event ?? null })" placeholder="Acontecimento"
+          [showClear]="true" styleClass="full-width" appendTo="body">
+          <ng-template #item let-option><i class="pi" [class]="option.icon"></i>&nbsp; {{ option.label }}</ng-template>
+        </p-select>
+      </div>
+
+      <fieldset class="field date">
+        <legend class="field-label">Data no calendário do mundo</legend>
+        <div class="date-row">
+          @if (eraOptions().length > 1) {
+            <p-select inputId="event-era" name="era" [options]="eraOptions()" optionLabel="label" optionValue="value"
+              [ngModel]="draft.date.era" (ngModelChange)="patchDate({ era: $event })" styleClass="date-era"
+              appendTo="body" ariaLabel="Era" />
+          }
+          <input pInputText type="number" name="year" inputmode="numeric" min="1" class="date-year" placeholder="Ano"
+            aria-label="Ano" [ngModel]="draft.date.year" (ngModelChange)="patchDate({ year: $event || null })" />
+        </div>
+        <div class="date-row">
+          <p-select inputId="event-month" name="month" [options]="monthOptions()" optionLabel="label"
+            optionValue="value" [ngModel]="draft.date.month" (ngModelChange)="patchDate({ month: $event ?? null })"
+            placeholder="Mês" [showClear]="true" styleClass="date-month" appendTo="body" ariaLabel="Mês" />
+          <input pInputText type="number" name="day" inputmode="numeric" min="1" [max]="maxDay()" class="date-day"
+            placeholder="Dia" aria-label="Dia" [disabled]="!draft.date.month" [ngModel]="draft.date.day"
+            (ngModelChange)="patchDate({ day: $event || null })" />
+        </div>
+        <small class="muted">Opcional. Com data, a idade dos personagens aparece sozinha.</small>
+      </fieldset>
+
+      <div class="field">
+        <label for="event-when" class="field-label">Quando (em palavras)</label>
         <input id="event-when" pInputText name="when" [ngModel]="draft.whenLabel ?? ''"
           (ngModelChange)="patch({ whenLabel: $event || null })" maxlength="100"
           placeholder="Ex.: verão de 1999, três dias depois, ano 312" />
@@ -108,6 +160,7 @@
           maxlength="4000" placeholder="O que muda, quem fica sabendo do quê"></textarea>
       </div>
 
+      @if (book()) {
       <div class="field">
         <label for="event-chapter" class="field-label">Capítulo</label>
         <p-select inputId="event-chapter" name="chapter" [options]="chapterOptions()" optionLabel="label"
@@ -115,6 +168,7 @@
           placeholder="Fora do livro ou ainda sem capítulo" [showClear]="true" styleClass="full-width"
           appendTo="body" />
       </div>
+      }
 
       <div class="field">
         <label for="event-place" class="field-label">Lugar</label>
@@ -132,6 +186,16 @@
           [filter]="characterOptions().length > 8" styleClass="full-width" appendTo="body"
           emptyMessage="Nenhum personagem criado ainda" />
       </div>
+
+      @if (loreOptions().length > 0) {
+        <div class="field">
+          <label for="event-lore" class="field-label">Religiões, governos e organizações</label>
+          <p-multiselect inputId="event-lore" name="lore" [options]="loreOptions()" optionLabel="label"
+            optionValue="value" [ngModel]="draft.loreIds" (ngModelChange)="patch({ loreIds: $event ?? [] })"
+            placeholder="Quem está envolvido" display="chip" [filter]="loreOptions().length > 8"
+            styleClass="full-width" appendTo="body" />
+        </div>
+      }
 
       <div class="drawer-actions">
         <p-button type="submit" label="Salvar" icon="pi pi-check" [loading]="saving()"

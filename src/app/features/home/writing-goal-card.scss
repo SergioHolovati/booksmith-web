@@ -1,0 +1,170 @@
+.goal-card {
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.goal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+}
+
+.goal-title {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--bs-text-soft);
+}
+
+.streak {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .2rem .6rem;
+  border-radius: 999px;
+  background: var(--bs-sand-soft);
+  color: var(--bs-text);
+  font-size: .85rem;
+  font-weight: 600;
+}
+
+.streak i {
+  color: var(--bs-accent);
+}
+
+.today {
+  margin: 0;
+}
+
+.today-value {
+  font-size: 1.6rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.progress {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--bs-surface-hover);
+  overflow: hidden;
+}
+
+.progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--bs-ember);
+  transition: width .3s ease;
+}
+
+.progress-fill.done {
+  background: var(--bs-accent);
+}
+
+.reached {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  color: var(--bs-text);
+}
+
+.reached i {
+  color: var(--bs-success);
+}
+
+/* Gráfico: uma série, um tom; dia que bateu a meta em cheio, os outros esmaecidos */
+.chart {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 72px;
+  margin-top: .4rem;
+  border-bottom: 1px solid var(--bs-border);
+}
+
+.bar-slot {
+  flex: 1;
+  height: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  display: flex;
+  align-items: flex-end;
+  cursor: pointer;
+}
+
+.bar {
+  display: block;
+  width: 100%;
+  min-height: 2px;
+  border-radius: 4px 4px 0 0;
+  background: color-mix(in srgb, var(--bs-ember) 40%, transparent);
+}
+
+.bar.reached {
+  background: var(--bs-ember);
+}
+
+.bar-slot.on .bar,
+.bar-slot:hover .bar,
+.bar-slot:focus-visible .bar {
+  outline: 2px solid var(--bs-text-soft);
+  outline-offset: 1px;
+}
+
+.goal-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed var(--bs-muted);
+  pointer-events: none;
+}
+
+.chart-caption {
+  margin: 0;
+  min-height: 1.2em;
+  color: var(--bs-text-soft);
+}
+
+/* Só a primeira letra ("Ter., 10 de nov."): capitalize deixaria "De Nov." */
+.caption-day {
+  display: inline-block;
+}
+
+.caption-day::first-letter {
+  text-transform: uppercase;
+}
+
+.goal-form {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.presets,
+.goal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+
+.chip {
+  min-height: var(--bs-touch);
+  padding: .3rem .9rem;
+  border: 1px solid var(--bs-border);
+  border-radius: 999px;
+  background: var(--bs-surface);
+  color: var(--bs-text-soft);
+  font: inherit;
+  cursor: pointer;
+}
+
+.chip.on {
+  border-color: var(--bs-accent);
+  color: var(--bs-text);
+}

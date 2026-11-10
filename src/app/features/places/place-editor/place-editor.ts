@@ -11,10 +11,11 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
 import { firstValueFrom } from 'rxjs';
+import { ImageGalleryComponent } from '../../../shared/gallery/image-gallery';
 
 import { problemMessage, problemOf } from '../../../core/api/problem';
 import { UniverseApi } from '../../../core/api/universe.api';
-import { LoreDefinition, LoreSummary, Place, PlaceSheet, PlaceSummary, PlaceType } from '../../../core/models/api.models';
+import { LoreDefinition, LoreSummary, Place, PlaceSheet, PlaceSummary, PlaceType, Portrait } from '../../../core/models/api.models';
 import { HasUnsavedChanges } from '../../../core/util/unsaved-changes.guard';
 import { stableJson } from '../../characters/appearance-values';
 import { PLACE_FIELDS, PLACE_TYPE_OPTIONS, placeTree, selfAndDescendants } from '../place-labels';
@@ -39,6 +40,7 @@ interface Draft {
     ProgressSpinnerModule,
     SelectModule,
     TextareaModule,
+    ImageGalleryComponent,
   ],
   providers: [ConfirmationService],
   templateUrl: './place-editor.html',
@@ -97,6 +99,10 @@ export class PlaceEditorComponent implements HasUnsavedChanges {
 
   hasUnsavedChanges(): boolean {
     return this.dirty();
+  }
+
+  onPortrait(portrait: Portrait): void {
+    this.place.update((p) => (p ? { ...p, portraitId: portrait.imageId, portraitUrl: portrait.url } : p));
   }
 
   async load(): Promise<void> {
@@ -189,7 +195,7 @@ export class PlaceEditorComponent implements HasUnsavedChanges {
     }
     this.confirm.confirm({
       header: 'Excluir lugar?',
-      message: `A ficha de "${place.name}" será apagada. O que estiver dentro dele passa para o lugar de cima.`,
+      message: `"${place.name}" vai para a lixeira por 30 dias. O que estiver dentro dele passa para o lugar de cima.`,
       acceptLabel: 'Excluir',
       rejectLabel: 'Cancelar',
       acceptButtonStyleClass: 'p-button-danger',

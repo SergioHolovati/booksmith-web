@@ -1,0 +1,66 @@
+<section class="glass-card relations" aria-labelledby="relations-title">
+  <div class="head">
+    <h2 id="relations-title" class="title">Relações</h2>
+    <a class="small map-link" [routerLink]="['/books', bookId(), 'relacoes']"><i class="pi pi-share-alt"></i> Mapa</a>
+  </div>
+
+  @if (mine().length === 0 && !adding()) {
+    <p class="muted small">Família, amores, amizades, rivalidades: quem é quem para este personagem.</p>
+  }
+
+  <ul class="list">
+    @for (item of mine(); track item.relation.id) {
+      <li class="relation" [style.--kind-color]="item.color" [class.ended]="item.relation.until">
+        <span class="text">
+          <span class="muted">{{ item.text }}</span>
+          <a [routerLink]="['/books', bookId(), 'characters', item.otherId]">{{ item.other }}</a>
+          @if (item.relation.since) {
+            <small class="muted">desde "{{ item.relation.since.name }}"</small>
+          }
+          @if (item.relation.until) {
+            <small class="muted">até "{{ item.relation.until.name }}"</small>
+          }
+          @if (item.relation.description) {
+            <small class="description">{{ item.relation.description }}</small>
+          }
+        </span>
+        <p-button icon="pi pi-pencil" severity="secondary" [text]="true" size="small"
+          [ariaLabel]="'Editar ' + item.text + ' ' + item.other" (onClick)="open(item.relation)" />
+        <p-button icon="pi pi-times" severity="secondary" [text]="true" size="small"
+          [ariaLabel]="'Tirar ' + item.text + ' ' + item.other" (onClick)="remove(item.relation)" />
+      </li>
+    }
+  </ul>
+
+  @if (adding()) {
+    <form class="add" (ngSubmit)="save()" [attr.aria-label]="editing() ? 'Editar relação' : 'Nova relação'">
+      <p-select inputId="relation-kind" name="kind" [options]="kindOptions" optionLabel="label" optionValue="value"
+        [(ngModel)]="kind" placeholder="Tipo de relação" styleClass="full-width" appendTo="body" />
+      @if (kind && directed()) {
+        <p-select inputId="relation-direction" name="direction" [options]="directionOptions()" optionLabel="label"
+          optionValue="value" [(ngModel)]="outgoing" styleClass="full-width" appendTo="body" />
+      }
+      <p-select inputId="relation-other" name="other" [options]="others()" optionLabel="label" optionValue="value"
+        [(ngModel)]="otherId" placeholder="Com quem" [filter]="others().length > 8" styleClass="full-width"
+        appendTo="body" emptyMessage="Crie outro personagem primeiro" />
+      <input pInputText name="description" [(ngModel)]="description" maxlength="2000"
+        placeholder="Detalhe (opcional). Ex.: brigaram na guerra" aria-label="Detalhe da relação" />
+      @if (eventOptions().length > 0) {
+        <p-select inputId="relation-since" name="since" [options]="eventOptions()" optionLabel="label"
+          optionValue="value" [(ngModel)]="sinceEventId" placeholder="Desde quando (opcional)" [showClear]="true"
+          styleClass="full-width" appendTo="body" />
+        <p-select inputId="relation-until" name="until" [options]="eventOptions()" optionLabel="label"
+          optionValue="value" [(ngModel)]="untilEventId" placeholder="Até quando (opcional)" [showClear]="true"
+          styleClass="full-width" appendTo="body" />
+      }
+      <div class="actions">
+        <p-button type="submit" [label]="editing() ? 'Salvar relação' : 'Criar relação'" icon="pi pi-check" [loading]="saving()"
+          [disabled]="!kind || !otherId" />
+        <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="close()" />
+      </div>
+    </form>
+  } @else {
+    <p-button label="Nova relação" icon="pi pi-plus" severity="secondary" [text]="true" size="small"
+      (onClick)="open()" />
+  }
+</section>

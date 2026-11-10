@@ -9,6 +9,7 @@
         Quem vive na sua história. A ficha fica à mão enquanto você escreve, e o agente de continuidade vai usá-la
         para avisar quando o texto disser outra coisa, como olhos de outra cor.
       </p>
+      <a class="map-link" [routerLink]="['/books', bookId(), 'relacoes']"><i class="pi pi-share-alt"></i> Mapa de relações</a>
     </div>
   </div>
 
@@ -38,7 +39,11 @@
       @for (character of characters(); track character.id) {
         <li>
           <a class="item" [routerLink]="['/books', bookId(), 'characters', character.id]">
-            <span class="avatar" aria-hidden="true">{{ initial(character.name) }}</span>
+            @if (character.portraitUrl) {
+              <img class="avatar" [src]="character.portraitUrl" alt="" loading="lazy" />
+            } @else {
+              <span class="avatar" aria-hidden="true">{{ initial(character.name) }}</span>
+            }
             <span class="item-text">
               <span class="item-title">
                 {{ character.name }}

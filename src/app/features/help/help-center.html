@@ -1,0 +1,50 @@
+<div class="page narrow">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Ajuda</h1>
+      <p class="page-subtitle">Respostas rápidas para o dia a dia. Se não achar, fale com a gente.</p>
+    </div>
+  </div>
+
+  <p-iconfield styleClass="search">
+    <p-inputicon styleClass="pi pi-search" />
+    <input pInputText type="search" [ngModel]="query()" (ngModelChange)="query.set($event)"
+      placeholder="Ex.: meu texto sumiu, importar do Word" aria-label="Buscar na ajuda" class="full-width" />
+  </p-iconfield>
+
+  @if (results(); as found) {
+    <section aria-label="Resultados da busca" class="topic">
+      @for (article of found; track article.slug) {
+        <a class="glass-card article-link" [routerLink]="['/ajuda', article.slug]">
+          <strong>{{ article.title }}</strong>
+          <small class="muted">{{ article.summary }}</small>
+        </a>
+      } @empty {
+        <p class="muted">Nada encontrado para "{{ query() }}". Tente outras palavras ou fale com o suporte.</p>
+      }
+    </section>
+  } @else {
+    @for (topic of byTopic(); track topic.key) {
+      <section class="topic" [attr.aria-labelledby]="'topic-' + topic.key">
+        <h2 class="topic-title" [id]="'topic-' + topic.key">
+          <i class="pi" [class]="topic.icon" aria-hidden="true"></i> {{ topic.label }}
+        </h2>
+        @for (article of topic.articles; track article.slug) {
+          <a class="glass-card article-link" [routerLink]="['/ajuda', article.slug]">
+            <strong>{{ article.title }}</strong>
+            <small class="muted">{{ article.summary }}</small>
+          </a>
+        }
+      </section>
+    }
+  }
+
+  <section class="glass-card contact" aria-labelledby="contact-title">
+    <h2 id="contact-title" class="topic-title">Ainda precisa de ajuda?</h2>
+    <p class="muted small">A equipe responde no e-mail da sua conta. Seu texto nunca vai junto.</p>
+    <div class="contact-actions">
+      <p-button label="Falar com o suporte" icon="pi pi-comments" routerLink="/ajuda/contato" />
+      <p-button label="Meus pedidos" icon="pi pi-inbox" severity="secondary" [text]="true" routerLink="/ajuda/pedidos" />
+    </div>
+  </section>
+</div>

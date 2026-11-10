@@ -172,3 +172,12 @@
 .here-list .pi {
   color: var(--bs-ember);
 }
+
+.cover-img {
+  display: block;
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  margin-top: .5rem;
+  border-radius: var(--bs-radius);
+}

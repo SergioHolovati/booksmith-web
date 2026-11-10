@@ -270,3 +270,7 @@
     flex-direction: row-reverse;
   }
 }
+
+.goal-progress.done {
+  color: var(--bs-accent-light);
+}

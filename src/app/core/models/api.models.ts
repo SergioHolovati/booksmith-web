@@ -180,6 +180,44 @@ export interface ChapterVersionDetail extends ChapterVersionSummary {
   content: JSONContent;
 }
 
+// ===== Biblioteca de imagens =====
+
+export interface ImageLink {
+  id: string;
+  name: string;
+  kind: 'character' | 'place' | 'lore';
+}
+
+export interface UniverseImage {
+  id: string;
+  universeId: string;
+  url: string;
+  contentType: string;
+  bytes: number;
+  caption: string | null;
+  /** Personagens, lugares e fichas do mundo que aparecem na imagem. */
+  entities: ImageLink[];
+  version: number;
+  createdAt: string;
+}
+
+export interface Portrait {
+  entityId: string;
+  imageId: string | null;
+  url: string | null;
+}
+
+/** Item da lixeira do universo: personagem, lugar, ficha do mundo, evento, relação ou imagem. */
+export interface UniverseTrashItem {
+  type: 'CHARACTER' | 'PLACE' | 'LORE' | 'EVENT' | 'RELATION' | 'IMAGE';
+  id: string;
+  title: string;
+  universeId: string;
+  universeName: string | null;
+  deletedAt: string;
+  expiresAt: string;
+}
+
 export interface TrashItem {
   type: 'BOOK' | 'CHAPTER';
   id: string;
@@ -323,6 +361,8 @@ export interface CharacterSummary {
   role: CharacterRole | null;
   /** Ex.: "Olhos verdes, cabelo ruivo, cacheado". */
   appearanceSummary: string;
+  /** Retrato escolhido na biblioteca de imagens. */
+  portraitUrl: string | null;
   updatedAt: string;
 }
 
@@ -335,6 +375,8 @@ export interface Character {
   appearance: AppearanceValues;
   appearanceFormVersion: number;
   appearanceSummary: string;
+  portraitId: string | null;
+  portraitUrl: string | null;
   version: number;
   updatedAt: string;
 }
@@ -417,6 +459,7 @@ export interface PlaceSummary {
   /** Posição no mapa do universo (0 a 1), para lugares criados a partir do mapa gerado. */
   mapX: number | null;
   mapY: number | null;
+  portraitUrl: string | null;
   updatedAt: string;
 }
 
@@ -428,6 +471,8 @@ export interface Place {
   sheet: PlaceSheet;
   mapX: number | null;
   mapY: number | null;
+  portraitId: string | null;
+  portraitUrl: string | null;
   version: number;
   updatedAt: string;
 }
@@ -544,9 +589,31 @@ export interface TimelineEvent {
   chapterId: string | null;
   place: EntityRef | null;
   characters: EntityRef[];
+  kind: EventKind | null;
+  /** Data no calendário do mundo; nula quando só há o "quando" em texto. */
+  date: WorldDate | null;
+  /** "12 de Brumal de 312 E.C.", calculado pela API com o calendário do universo. */
+  dateLabel: string | null;
+  /** Idade de cada personagem do evento, a partir do nascimento dele na linha do tempo. */
+  ages: { id: string; name: string; years: number }[];
+  /** Religiões, governos e organizações envolvidos. */
+  lore: EntityRef[];
   version: number;
   updatedAt: string;
 }
+
+export type EventKind =
+  | 'birth'
+  | 'death'
+  | 'war'
+  | 'battle'
+  | 'founding'
+  | 'coronation'
+  | 'treaty'
+  | 'catastrophe'
+  | 'discovery'
+  | 'journey'
+  | 'wedding';
 
 export interface TimelineEventUpdate {
   version: number;
@@ -556,6 +623,76 @@ export interface TimelineEventUpdate {
   chapterId: string | null;
   placeId: string | null;
   characterIds: string[];
+  kind: EventKind | null;
+  date: WorldDate | null;
+  loreIds: string[];
+}
+
+/** Data no calendário do mundo: ano obrigatório; mês e dia, opcionais. */
+export interface WorldDate {
+  era: string;
+  year: number;
+  month?: number | null;
+  day?: number | null;
+}
+
+export interface CalendarEra {
+  key: string;
+  name: string;
+  abbreviation: string;
+  /** Duração em anos; nula só na última era (a atual). */
+  years: number | null;
+}
+
+/** Calendário do mundo (§4.2 do produto). Sem um definido, a API devolve o nosso. */
+export interface WorldCalendar {
+  eras: CalendarEra[];
+  months: { name: string; days: number }[];
+  weekdays: string[];
+}
+
+// ===== Relações entre personagens =====
+
+export type RelationKind =
+  | 'parent'
+  | 'sibling'
+  | 'spouse'
+  | 'romance'
+  | 'friend'
+  | 'mentor'
+  | 'rival'
+  | 'enemy'
+  | 'ally'
+  | 'serves'
+  | 'other';
+
+export interface Relation {
+  id: string;
+  universeId: string;
+  from: EntityRef;
+  to: EntityRef;
+  kind: RelationKind;
+  /** O tipo lê de `from` para `to` ("é mãe de"); senão vale para os dois lados. */
+  directed: boolean;
+  description: string | null;
+  /** Eventos da linha do tempo em que a relação começa e termina. */
+  since: EntityRef | null;
+  until: EntityRef | null;
+  version: number;
+  updatedAt: string;
+}
+
+export interface RelationRequest {
+  fromId: string;
+  toId: string;
+  kind: RelationKind;
+  description: string | null;
+  sinceEventId: string | null;
+  untilEventId: string | null;
+}
+
+export interface UpdateRelationRequest extends RelationRequest {
+  version: number;
 }
 
 // ===== Continuidade =====
@@ -590,4 +727,62 @@ export interface ContinuityOverview {
   /** Só na resposta de uma análise. */
   created: number | null;
   fixed: number | null;
+}
+
+// ===== Suporte =====
+
+export type SupportCategory =
+  | 'lost_text'
+  | 'account'
+  | 'import_export'
+  | 'universe'
+  | 'bug'
+  | 'suggestion'
+  | 'privacy'
+  | 'other';
+
+/** Contexto técnico do pedido. Nunca o texto do livro. */
+export interface SupportContext {
+  route: string | null;
+  appVersion: string;
+  userAgent: string;
+  online: boolean;
+  screen: string;
+  language: string;
+  traceIds: string[];
+  chapterId: string | null;
+  autosaveStatus: string | null;
+}
+
+export interface SupportRequest {
+  id: string;
+  /** Número curto para citar ("BS-3F9A2C71"). */
+  protocol: string;
+  category: SupportCategory;
+  message: string;
+  priority: 'high' | 'normal';
+  status: 'open' | 'answered' | 'closed';
+  /** Para onde vai a resposta. */
+  email: string;
+  createdAt: string;
+}
+
+// ===== Meta diária =====
+
+export interface WritingDay {
+  /** "2026-11-10". */
+  day: string;
+  words: number;
+}
+
+export interface WritingStats {
+  /** Saldo de palavras de hoje (no fuso do aparelho). */
+  today: number;
+  /** Meta diária; null sem meta. */
+  goal: number | null;
+  /** Dias seguidos com a meta batida (sem meta, com qualquer escrita). Continua viva até o fim de hoje. */
+  streak: number;
+  goalReached: boolean;
+  /** Últimos 30 dias, do mais antigo a hoje. */
+  history: WritingDay[];
 }

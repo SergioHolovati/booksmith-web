@@ -9,6 +9,7 @@ import { ExportApi, ExportFormat, ExportedFile } from '../../../core/api/export.
 import { ManuscriptApi } from '../../../core/api/manuscript.api';
 import { problemMessage } from '../../../core/api/problem';
 import { BookDetail } from '../../../core/models/api.models';
+import { saveFile } from '../../../core/util/save-file';
 
 interface FormatOption {
   format: ExportFormat;
@@ -100,14 +101,7 @@ export class BookExportComponent {
   }
 
   save(file: ExportedFile): void {
-    const url = URL.createObjectURL(file.blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = file.filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    saveFile(file);
   }
 
   canShare(file: ExportedFile): boolean {

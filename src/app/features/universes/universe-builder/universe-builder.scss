@@ -256,6 +256,7 @@
 }
 
 .world-link {
+  margin-bottom: .5rem;
   display: flex;
   align-items: center;
   gap: .75rem;
@@ -270,7 +271,8 @@
   gap: .15rem;
 }
 
-.world-link .pi-sun {
+.world-link .pi-sun,
+.world-link .pi-clock {
   color: var(--bs-ember);
   font-size: 1.3rem;
 }

@@ -68,6 +68,11 @@ export const routes: Routes = [
           import('./features/characters/character-list/character-list').then((c) => c.CharacterListComponent),
       },
       {
+        path: 'books/:bookId/relacoes',
+        loadComponent: () =>
+          import('./features/characters/relation-map/relation-map').then((c) => c.RelationMapComponent),
+      },
+      {
         path: 'books/:bookId/characters/:characterId',
         loadComponent: () =>
           import('./features/characters/character-editor/character-editor').then((c) => c.CharacterEditorComponent),
@@ -103,6 +108,26 @@ export const routes: Routes = [
         loadComponent: () => import('./features/books/book-form/book-form').then((c) => c.BookFormComponent),
       },
       {
+        path: 'meus-dados',
+        loadComponent: () => import('./features/account-export/account-export').then((c) => c.AccountExportComponent),
+      },
+      {
+        path: 'ajuda',
+        loadComponent: () => import('./features/help/help-center').then((c) => c.HelpCenterComponent),
+      },
+      {
+        path: 'ajuda/contato',
+        loadComponent: () => import('./features/help/support-form').then((c) => c.SupportFormComponent),
+      },
+      {
+        path: 'ajuda/pedidos',
+        loadComponent: () => import('./features/help/support-requests').then((c) => c.SupportRequestsComponent),
+      },
+      {
+        path: 'ajuda/:slug',
+        loadComponent: () => import('./features/help/help-article').then((c) => c.HelpArticleComponent),
+      },
+      {
         path: 'universes',
         loadComponent: () => import('./features/universes/universe-list').then((c) => c.UniverseListComponent),
       },
@@ -114,6 +139,20 @@ export const routes: Routes = [
         path: 'universes/:universeId/places/:placeId',
         loadComponent: () => import('./features/places/place-editor/place-editor').then((c) => c.PlaceEditorComponent),
         canDeactivate: [unsavedChangesGuard],
+      },
+      {
+        path: 'universes/:universeId/timeline',
+        loadComponent: () => import('./features/timeline/timeline').then((c) => c.TimelineComponent),
+      },
+      {
+        path: 'universes/:universeId/calendario',
+        loadComponent: () =>
+          import('./features/universes/calendar-editor/calendar-editor').then((c) => c.CalendarEditorComponent),
+        canDeactivate: [unsavedChangesGuard],
+      },
+      {
+        path: 'universes/:universeId/imagens',
+        loadComponent: () => import('./features/gallery/gallery-page').then((c) => c.GalleryPageComponent),
       },
       {
         path: 'universes/:universeId/mundo',

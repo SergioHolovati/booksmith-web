@@ -9,7 +9,10 @@
       <p>{{ message }}</p>
       <p-button label="Tentar de novo" severity="secondary" [outlined]="true" (onClick)="load()" />
     </div>
-  } @else if (place()) {
+  } @else if (place(); as current) {
+    @if (current.portraitUrl) {
+      <img class="cover-img" [src]="current.portraitUrl" [alt]="current.name" />
+    }
     <div class="name-row">
       <label for="place-name" class="visually-hidden">Nome</label>
       <input id="place-name" class="name-input" [ngModel]="draft().name" (ngModelChange)="setName($event)"
@@ -98,6 +101,9 @@
         </ul>
       </section>
     }
+
+    <app-image-gallery [universeId]="current.universeId" [entityId]="current.id" [portraitId]="current.portraitId"
+      [card]="true" (portraitChange)="onPortrait($event)" />
 
     <p-button label="Excluir lugar" icon="pi pi-trash" severity="danger" [text]="true" styleClass="delete"
       (onClick)="confirmDelete()" />

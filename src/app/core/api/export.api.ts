@@ -18,15 +18,22 @@ export class ExportApi {
   private readonly base = environment.apiBaseUrl;
 
   download(bookId: string, format: ExportFormat): Observable<ExportedFile> {
-    return this.http
-      .get(`${this.base}/books/${bookId}/export/${format}`, { observe: 'response', responseType: 'blob' })
-      .pipe(
-        map((response: HttpResponse<Blob>) => ({
-          filename: filenameOf(response.headers.get('Content-Disposition')) ?? `livro.${format}`,
-          blob: response.body ?? new Blob(),
-        })),
-        catchError((error: unknown) => from(withJsonBody(error)).pipe(switchMap((parsed) => throwError(() => parsed)))),
-      );
+    return this.file(`${this.base}/books/${bookId}/export/${format}`, `livro.${format}`);
+  }
+
+  /** "Baixar tudo": um .zip com livros (Word, texto e dados), universos com imagens, conta e pedidos de suporte. */
+  downloadEverything(): Observable<ExportedFile> {
+    return this.file(`${this.base}/me/export`, 'booksmith.zip');
+  }
+
+  private file(url: string, fallbackName: string): Observable<ExportedFile> {
+    return this.http.get(url, { observe: 'response', responseType: 'blob' }).pipe(
+      map((response: HttpResponse<Blob>) => ({
+        filename: filenameOf(response.headers.get('Content-Disposition')) ?? fallbackName,
+        blob: response.body ?? new Blob(),
+      })),
+      catchError((error: unknown) => from(withJsonBody(error)).pipe(switchMap((parsed) => throwError(() => parsed)))),
+    );
   }
 }
 

@@ -1,4 +1,4 @@
-import { ApplicationConfig, isDevMode, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, inject, isDevMode, provideAppInitializer, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
@@ -10,6 +10,8 @@ import Aura from '@primeuix/themes/aura';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
+import { ErrorTrail, errorTrailInterceptor } from './core/support/error-trail';
+import { timeZoneInterceptor } from './core/api/writing.api';
 
 const BooksmithTheme = definePreset(Aura, {
   semantic: {
@@ -41,7 +43,9 @@ export const appConfig: ApplicationConfig = {
     }),
     provideRouter(routes, withComponentInputBinding()),
     provideAnimationsAsync(),
-    provideHttpClient(withInterceptors([authInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor, timeZoneInterceptor, errorTrailInterceptor])),
+    // Desde o início, para o pedido de suporte saber a tela de onde a pessoa veio
+    provideAppInitializer(() => void inject(ErrorTrail)),
     MessageService,
     // PWA: instalável e com o app disponível offline (o texto offline fica no IndexedDB, ver DraftStore)
     provideServiceWorker('ngsw-worker.js', {

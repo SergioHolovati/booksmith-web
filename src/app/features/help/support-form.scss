@@ -1,0 +1,105 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.field-label {
+  font-weight: 600;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+
+.chip {
+  min-height: var(--bs-touch);
+  padding: .4rem .9rem;
+  border: 1px solid var(--bs-border);
+  border-radius: 999px;
+  background: var(--bs-surface);
+  color: var(--bs-text-soft);
+  font: inherit;
+  cursor: pointer;
+}
+
+.chip.on {
+  border-color: var(--bs-accent);
+  background: var(--bs-sand-soft);
+  color: var(--bs-accent-light);
+}
+
+.tip {
+  margin: 0;
+}
+
+.tip a {
+  color: var(--bs-ember);
+}
+
+.context {
+  padding: .75rem 1rem;
+}
+
+.context summary {
+  cursor: pointer;
+  min-height: var(--bs-touch);
+  display: flex;
+  align-items: center;
+}
+
+.context ul {
+  margin: .5rem 0;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  color: var(--bs-text-soft);
+  overflow-wrap: anywhere;
+}
+
+.context p {
+  margin: 0;
+}
+
+:host ::ng-deep .send {
+  align-self: flex-start;
+}
+
+.done {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .5rem;
+  padding: 1.25rem;
+}
+
+.done > i {
+  font-size: 2rem;
+  color: var(--bs-success);
+}
+
+.done p {
+  margin: 0;
+}
+
+.protocol {
+  font-family: ui-monospace, monospace;
+  letter-spacing: .05em;
+  color: var(--bs-accent-light);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-top: .75rem;
+}

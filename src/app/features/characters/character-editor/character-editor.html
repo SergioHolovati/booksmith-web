@@ -10,13 +10,18 @@
       <p-button label="Tentar de novo" severity="secondary" [outlined]="true" (onClick)="load()" />
     </div>
   } @else if (character(); as character) {
-    <div class="name-row">
-      <label for="character-name" class="visually-hidden">Nome</label>
-      <input id="character-name" class="name-input" [ngModel]="draft().name" (ngModelChange)="setName($event)"
-        maxlength="120" placeholder="Nome do personagem" autocomplete="off" />
-      @if (character.appearanceSummary) {
-        <p class="muted small summary">{{ character.appearanceSummary }}</p>
+    <div class="name-row" [class.with-portrait]="character.portraitUrl">
+      @if (character.portraitUrl) {
+        <img class="portrait-img" [src]="character.portraitUrl" [alt]="'Retrato de ' + character.name" />
       }
+      <div class="name-text">
+        <label for="character-name" class="visually-hidden">Nome</label>
+        <input id="character-name" class="name-input" [ngModel]="draft().name" (ngModelChange)="setName($event)"
+          maxlength="120" placeholder="Nome do personagem" autocomplete="off" />
+        @if (character.appearanceSummary) {
+          <p class="muted small summary">{{ character.appearanceSummary }}</p>
+        }
+      </div>
     </div>
 
     @if (conflict()) {
@@ -68,6 +73,9 @@
           </div>
         }
       </section>
+      <app-relations-card [universeId]="character.universeId" [characterId]="character.id" [bookId]="bookId()" />
+      <app-image-gallery [universeId]="character.universeId" [entityId]="character.id"
+        [portraitId]="character.portraitId" [card]="true" (portraitChange)="onPortrait($event)" />
     } @else if (form()) {
       <section class="glass-card portrait" [attr.aria-label]="section() === 'appearance' ? 'Retrato' : 'Jeito de ser'">
         <div class="portrait-head">

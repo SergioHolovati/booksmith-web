@@ -20,29 +20,47 @@
     <div class="glass-card empty-state">
       <i class="pi pi-trash"></i>
       <h3>A lixeira está vazia</h3>
-      <p class="muted">Livros e capítulos excluídos aparecem aqui.</p>
+      <p class="muted">Livros, capítulos, personagens, lugares e eventos excluídos aparecem aqui.</p>
     </div>
   } @else {
     <ul class="items">
-      @for (item of items(); track item.id) {
+      @for (entry of items(); track entry.item.id) {
         <li class="item">
-          <i class="pi type-icon" [class.pi-book]="item.type === 'BOOK'" [class.pi-file]="item.type === 'CHAPTER'"></i>
-          <div class="item-text">
-            <span class="item-title">{{ item.title }}</span>
-            <small class="muted">
-              @if (item.type === 'CHAPTER') {
-                Capítulo de "{{ item.bookTitle }}" · {{ formatCount(item.wordCount ?? 0) }} palavras
-              } @else {
-                Livro inteiro, com os capítulos
-              }
-            </small>
-            <small class="expires" [class.soon]="daysLeft(item) <= 3">
-              Excluído em {{ deletedOn(item) }} · some em {{ daysLeft(item) }} {{ daysLeft(item) === 1 ? 'dia' : 'dias' }}
-            </small>
-          </div>
-          <p-button label="Restaurar" icon="pi pi-replay" size="small" severity="secondary" [outlined]="true"
-            [loading]="restoring() === item.id" [disabled]="restoring() !== null && restoring() !== item.id"
-            [ariaLabel]="'Restaurar ' + item.title" (onClick)="restore(item)" />
+          @if (entry.kind === 'book') {
+            @let item = entry.item;
+            <i class="pi type-icon" [class.pi-book]="item.type === 'BOOK'" [class.pi-file]="item.type === 'CHAPTER'"></i>
+            <div class="item-text">
+              <span class="item-title">{{ item.title }}</span>
+              <small class="muted">
+                @if (item.type === 'CHAPTER') {
+                  Capítulo de "{{ item.bookTitle }}" · {{ formatCount(item.wordCount ?? 0) }} palavras
+                } @else {
+                  Livro inteiro, com os capítulos
+                }
+              </small>
+              <small class="expires" [class.soon]="daysLeft(item) <= 3">
+                Excluído em {{ deletedOn(item) }} · some em {{ daysLeft(item) }} {{ daysLeft(item) === 1 ? 'dia' : 'dias' }}
+              </small>
+            </div>
+            <p-button label="Restaurar" icon="pi pi-replay" size="small" severity="secondary" [outlined]="true"
+              [loading]="restoring() === item.id" [disabled]="restoring() !== null && restoring() !== item.id"
+              [ariaLabel]="'Restaurar ' + item.title" (onClick)="restore(item)" />
+          } @else {
+            @let item = entry.item;
+            <i class="pi type-icon" [class]="universeKind[item.type].icon"></i>
+            <div class="item-text">
+              <span class="item-title">{{ item.title }}</span>
+              <small class="muted">
+                {{ universeKind[item.type].label }}@if (item.universeName) { · {{ item.universeName }} }
+              </small>
+              <small class="expires" [class.soon]="daysLeft(item) <= 3">
+                Excluído em {{ deletedOn(item) }} · some em {{ daysLeft(item) }} {{ daysLeft(item) === 1 ? 'dia' : 'dias' }}
+              </small>
+            </div>
+            <p-button label="Restaurar" icon="pi pi-replay" size="small" severity="secondary" [outlined]="true"
+              [loading]="restoring() === item.id" [disabled]="restoring() !== null && restoring() !== item.id"
+              [ariaLabel]="'Restaurar ' + item.title" (onClick)="restoreUniverse(item)" />
+          }
         </li>
       }
     </ul>

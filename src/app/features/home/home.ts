@@ -11,10 +11,11 @@ import { AuthService } from '../../core/auth/auth.service';
 import { BookSummary } from '../../core/models/api.models';
 import { formatCount } from '../../core/util/word-count';
 import { BookCoverComponent } from '../books/book-cover';
+import { WritingGoalCardComponent } from './writing-goal-card';
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, DatePipe, ButtonModule, ProgressSpinnerModule, BookCoverComponent],
+  imports: [RouterLink, DatePipe, ButtonModule, ProgressSpinnerModule, BookCoverComponent, WritingGoalCardComponent],
   templateUrl: './home.html',
   styleUrl: './home.scss',
 })

@@ -1,0 +1,77 @@
+@if (stats(); as stats) {
+  <section class="glass-card goal-card" aria-labelledby="goal-title">
+    <div class="goal-head">
+      <h2 id="goal-title" class="goal-title">Escrita de hoje</h2>
+      @if (stats.streak > 0) {
+        <span class="streak" [attr.aria-label]="stats.streak + (stats.streak === 1 ? ' dia seguido' : ' dias seguidos')">
+          <i class="pi pi-bolt" aria-hidden="true"></i>
+          {{ stats.streak }} {{ stats.streak === 1 ? 'dia' : 'dias' }}
+        </span>
+      }
+    </div>
+
+    <p class="today">
+      <strong class="today-value">{{ formatCount(stats.today) }}</strong>
+      @if (stats.goal) {
+        <span class="muted"> de {{ formatCount(stats.goal) }} palavras</span>
+      } @else {
+        <span class="muted"> {{ stats.today === 1 ? 'palavra' : 'palavras' }}</span>
+      }
+    </p>
+    @if (stats.goal) {
+      <div class="progress" role="progressbar" aria-label="Meta do dia" [attr.aria-valuenow]="stats.today"
+        aria-valuemin="0" [attr.aria-valuemax]="stats.goal">
+        <span class="progress-fill" [class.done]="stats.goalReached" [style.width.%]="progress()"></span>
+      </div>
+      @if (stats.goalReached) {
+        <p class="small reached"><i class="pi pi-check-circle" aria-hidden="true"></i> Meta do dia batida</p>
+      }
+    }
+
+    <div class="chart" role="group" aria-label="Palavras por dia nas últimas duas semanas">
+      @if (goalLine(); as line) {
+        <span class="goal-line" [style.bottom.%]="line" aria-hidden="true"></span>
+      }
+      @for (day of days(); track day.day; let i = $index) {
+        <button type="button" class="bar-slot" [class.on]="selected() === i" (click)="select(i)"
+          [attr.aria-label]="dayLabel(day.day) + ': ' + formatCount(day.words) + ' palavras'">
+          <span class="bar" [class.reached]="reached(day)" [style.height.%]="chart().heights[i]"></span>
+        </button>
+      }
+    </div>
+    <p class="small chart-caption" aria-live="polite">
+      @if (selectedDay(); as day) {
+        <span class="caption-day">{{ dayLabel(day.day) }}</span> · {{ formatCount(day.words) }} palavras
+      } @else {
+        <span class="muted">Últimas 2 semanas@if (stats.goal) { · a linha é a meta}</span>
+      }
+    </p>
+
+    @if (editing()) {
+      <div class="goal-form">
+        <span class="small muted">Palavras por dia</span>
+        <div class="presets">
+          @for (preset of presets; track preset) {
+            <button type="button" class="chip" [class.on]="goalInput === preset" (click)="goalInput = preset">
+              {{ formatCount(preset) }}
+            </button>
+          }
+        </div>
+        <p-inputnumber [(ngModel)]="goalInput" [min]="50" [max]="20000" [step]="50" inputId="goal-input"
+          ariaLabel="Meta de palavras por dia" locale="pt-BR" />
+        <div class="goal-actions">
+          <p-button label="Salvar meta" icon="pi pi-check" size="small" [loading]="saving()"
+            [disabled]="!goalInput" (onClick)="saveGoal(goalInput)" />
+          @if (stats.goal) {
+            <p-button label="Sem meta" severity="secondary" [text]="true" size="small" [disabled]="saving()"
+              (onClick)="saveGoal(null)" />
+          }
+          <p-button label="Cancelar" severity="secondary" [text]="true" size="small" (onClick)="editing.set(false)" />
+        </div>
+      </div>
+    } @else {
+      <p-button [label]="stats.goal ? 'Mudar a meta' : 'Definir uma meta diária'" icon="pi pi-flag" size="small"
+        severity="secondary" [text]="true" (onClick)="startEditing()" />
+    }
+  </section>
+}

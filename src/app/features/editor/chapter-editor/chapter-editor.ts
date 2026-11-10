@@ -19,8 +19,9 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { firstValueFrom } from 'rxjs';
 
 import { ManuscriptApi } from '../../../core/api/manuscript.api';
+import { WritingApi, streakAfterToday } from '../../../core/api/writing.api';
 import { isNetworkError, problemMessage } from '../../../core/api/problem';
-import { Chapter } from '../../../core/models/api.models';
+import { Chapter, WritingStats } from '../../../core/models/api.models';
 import { DraftStore } from '../../../core/util/draft-store';
 import { countWords, formatCount } from '../../../core/util/word-count';
 import { canonicalJson } from '../schema/canonical-json';
@@ -78,6 +79,24 @@ export class ChapterEditorComponent {
   /** Idioma do livro: define o dicionário do corretor ortográfico do navegador. */
   readonly language = signal('pt-BR');
   readonly words = signal(0);
+  /** Meta do dia: as palavras de hoje quando o capítulo abriu, mais o que mudou desde então neste capítulo. */
+  private readonly writing = inject(WritingApi);
+  private readonly writingStats = signal<WritingStats | null>(null);
+  private wordsAtOpen = 0;
+  private goalCelebrated = false;
+  readonly todayWords = computed(() => {
+    const stats = this.writingStats();
+    return stats ? Math.max(0, stats.today + this.words() - this.wordsAtOpen) : null;
+  });
+  readonly goalLabel = computed(() => {
+    const stats = this.writingStats();
+    const today = this.todayWords();
+    return stats?.goal && today !== null ? `${formatCount(today)} de ${formatCount(stats.goal)} hoje` : null;
+  });
+  readonly goalReached = computed(() => {
+    const goal = this.writingStats()?.goal;
+    return !!goal && (this.todayWords() ?? 0) >= goal;
+  });
   readonly focusMode = signal(false);
   readonly keyboardOffset = signal(0);
   readonly toolbar = signal<ToolbarState>({
@@ -238,6 +257,8 @@ export class ChapterEditorComponent {
 
     this.updateWords();
     this.updateToolbar();
+    this.wordsAtOpen = this.words();
+    void this.loadWritingStats();
     this.revealBlock(host);
   }
 
@@ -380,6 +401,33 @@ export class ChapterEditorComponent {
 
   private updateWords(): void {
     this.words.set(countWords(this.editor?.getText({ blockSeparator: '\n' }) ?? ''));
+    this.celebrateGoal();
+  }
+
+  private async loadWritingStats(): Promise<void> {
+    try {
+      const stats = await firstValueFrom(this.writing.stats());
+      this.goalCelebrated = stats.goalReached; // já batida antes de abrir: não comemora de novo
+      this.writingStats.set(stats);
+    } catch {
+      // sem a meta, o editor segue normal
+    }
+  }
+
+  /** Uma vez por abertura do capítulo, no momento em que a meta do dia é batida. */
+  private celebrateGoal(): void {
+    const stats = this.writingStats();
+    if (this.goalCelebrated || !stats?.goal || !this.goalReached()) {
+      return;
+    }
+    this.goalCelebrated = true;
+    const streak = streakAfterToday(stats, this.todayWords() ?? 0);
+    this.toast.add({
+      severity: 'success',
+      summary: 'Meta do dia batida!',
+      detail: streak > 1 ? `${streak} dias seguidos.` : 'Continue amanhã para começar uma sequência.',
+      life: 5000,
+    });
   }
 
   private updateToolbar(): void {

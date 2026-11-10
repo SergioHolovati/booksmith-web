@@ -1,0 +1,57 @@
+<div class="page narrow">
+  <a [routerLink]="['/books', bookId(), 'characters']" class="back-link"><i class="pi pi-arrow-left"></i> Personagens</a>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Mapa de relações</h1>
+      <p class="page-subtitle">Quem é quem para quem. Crie as relações na ficha de cada personagem.</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="center"><p-progress-spinner strokeWidth="4" /></div>
+  } @else if (error(); as message) {
+    <div class="glass-card empty-state">
+      <i class="pi pi-wifi"></i>
+      <p>{{ message }}</p>
+      <p-button label="Tentar de novo" severity="secondary" [outlined]="true" (onClick)="load()" />
+    </div>
+  } @else if (nodes().length === 0) {
+    <div class="glass-card empty-state">
+      <i class="pi pi-share-alt"></i>
+      <h3>Nenhuma relação ainda</h3>
+      <p class="muted">Abra um personagem e, na Ficha, toque em "Nova relação".</p>
+    </div>
+  } @else {
+    <section class="glass-card map" aria-label="Mapa de relações">
+      <svg viewBox="0 0 100 100" role="img" aria-label="Personagens e relações">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="20" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="context-stroke" />
+          </marker>
+        </defs>
+        @for (edge of edges(); track edge.id) {
+          <path class="edge" [class.ended]="edge.ended" [attr.d]="edge.path" [attr.stroke]="edge.color" [style.color]="edge.color"
+            [attr.marker-end]="edge.directed ? 'url(#arrow)' : null">
+            <title>{{ edge.title }}</title>
+          </path>
+        }
+        @for (node of nodes(); track node.id) {
+          <a class="node" [routerLink]="['/books', bookId(), 'characters', node.id]" [attr.aria-label]="node.name">
+            <circle [attr.cx]="node.x" [attr.cy]="node.y" [attr.r]="3.2 + node.links * 0.4" />
+            <text [attr.x]="node.x" [attr.y]="node.y + 7.5 + node.links * 0.4" text-anchor="middle">{{ node.name }}</text>
+          </a>
+        }
+      </svg>
+      <ul class="legend">
+        @for (item of legend(); track item.label) {
+          <li><span class="swatch" [style.background]="item.color"></span>{{ item.label }}</li>
+        }
+      </ul>
+    </section>
+
+    @if (loose().length > 0) {
+      <p class="muted small loose">Sem relação ainda: {{ loose().map((c) => c.name).join(', ') }}.</p>
+    }
+  }
+</div>

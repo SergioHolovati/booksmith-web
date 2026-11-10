@@ -7,7 +7,7 @@ inclusive sem sinal. A definição completa está em [`../arquitetura-tecnica.md
 
 ```bash
 npm install
-npm start              # http://localhost:4200 (a API em :8090 é acessada pelo proxy em proxy.conf.json)
+npm start              # http://localhost:4200 (a API em :8090 é acessada pelo proxy em proxy.conf.mjs; no celular, use http://IP-do-PC:4200 na mesma rede Wi-Fi)
 npm run start:mobile   # expõe na rede local: abra http://<ip-do-computador>:4200 no celular
 ```
 
