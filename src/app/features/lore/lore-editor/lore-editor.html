@@ -45,6 +45,10 @@
       }
     </section>
 
+    @if (item(); as lore) {
+      <app-mentioned-in [entityId]="lore.id" [name]="lore.name" />
+    }
+
     <p-button label="Excluir" icon="pi pi-trash" severity="danger" [text]="true" styleClass="delete"
       (onClick)="confirmDelete()" />
 

@@ -76,6 +76,7 @@
       <app-relations-card [universeId]="character.universeId" [characterId]="character.id" [bookId]="bookId()" />
       <app-image-gallery [universeId]="character.universeId" [entityId]="character.id"
         [portraitId]="character.portraitId" [card]="true" (portraitChange)="onPortrait($event)" />
+      <app-mentioned-in [entityId]="character.id" [name]="character.name" />
     } @else if (form()) {
       <section class="glass-card portrait" [attr.aria-label]="section() === 'appearance' ? 'Retrato' : 'Jeito de ser'">
         <div class="portrait-head">

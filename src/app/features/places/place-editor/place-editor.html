@@ -104,6 +104,7 @@
 
     <app-image-gallery [universeId]="current.universeId" [entityId]="current.id" [portraitId]="current.portraitId"
       [card]="true" (portraitChange)="onPortrait($event)" />
+    <app-mentioned-in [entityId]="current.id" [name]="current.name" />
 
     <p-button label="Excluir lugar" icon="pi pi-trash" severity="danger" [text]="true" styleClass="delete"
       (onClick)="confirmDelete()" />

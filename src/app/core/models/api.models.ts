@@ -786,3 +786,16 @@ export interface WritingStats {
   /** Últimos 30 dias, do mais antigo a hoje. */
   history: WritingDay[];
 }
+
+// ===== Menções (@) =====
+
+/** Um capítulo que menciona um personagem, lugar ou ficha do mundo. */
+export interface MentionedIn {
+  bookId: string;
+  bookTitle: string;
+  chapterId: string;
+  chapterTitle: string | null;
+  position: number;
+  /** Quantas vezes o capítulo menciona. */
+  count: number;
+}

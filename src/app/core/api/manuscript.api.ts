@@ -17,8 +17,7 @@ import {
   ImportPlan,
   Page,
   SaveResult,
-  TrashItem,
-} from '../models/api.models';
+  TrashItem, MentionedIn } from '../models/api.models';
 
 @Injectable({ providedIn: 'root' })
 export class ManuscriptApi {
@@ -56,6 +55,11 @@ export class ManuscriptApi {
 
   reorderChapters(bookId: string, chapterIds: string[]): Observable<ChapterSummary[]> {
     return this.http.put<ChapterSummary[]>(`${this.base}/books/${bookId}/chapters/order`, { chapterIds });
+  }
+
+  /** Capítulos da pessoa que mencionam este personagem, lugar ou ficha com "@". */
+  mentions(entityId: string): Observable<MentionedIn[]> {
+    return this.http.get<MentionedIn[]>(`${this.base}/mentions/${entityId}`);
   }
 
   getChapter(chapterId: string): Observable<Chapter> {

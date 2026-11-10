@@ -26,6 +26,8 @@ import { DraftStore } from '../../../core/util/draft-store';
 import { countWords, formatCount } from '../../../core/util/word-count';
 import { canonicalJson } from '../schema/canonical-json';
 import { manuscriptExtensions } from '../schema/manuscript-extensions';
+import { MentionTarget, refreshMentionLabels } from '../schema/mention';
+import { UniverseApi } from '../../../core/api/universe.api';
 import { ChapterHistoryComponent, HistoryActions } from '../chapter-history/chapter-history';
 import { ChapterAutosave, SaveStatus } from './chapter-autosave';
 import { MessageService } from 'primeng/api';
@@ -48,6 +50,13 @@ const STATUS_LABEL: Record<SaveStatus, string> = {
   offline: 'Sem conexão — salvo no aparelho',
   conflict: 'Conflito de versões',
   error: 'Erro ao salvar — salvo no aparelho',
+};
+
+const LORE_HINT: Record<string, string> = {
+  religion: 'Religião',
+  government: 'Governo',
+  language: 'Idioma',
+  organization: 'Organização',
 };
 
 @Component({
@@ -79,6 +88,9 @@ export class ChapterEditorComponent {
   /** Idioma do livro: define o dicionário do corretor ortográfico do navegador. */
   readonly language = signal('pt-BR');
   readonly words = signal(0);
+  /** Personagens, lugares e fichas do universo do livro, para o "@". */
+  private readonly universeApi = inject(UniverseApi);
+  private mentionTargets: MentionTarget[] = [];
   /** Meta do dia: as palavras de hoje quando o capítulo abriu, mais o que mudou desde então neste capítulo. */
   private readonly writing = inject(WritingApi);
   private readonly writingStats = signal<WritingStats | null>(null);
@@ -228,7 +240,7 @@ export class ChapterEditorComponent {
 
     this.editor = new Editor({
       element: host,
-      extensions: manuscriptExtensions('Comece a escrever…'),
+      extensions: manuscriptExtensions('Comece a escrever… (@ menciona um personagem ou lugar)', () => this.mentionTargets),
       content,
       editorProps: {
         attributes: {
@@ -259,6 +271,7 @@ export class ChapterEditorComponent {
     this.updateToolbar();
     this.wordsAtOpen = this.words();
     void this.loadWritingStats();
+    void this.loadMentionTargets();
     this.revealBlock(host);
   }
 
@@ -402,6 +415,33 @@ export class ChapterEditorComponent {
   private updateWords(): void {
     this.words.set(countWords(this.editor?.getText({ blockSeparator: '\n' }) ?? ''));
     this.celebrateGoal();
+  }
+
+  /** Carrega quem pode ser mencionado e atualiza nomes de quem foi renomeado desde a última vez. */
+  private async loadMentionTargets(): Promise<void> {
+    const bookId = this.bookId();
+    if (!bookId) {
+      return;
+    }
+    try {
+      const book = await firstValueFrom(this.api.getBook(bookId));
+      const universeId = book.universeId;
+      const [characters, places, lore] = await Promise.all([
+        firstValueFrom(this.universeApi.listCharacters(universeId)),
+        firstValueFrom(this.universeApi.listPlaces(universeId)),
+        firstValueFrom(this.universeApi.listLore(universeId)),
+      ]);
+      this.mentionTargets = [
+        ...characters.map((c) => ({ id: c.id, kind: 'character' as const, label: c.name, hint: 'Personagem' })),
+        ...places.map((p) => ({ id: p.id, kind: 'place' as const, label: p.name, hint: 'Lugar' })),
+        ...lore.map((l) => ({ id: l.id, kind: 'lore' as const, label: l.name, hint: LORE_HINT[l.type] ?? 'Mundo' })),
+      ];
+      if (this.editor && refreshMentionLabels(this.editor, this.mentionTargets) > 0) {
+        this.autosave?.markChanged();
+      }
+    } catch {
+      // sem a lista, o "@" não sugere nada; o resto do editor segue normal
+    }
   }
 
   private async loadWritingStats(): Promise<void> {

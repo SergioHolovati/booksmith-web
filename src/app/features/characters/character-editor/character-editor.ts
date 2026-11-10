@@ -29,6 +29,7 @@ import { ImageGalleryComponent } from '../../../shared/gallery/image-gallery';
 import { RelationsCardComponent } from '../relations-card/relations-card';
 import { describe, progress, rollEmpty, stableJson, tabsOf, withValue } from '../appearance-values';
 import { ROLE_OPTIONS, SHEET_FIELDS } from '../character-labels';
+import { MentionedInComponent } from '../../../shared/mentions/mentioned-in';
 
 type Section = 'sheet' | 'appearance' | 'personality';
 
@@ -60,6 +61,7 @@ interface Draft {
     BuilderFieldComponent,
     RelationsCardComponent,
     ImageGalleryComponent,
+    MentionedInComponent,
   ],
   providers: [ConfirmationService],
   templateUrl: './character-editor.html',

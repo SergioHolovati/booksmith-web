@@ -120,6 +120,15 @@
 }
 
 /* Conteúdo gerado pelo ProseMirror: estilos sem encapsulamento */
+/* Menção (@Lia): etiqueta discreta, para não competir com o texto */
+:host ::ng-deep .manuscript .mention {
+  padding: 0 .15em;
+  border-radius: 4px;
+  background: var(--bs-sand-soft);
+  color: var(--bs-accent-light);
+  box-decoration-break: clone;
+}
+
 :host ::ng-deep .manuscript {
   outline: none;
   min-height: 60vh;

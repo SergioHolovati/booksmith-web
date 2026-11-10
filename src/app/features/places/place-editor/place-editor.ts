@@ -19,6 +19,7 @@ import { LoreDefinition, LoreSummary, Place, PlaceSheet, PlaceSummary, PlaceType
 import { HasUnsavedChanges } from '../../../core/util/unsaved-changes.guard';
 import { stableJson } from '../../characters/appearance-values';
 import { PLACE_FIELDS, PLACE_TYPE_OPTIONS, placeTree, selfAndDescendants } from '../place-labels';
+import { MentionedInComponent } from '../../../shared/mentions/mentioned-in';
 
 interface Draft {
   name: string;
@@ -41,6 +42,7 @@ interface Draft {
     SelectModule,
     TextareaModule,
     ImageGalleryComponent,
+    MentionedInComponent,
   ],
   providers: [ConfirmationService],
   templateUrl: './place-editor.html',

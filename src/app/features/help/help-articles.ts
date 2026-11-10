@@ -58,6 +58,18 @@ export const HELP_ARTICLES: HelpArticle[] = [
     ],
   },
   {
+    slug: 'mencoes',
+    title: 'Mencionar personagens e lugares com @',
+    summary: 'Ligue o trecho ao personagem e veja depois em quais capítulos ele aparece.',
+    topic: 'universo',
+    keywords: ['menção', 'mencionar', 'arroba', '@', 'personagem', 'lugar', 'aparece em', 'ligar'],
+    body: [
+      { steps: ['No editor, digite **@** e o começo do nome.', 'Toque no personagem, lugar ou ficha do mundo na lista.'] },
+      { p: 'O nome fica destacado no texto. No livro baixado (ePub, PDF ou Word) ele sai como texto normal: o leitor não vê nada diferente.' },
+      { p: 'Na ficha do personagem ou lugar, o cartão **Aparece em** mostra os capítulos que o mencionam. Se o personagem mudar de nome, as menções acompanham da próxima vez que você abrir o capítulo.' },
+    ],
+  },
+  {
     slug: 'meta-diaria',
     title: 'Meta diária e sequência de dias',
     summary: 'Escolha quantas palavras quer escrever por dia e acompanhe a sequência.',

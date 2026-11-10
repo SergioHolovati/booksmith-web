@@ -22,6 +22,7 @@ import {
 import { HasUnsavedChanges } from '../../../core/util/unsaved-changes.guard';
 import { BuilderFieldComponent } from '../../../shared/builder/builder-field';
 import { stableJson, withValue } from '../../characters/appearance-values';
+import { MentionedInComponent } from '../../../shared/mentions/mentioned-in';
 
 interface Draft {
   name: string;
@@ -44,6 +45,7 @@ interface Draft {
     MultiSelectModule,
     ProgressSpinnerModule,
     BuilderFieldComponent,
+    MentionedInComponent,
   ],
   providers: [ConfirmationService],
   templateUrl: './lore-editor.html',
