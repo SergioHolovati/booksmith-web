@@ -38,6 +38,8 @@ export interface ChapterSummary {
   wordCount: number;
   version: number;
   updatedAt: string;
+  /** Este capítulo abre uma parte do livro ("Parte I — A partida"); null = continua a anterior. */
+  partTitle: string | null;
 }
 
 export interface BookDetail {

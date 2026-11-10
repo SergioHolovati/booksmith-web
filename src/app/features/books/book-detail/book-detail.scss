@@ -245,3 +245,50 @@
   color: var(--bs-sand);
   font-weight: 600;
 }
+
+.part-row {
+  list-style: none;
+  margin-top: .75rem;
+}
+
+.part-button {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  width: 100%;
+  min-height: var(--bs-touch);
+  padding: .3rem .25rem;
+  border: 0;
+  border-bottom: 1px solid var(--bs-border);
+  background: none;
+  color: var(--bs-text);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.part-button .pi-bookmark-fill {
+  color: var(--bs-ember);
+}
+
+.part-name {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.part-help {
+  margin: 0 0 .75rem;
+}
+
+.part-input {
+  width: 100%;
+  min-height: var(--bs-touch);
+  padding: .4rem .7rem;
+  border: 1px solid var(--bs-border);
+  border-radius: var(--bs-radius-sm);
+  background: var(--bs-surface);
+  color: var(--bs-text);
+  font: inherit;
+}

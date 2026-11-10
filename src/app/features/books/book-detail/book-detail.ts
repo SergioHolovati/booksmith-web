@@ -3,6 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { DialogModule } from 'primeng/dialog';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { firstValueFrom } from 'rxjs';
 
@@ -24,7 +25,7 @@ import { KIND_LABEL, LANGUAGE_LABEL, STATUS_LABEL } from '../book-labels';
 
 @Component({
   selector: 'app-book-detail',
-  imports: [RouterLink, ButtonModule, ConfirmDialogModule, ProgressSpinnerModule, BookCoverComponent],
+  imports: [RouterLink, ButtonModule, ConfirmDialogModule, DialogModule, ProgressSpinnerModule, BookCoverComponent],
   providers: [ConfirmationService],
   templateUrl: './book-detail.html',
   styleUrl: './book-detail.scss',
@@ -43,6 +44,10 @@ export class BookDetailComponent {
   readonly error = signal<string | null>(null);
   readonly creatingChapter = signal(false);
   readonly reordering = signal(false);
+  /** Parte: o capítulo que a abre (diálogo aberto) e o nome em edição. */
+  readonly partChapter = signal<ChapterSummary | null>(null);
+  readonly partDraft = signal('');
+  readonly savingPart = signal(false);
   /** Personagens do universo do livro; null enquanto carrega (ou se falhar: o livro abre do mesmo jeito). */
   readonly characters = signal<CharacterSummary[] | null>(null);
   readonly places = signal<PlaceSummary[] | null>(null);
@@ -185,4 +190,39 @@ export class BookDetailComponent {
       },
     });
   }
+
+  editPart(chapter: ChapterSummary): void {
+    this.partDraft.set(chapter.partTitle ?? '');
+    this.partChapter.set(chapter);
+  }
+
+  async savePart(): Promise<void> {
+    const title = this.partDraft().trim();
+    if (title) {
+      await this.applyPart(title);
+    }
+  }
+
+  async removePart(): Promise<void> {
+    await this.applyPart(null);
+  }
+
+  private async applyPart(title: string | null): Promise<void> {
+    const chapter = this.partChapter();
+    const book = this.book();
+    if (!chapter || !book) {
+      return;
+    }
+    this.savingPart.set(true);
+    try {
+      const saved = await firstValueFrom(this.api.setChapterPart(chapter.id, title));
+      this.book.set({ ...book, chapters: book.chapters.map((c) => (c.id === saved.id ? { ...c, partTitle: saved.partTitle } : c)) });
+      this.partChapter.set(null);
+    } catch (error) {
+      this.toast.add({ severity: 'error', summary: problemMessage(error), life: 5000 });
+    } finally {
+      this.savingPart.set(false);
+    }
+  }
 }
+

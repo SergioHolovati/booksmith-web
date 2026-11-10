@@ -152,6 +152,16 @@
       } @else {
         <ol class="chapter-list">
           @for (chapter of book.chapters; track chapter.id; let i = $index; let first = $first; let last = $last) {
+            @if (chapter.partTitle) {
+              <li class="part-row">
+                <button type="button" class="part-button" (click)="editPart(chapter)"
+                  [attr.aria-label]="'Parte: ' + chapter.partTitle + '. Tocar para renomear ou tirar'">
+                  <i class="pi pi-bookmark-fill" aria-hidden="true"></i>
+                  <span class="part-name">{{ chapter.partTitle }}</span>
+                  <i class="pi pi-pencil muted" aria-hidden="true"></i>
+                </button>
+              </li>
+            }
             <li class="chapter">
               <a class="chapter-main" [routerLink]="['/write', chapter.id]">
                 <span class="number">{{ i + 1 }}</span>
@@ -165,6 +175,10 @@
                   aria-label="Mover para cima"><i class="pi pi-chevron-up"></i></button>
                 <button type="button" class="mini" [disabled]="last || reordering()" (click)="move(i, 1)"
                   aria-label="Mover para baixo"><i class="pi pi-chevron-down"></i></button>
+                @if (!chapter.partTitle) {
+                  <button type="button" class="mini" (click)="editPart(chapter)"
+                    aria-label="Começar parte aqui"><i class="pi pi-bookmark"></i></button>
+                }
                 <button type="button" class="mini" (click)="confirmDeleteChapter(chapter)"
                   aria-label="Excluir capítulo"><i class="pi pi-trash"></i></button>
               </div>
@@ -179,3 +193,19 @@
 </div>
 
 <p-confirmdialog [style]="{ width: 'min(420px, calc(100vw - 32px))' }" />
+
+<p-dialog [visible]="!!partChapter()" (visibleChange)="!$event && partChapter.set(null)" [modal]="true"
+  [header]="partChapter()?.partTitle ? 'Parte' : 'Começar uma parte aqui'"
+  [style]="{ width: 'min(420px, calc(100vw - 32px))' }">
+  <p class="muted small part-help">A parte começa em "{{ partChapter()?.title }}" e vai até a próxima parte. No livro
+    baixado, ela ganha uma página de abertura.</p>
+  <input id="part-title" class="part-input" [value]="partDraft()" (input)="partDraft.set($any($event.target).value)"
+    maxlength="120" placeholder="Ex.: Parte I — A partida" aria-label="Nome da parte" (keydown.enter)="savePart()" />
+  <ng-template #footer>
+    @if (partChapter()?.partTitle) {
+      <p-button label="Tirar a parte" severity="danger" [text]="true" [disabled]="savingPart()" (onClick)="removePart()" />
+    }
+    <p-button label="Salvar" icon="pi pi-check" [loading]="savingPart()" [disabled]="!partDraft().trim()"
+      (onClick)="savePart()" />
+  </ng-template>
+</p-dialog>

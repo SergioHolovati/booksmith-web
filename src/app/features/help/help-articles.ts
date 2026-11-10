@@ -168,6 +168,18 @@ export const HELP_ARTICLES: HelpArticle[] = [
     ],
   },
   {
+    slug: 'partes',
+    title: 'Dividir o livro em partes',
+    summary: '"Parte I — A partida": agrupe capítulos, com página própria no livro.',
+    topic: 'livros',
+    keywords: ['parte', 'partes', 'divisão', 'seção', 'livro um', 'agrupar capítulos'],
+    body: [
+      { steps: ['Abra o livro.', 'No capítulo que começa a parte, toque no marcador (**Começar parte aqui**).', 'Dê o nome, como "Parte I — A partida", e toque em **Salvar**.'] },
+      { p: 'A parte vai até a próxima. Toque no nome dela para renomear ou **tirar a parte**. Mover o capítulo leva o começo da parte junto.' },
+      { p: 'No livro baixado, cada parte ganha uma página de abertura e aparece no sumário. No Word, volta igual se você importar o arquivo de novo.' },
+    ],
+  },
+  {
     slug: 'ilustracoes',
     title: 'Ilustrações no meio do texto',
     summary: 'Coloque um desenho ou mapa no capítulo, com legenda.',

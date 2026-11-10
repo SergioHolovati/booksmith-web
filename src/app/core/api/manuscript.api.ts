@@ -103,6 +103,11 @@ export class ManuscriptApi {
     );
   }
 
+  /** Começa, renomeia ou (título vazio) tira a parte que este capítulo abre. */
+  setChapterPart(chapterId: string, title: string | null): Observable<ChapterSummary> {
+    return this.http.put<ChapterSummary>(`${this.base}/chapters/${chapterId}/part`, { title });
+  }
+
   renameChapter(chapterId: string, title: string): Observable<ChapterSummary> {
     return this.http.patch<ChapterSummary>(`${this.base}/chapters/${chapterId}`, { title });
   }
