@@ -22,7 +22,10 @@ import {
   AppearanceValues,
   Character,
   CharacterRole,
-  CharacterSheet, Portrait } from '../../../core/models/api.models';
+  CharacterSheet,
+  CustomFieldDefinition,
+  Portrait,
+} from '../../../core/models/api.models';
 import { HasUnsavedChanges } from '../../../core/util/unsaved-changes.guard';
 import { BuilderFieldComponent } from '../../../shared/builder/builder-field';
 import { ImageGalleryComponent } from '../../../shared/gallery/image-gallery';
@@ -30,6 +33,7 @@ import { RelationsCardComponent } from '../relations-card/relations-card';
 import { describe, progress, rollEmpty, stableJson, tabsOf, withValue } from '../appearance-values';
 import { ROLE_OPTIONS, SHEET_FIELDS } from '../character-labels';
 import { MentionedInComponent } from '../../../shared/mentions/mentioned-in';
+import { CustomFieldsComponent, CustomValueChange } from '../../../shared/custom-fields/custom-fields';
 
 type Section = 'sheet' | 'appearance' | 'personality';
 
@@ -38,6 +42,7 @@ interface Draft {
   aliases: string[];
   sheet: CharacterSheet;
   appearance: AppearanceValues;
+  custom: AppearanceValues;
 }
 
 /**
@@ -62,6 +67,7 @@ interface Draft {
     RelationsCardComponent,
     ImageGalleryComponent,
     MentionedInComponent,
+    CustomFieldsComponent,
   ],
   providers: [ConfirmationService],
   templateUrl: './character-editor.html',
@@ -78,7 +84,9 @@ export class CharacterEditorComponent implements HasUnsavedChanges {
 
   readonly character = signal<Character | null>(null);
   readonly form = signal<AppearanceFormDefinition | null>(null);
-  readonly draft = signal<Draft>({ name: '', aliases: [], sheet: {}, appearance: {} });
+  readonly draft = signal<Draft>({ name: '', aliases: [], sheet: {}, appearance: {}, custom: {} });
+  /** Campos próprios do autor para personagens, neste universo. */
+  readonly customDefinition = signal<CustomFieldDefinition>({});
   private readonly saved = signal('');
 
   readonly loading = signal(true);
@@ -158,6 +166,9 @@ export class CharacterEditorComponent implements HasUnsavedChanges {
         firstValueFrom(this.api.appearanceForm()),
       ]);
       this.form.set(form);
+      this.customDefinition.set(
+        await firstValueFrom(this.api.customFields(character.universeId)).catch(() => ({}) as CustomFieldDefinition),
+      );
       this.reset(character);
     } catch (error) {
       this.error.set(problemMessage(error, 'Não foi possível abrir o personagem.'));
@@ -173,6 +184,7 @@ export class CharacterEditorComponent implements HasUnsavedChanges {
       aliases: [...character.aliases],
       sheet: { ...character.sheet },
       appearance: { ...character.appearance },
+      custom: { ...character.custom },
     };
     this.draft.set(draft);
     this.saved.set(stableJson(draft));
@@ -202,6 +214,10 @@ export class CharacterEditorComponent implements HasUnsavedChanges {
       }
       return { ...d, sheet: sheet as CharacterSheet };
     });
+  }
+
+  setCustom(change: CustomValueChange): void {
+    this.draft.update((d) => ({ ...d, custom: withValue(d.custom, change.key, change.value) }));
   }
 
   selectSection(section: Section): void {

@@ -15,6 +15,7 @@ import {
   AppearanceField,
   AppearanceValue,
   AppearanceValues,
+  CustomFieldDefinition,
   Lore,
   LoreDefinition,
   PlaceSummary,
@@ -23,11 +24,13 @@ import { HasUnsavedChanges } from '../../../core/util/unsaved-changes.guard';
 import { BuilderFieldComponent } from '../../../shared/builder/builder-field';
 import { stableJson, withValue } from '../../characters/appearance-values';
 import { MentionedInComponent } from '../../../shared/mentions/mentioned-in';
+import { CustomFieldsComponent, CustomValueChange } from '../../../shared/custom-fields/custom-fields';
 
 interface Draft {
   name: string;
   values: AppearanceValues;
   placeIds: string[];
+  custom: AppearanceValues;
 }
 
 /**
@@ -46,6 +49,7 @@ interface Draft {
     ProgressSpinnerModule,
     BuilderFieldComponent,
     MentionedInComponent,
+    CustomFieldsComponent,
   ],
   providers: [ConfirmationService],
   templateUrl: './lore-editor.html',
@@ -63,7 +67,8 @@ export class LoreEditorComponent implements HasUnsavedChanges {
   readonly item = signal<Lore | null>(null);
   readonly definition = signal<LoreDefinition | null>(null);
   readonly places = signal<PlaceSummary[]>([]);
-  readonly draft = signal<Draft>({ name: '', values: {}, placeIds: [] });
+  readonly draft = signal<Draft>({ name: '', values: {}, placeIds: [], custom: {} });
+  readonly customDefinition = signal<CustomFieldDefinition>({});
   private readonly saved = signal('');
   readonly loading = signal(true);
   readonly saving = signal(false);
@@ -75,6 +80,7 @@ export class LoreEditorComponent implements HasUnsavedChanges {
     const item = this.item();
     return item ? (this.definition()?.types[item.type] ?? null) : null;
   });
+  readonly customFields = computed(() => this.customDefinition()[this.item()?.type ?? ''] ?? []);
   /** Lugares para escolher, com o "dentro de" para diferenciar nomes parecidos. */
   readonly placeOptions = computed(() =>
     this.places().map((p) => ({ value: p.id, label: p.parentName ? `${p.name} (${p.parentName})` : p.name })),
@@ -100,12 +106,14 @@ export class LoreEditorComponent implements HasUnsavedChanges {
     this.error.set(null);
     this.conflict.set(false);
     try {
-      const [item, definition, places] = await Promise.all([
+      const [item, definition, places, custom] = await Promise.all([
         firstValueFrom(this.api.getLore(this.loreId())),
         firstValueFrom(this.api.loreForm()),
         firstValueFrom(this.api.listPlaces(this.universeId())),
+        firstValueFrom(this.api.customFields(this.universeId())),
       ]);
       this.definition.set(definition);
+      this.customDefinition.set(custom);
       this.places.set(places);
       this.reset(item);
     } catch (error) {
@@ -117,7 +125,12 @@ export class LoreEditorComponent implements HasUnsavedChanges {
 
   private reset(item: Lore): void {
     this.item.set(item);
-    const draft: Draft = { name: item.name, values: { ...item.values }, placeIds: item.places.map((p) => p.id) };
+    const draft: Draft = {
+      name: item.name,
+      values: { ...item.values },
+      placeIds: item.places.map((p) => p.id),
+      custom: { ...item.custom },
+    };
     this.draft.set(draft);
     this.saved.set(stableJson(draft));
   }
@@ -132,6 +145,10 @@ export class LoreEditorComponent implements HasUnsavedChanges {
 
   setValue(field: AppearanceField, value: AppearanceValue | null): void {
     this.draft.update((d) => ({ ...d, values: withValue(d.values, field.key, value) }));
+  }
+
+  setCustom(change: CustomValueChange): void {
+    this.draft.update((d) => ({ ...d, custom: withValue(d.custom, change.key, change.value) }));
   }
 
   setPlaces(placeIds: string[] | null): void {
@@ -153,6 +170,7 @@ export class LoreEditorComponent implements HasUnsavedChanges {
           aliases: item.aliases,
           values: draft.values,
           placeIds: draft.placeIds,
+          custom: draft.custom,
         }),
       );
       this.reset(saved);

@@ -1,0 +1,99 @@
+@use '../../shared/builder/builder-layout';
+
+.narrow {
+  max-width: 720px;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-height: var(--bs-touch);
+  color: var(--bs-ember);
+  font-size: .9rem;
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  padding: 4rem 0;
+}
+
+.field-card {
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+  margin-bottom: .75rem;
+  padding: .75rem;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+}
+
+.grow {
+  flex: 1;
+  min-width: 0;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+
+.chip {
+  min-height: 36px;
+  padding: 0 .75rem;
+  border: 1px solid var(--bs-border);
+  border-radius: 999px;
+  background: var(--bs-surface);
+  color: var(--bs-text-soft);
+  font: inherit;
+  font-size: .85rem;
+  cursor: pointer;
+}
+
+.chip.on {
+  border-color: var(--bs-ember);
+  background: var(--bs-sand-soft);
+  color: var(--bs-text);
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  padding-left: .75rem;
+  border-left: 2px solid var(--bs-border);
+}
+
+.options > .row:last-child {
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-height: var(--bs-touch);
+  color: var(--bs-text-soft);
+  font-size: .85rem;
+}
+
+.check input {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--bs-ember);
+}
+
+.poles {
+  gap: .4rem;
+}
+
+:host ::ng-deep .add {
+  width: 100%;
+}

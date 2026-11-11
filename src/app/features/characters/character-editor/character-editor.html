@@ -73,6 +73,8 @@
           </div>
         }
       </section>
+      <app-custom-fields [universeId]="character.universeId" scope="character"
+        [fields]="customDefinition()['character'] ?? []" [values]="draft().custom" (valueChange)="setCustom($event)" />
       <app-relations-card [universeId]="character.universeId" [characterId]="character.id" [bookId]="bookId()" />
       <app-image-gallery [universeId]="character.universeId" [entityId]="character.id"
         [portraitId]="character.portraitId" [card]="true" (portraitChange)="onPortrait($event)" />

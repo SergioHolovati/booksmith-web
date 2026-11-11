@@ -15,16 +15,28 @@ import { ImageGalleryComponent } from '../../../shared/gallery/image-gallery';
 
 import { problemMessage, problemOf } from '../../../core/api/problem';
 import { UniverseApi } from '../../../core/api/universe.api';
-import { LoreDefinition, LoreSummary, Place, PlaceSheet, PlaceSummary, PlaceType, Portrait } from '../../../core/models/api.models';
+import {
+  AppearanceValues,
+  CustomFieldDefinition,
+  LoreDefinition,
+  LoreSummary,
+  Place,
+  PlaceSheet,
+  PlaceSummary,
+  PlaceType,
+  Portrait,
+} from '../../../core/models/api.models';
 import { HasUnsavedChanges } from '../../../core/util/unsaved-changes.guard';
-import { stableJson } from '../../characters/appearance-values';
+import { stableJson, withValue } from '../../characters/appearance-values';
 import { PLACE_FIELDS, PLACE_TYPE_OPTIONS, placeTree, selfAndDescendants } from '../place-labels';
 import { MentionedInComponent } from '../../../shared/mentions/mentioned-in';
+import { CustomFieldsComponent, CustomValueChange } from '../../../shared/custom-fields/custom-fields';
 
 interface Draft {
   name: string;
   aliases: string[];
   sheet: PlaceSheet;
+  custom: AppearanceValues;
 }
 
 /** Ficha do lugar: tipo, "dentro de", onde fica, descrição, clima, regras e história. */
@@ -43,6 +55,7 @@ interface Draft {
     TextareaModule,
     ImageGalleryComponent,
     MentionedInComponent,
+    CustomFieldsComponent,
   ],
   providers: [ConfirmationService],
   templateUrl: './place-editor.html',
@@ -68,7 +81,9 @@ export class PlaceEditorComponent implements HasUnsavedChanges {
   /** Religiões, governo, idiomas e organizações presentes neste lugar. */
   readonly lore = signal<LoreSummary[]>([]);
   readonly loreDefinition = signal<LoreDefinition | null>(null);
-  readonly draft = signal<Draft>({ name: '', aliases: [], sheet: {} });
+  readonly draft = signal<Draft>({ name: '', aliases: [], sheet: {}, custom: {} });
+  /** Campos próprios do autor para lugares, neste universo. */
+  readonly customDefinition = signal<CustomFieldDefinition>({});
   private readonly saved = signal('');
 
   readonly loading = signal(true);
@@ -113,7 +128,12 @@ export class PlaceEditorComponent implements HasUnsavedChanges {
     this.conflict.set(false);
     try {
       const place = await firstValueFrom(this.api.getPlace(this.placeId()));
-      this.places.set(await firstValueFrom(this.api.listPlaces(place.universeId)));
+      const [places, custom] = await Promise.all([
+        firstValueFrom(this.api.listPlaces(place.universeId)),
+        firstValueFrom(this.api.customFields(place.universeId)).catch(() => ({}) as CustomFieldDefinition),
+      ]);
+      this.places.set(places);
+      this.customDefinition.set(custom);
       this.reset(place);
       // O contexto do mundo é um extra: se falhar, a ficha do lugar abre do mesmo jeito
       Promise.all([firstValueFrom(this.api.loreAtPlace(place.id)), firstValueFrom(this.api.loreForm())]).then(
@@ -132,7 +152,12 @@ export class PlaceEditorComponent implements HasUnsavedChanges {
 
   private reset(place: Place): void {
     this.place.set(place);
-    const draft: Draft = { name: place.name, aliases: [...place.aliases], sheet: { ...place.sheet } };
+    const draft: Draft = {
+      name: place.name,
+      aliases: [...place.aliases],
+      sheet: { ...place.sheet },
+      custom: { ...place.custom },
+    };
     this.draft.set(draft);
     this.saved.set(stableJson(draft));
   }
@@ -159,6 +184,10 @@ export class PlaceEditorComponent implements HasUnsavedChanges {
       }
       return { ...d, sheet: sheet as PlaceSheet };
     });
+  }
+
+  setCustom(change: CustomValueChange): void {
+    this.draft.update((d) => ({ ...d, custom: withValue(d.custom, change.key, change.value) }));
   }
 
   async save(): Promise<void> {

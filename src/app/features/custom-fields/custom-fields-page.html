@@ -1,0 +1,123 @@
+<div class="page narrow">
+  <a [routerLink]="backLink().route" [queryParams]="backLink().query" class="back-link">
+    <i class="pi pi-arrow-left"></i> {{ universe()?.name ?? 'Universo' }}
+  </a>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Seus campos</h1>
+      <p class="page-subtitle">O que você quer anotar a mais em cada ficha deste universo: signo, arma preferida,
+        moeda do país. Aparecem em todas as fichas do tipo.</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="center"><p-progress-spinner strokeWidth="4" /></div>
+  } @else if (error(); as message) {
+    <div class="glass-card empty-state">
+      <i class="pi pi-exclamation-circle"></i>
+      <p>{{ message }}</p>
+      <p-button label="Tentar de novo" severity="secondary" [outlined]="true" (onClick)="load()" />
+    </div>
+  } @else {
+    <nav class="tabs" aria-label="Tipo de ficha">
+      @for (s of scopes(); track s.value) {
+        <button type="button" class="tab" [class.on]="scope() === s.value"
+          [attr.aria-current]="scope() === s.value ? 'page' : null" (click)="select(s.value)">
+          <i class="pi" [class]="s.icon" aria-hidden="true"></i> {{ s.label }}
+          @if (definition()[s.value]?.length) {
+            <span class="count">{{ definition()[s.value]?.length }}</span>
+          }
+        </button>
+      }
+    </nav>
+
+    @for (field of draft(); track $index; let i = $index; let first = $first; let last = $last) {
+      <section class="glass-card field-card" [attr.data-field]="i" [attr.aria-label]="field.label || 'Campo novo'">
+        <div class="row">
+          <input pInputText class="grow" [ngModel]="field.label" (ngModelChange)="setLabel(i, $event)"
+            placeholder="Nome do campo" [attr.aria-label]="'Nome do campo ' + (i + 1)" maxlength="60" />
+          <p-button icon="pi pi-arrow-up" severity="secondary" [text]="true" size="small" [disabled]="first"
+            [ariaLabel]="'Subir ' + (field.label || 'campo')" (onClick)="move(i, -1)" />
+          <p-button icon="pi pi-arrow-down" severity="secondary" [text]="true" size="small" [disabled]="last"
+            [ariaLabel]="'Descer ' + (field.label || 'campo')" (onClick)="move(i, 1)" />
+          <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small"
+            [ariaLabel]="'Tirar ' + (field.label || 'campo')" (onClick)="remove(i)" />
+        </div>
+
+        <div class="chips" role="radiogroup" [attr.aria-label]="'Tipo de resposta de ' + (field.label || 'campo')">
+          @for (type of fieldTypes; track type.value) {
+            <button type="button" class="chip" role="radio" [class.on]="field.type === type.value"
+              [attr.aria-checked]="field.type === type.value" (click)="setType(i, type.value)">{{ type.label }}</button>
+          }
+        </div>
+
+        @if (field.options; as options) {
+          <div class="options">
+            @for (option of options; track $index; let j = $index) {
+              <div class="row option">
+                <input pInputText class="grow" [ngModel]="option.label" (ngModelChange)="setOption(i, j, $event)"
+                  placeholder="Opção" [attr.aria-label]="'Opção ' + (j + 1) + ' de ' + (field.label || 'campo')"
+                  maxlength="60" />
+                @if (options.length > 1) {
+                  <p-button icon="pi pi-times" severity="secondary" [text]="true" size="small"
+                    [ariaLabel]="'Tirar a opção ' + (option.label || j + 1)" (onClick)="removeOption(i, j)" />
+                }
+              </div>
+            }
+            <div class="row">
+              @if (options.length < maxOptions) {
+                <p-button label="Nova opção" icon="pi pi-plus" severity="secondary" [text]="true" size="small"
+                  (onClick)="addOption(i)" />
+              }
+              <label class="check">
+                <input type="checkbox" [ngModel]="field.allowCustom" (ngModelChange)="setAllowCustom(i, $event)" />
+                Aceitar outra resposta
+              </label>
+            </div>
+          </div>
+        }
+
+        @if (field.type === 'scale') {
+          <div class="row poles">
+            <input pInputText class="grow" [ngModel]="field.poles?.[0] ?? ''" (ngModelChange)="setPole(i, 0, $event)"
+              placeholder="Ponta do 1 (ex.: Calmo)" [attr.aria-label]="'Ponta do 1 de ' + (field.label || 'campo')"
+              maxlength="60" />
+            <i class="pi pi-arrows-h muted" aria-hidden="true"></i>
+            <input pInputText class="grow" [ngModel]="field.poles?.[1] ?? ''" (ngModelChange)="setPole(i, 1, $event)"
+              placeholder="Ponta do 5 (ex.: Explosivo)" [attr.aria-label]="'Ponta do 5 de ' + (field.label || 'campo')"
+              maxlength="60" />
+          </div>
+        }
+      </section>
+    } @empty {
+      <div class="glass-card empty-state">
+        <i class="pi pi-sliders-h"></i>
+        <p>Nenhum campo próprio em {{ scopeLabel().toLowerCase() }} ainda.</p>
+      </div>
+    }
+
+    @if (draft().length < maxFields) {
+      <p-button label="Novo campo" icon="pi pi-plus" severity="secondary" [outlined]="true" styleClass="add"
+        (onClick)="add()" />
+    }
+
+    @if (dirty()) {
+      <div class="save-bar" role="region" aria-label="Alterações não salvas">
+        <span class="muted small">
+          @if (removed().length) {
+            {{ removed().length === 1 ? 'O campo tirado some' : 'Os campos tirados somem' }} das fichas
+          } @else {
+            Alterações não salvas
+          }
+        </span>
+        <div class="save-actions">
+          <p-button label="Descartar" severity="secondary" [text]="true" [disabled]="saving()" (onClick)="discard()" />
+          <p-button label="Salvar" icon="pi pi-check" [loading]="saving()" [disabled]="!canSave()" (onClick)="save()" />
+        </div>
+      </div>
+    }
+  }
+</div>
+
+<p-confirmdialog [style]="{ width: 'min(420px, calc(100vw - 32px))' }" />

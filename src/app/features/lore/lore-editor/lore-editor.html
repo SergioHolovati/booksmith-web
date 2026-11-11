@@ -46,6 +46,11 @@
     </section>
 
     @if (item(); as lore) {
+      <app-custom-fields [universeId]="universeId()" [scope]="lore.type" [fields]="customFields()"
+        [values]="draft().custom" (valueChange)="setCustom($event)" />
+    }
+
+    @if (item(); as lore) {
       <app-mentioned-in [entityId]="lore.id" [name]="lore.name" />
     }
 

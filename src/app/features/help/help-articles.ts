@@ -58,6 +58,22 @@ export const HELP_ARTICLES: HelpArticle[] = [
     ],
   },
   {
+    slug: 'campos-proprios',
+    title: 'Criar seus próprios campos nas fichas',
+    summary: 'Signo do personagem, moeda do país, poder da criatura: o que você quiser anotar a mais.',
+    topic: 'universo',
+    keywords: ['campo', 'campos', 'personalizar', 'ficha', 'signo', 'atributo', 'propriedade', 'extra'],
+    body: [
+      { steps: [
+        'Na ficha de um personagem, lugar ou ficha do mundo, toque em **Criar campos** (no cartão "Seus campos").',
+        'Dê um nome ao campo e escolha o tipo de resposta: texto curto, texto longo, escolher uma opção, escolher várias ou uma escala de 1 a 5.',
+        'Toque em **Salvar**. O campo aparece em todas as fichas daquele tipo no universo.',
+      ] },
+      { p: 'Pode renomear um campo ou uma opção depois: o que já foi preenchido continua lá. Tirar um campo, ou mudar o tipo de resposta, esconde o que foi preenchido nele.' },
+      { p: 'Os campos são do universo: uma série inteira compartilha os mesmos. Ao juntar dois universos, os campos dos dois ficam.' },
+    ],
+  },
+  {
     slug: 'mencoes',
     title: 'Mencionar personagens e lugares com @',
     summary: 'Ligue o trecho ao personagem e veja depois em quais capítulos ele aparece.',

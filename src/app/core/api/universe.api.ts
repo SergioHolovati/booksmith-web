@@ -4,7 +4,10 @@ import { Observable, catchError, shareReplay, throwError } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import {
+  AppearanceField,
   AppearanceFormDefinition,
+  CustomFieldDefinition,
+  CustomFieldDraft,
   Character,
   CharacterSummary,
   CharacterUpdate,
@@ -98,6 +101,16 @@ export class UniverseApi {
       }),
     );
     return this.form$;
+  }
+
+  // ===== Campos próprios do autor =====
+
+  customFields(universeId: string): Observable<CustomFieldDefinition> {
+    return this.http.get<CustomFieldDefinition>(`${this.base}/universes/${universeId}/custom-fields`);
+  }
+
+  defineCustomFields(universeId: string, scope: string, fields: CustomFieldDraft[]): Observable<AppearanceField[]> {
+    return this.http.put<AppearanceField[]>(`${this.base}/universes/${universeId}/custom-fields/${scope}`, { fields });
   }
 
   listCharacters(universeId: string): Observable<CharacterSummary[]> {

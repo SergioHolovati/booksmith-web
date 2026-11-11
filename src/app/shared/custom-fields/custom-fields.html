@@ -1,0 +1,15 @@
+<section class="glass-card custom" aria-labelledby="custom-title">
+  <div class="custom-head">
+    <h2 id="custom-title">Seus campos</h2>
+    <a class="edit-link" [routerLink]="['/universes', universeId(), 'campos']" [queryParams]="{ tipo: scope() }">
+      <i class="pi pi-sliders-h" aria-hidden="true"></i> {{ fields().length ? 'Editar campos' : 'Criar campos' }}
+    </a>
+  </div>
+  @for (field of fields(); track field.key) {
+    <app-builder-field [field]="field" [value]="values()[field.key]"
+      (valueChange)="valueChange.emit({ key: field.key, value: $event })" />
+  } @empty {
+    <p class="muted small empty">Falta algo nesta ficha? Crie campos seus, como "Signo" ou "Arma preferida". Eles
+      valem para todas as fichas deste tipo no universo.</p>
+  }
+</section>

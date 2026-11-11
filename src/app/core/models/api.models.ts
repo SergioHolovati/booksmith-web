@@ -379,6 +379,8 @@ export interface Character {
   appearanceSummary: string;
   portraitId: string | null;
   portraitUrl: string | null;
+  /** Valores dos campos próprios do autor (chaves de {@link CustomFieldDefinition}). */
+  custom: AppearanceValues;
   version: number;
   updatedAt: string;
 }
@@ -389,6 +391,23 @@ export interface CharacterUpdate {
   aliases: string[];
   sheet: CharacterSheet;
   appearance: AppearanceValues;
+  custom?: AppearanceValues;
+}
+
+/**
+ * Campos próprios do autor, por tipo de ficha: "character", "place" e cada tipo do mundo ("creature"...). Mesmo
+ * formato dos formulários da API; chaves e valores das opções são gerados pelo servidor.
+ */
+export type CustomFieldDefinition = Partial<Record<string, AppearanceField[]>>;
+
+/** Campo em edição na tela de campos próprios: sem chave ainda, se é novo. */
+export interface CustomFieldDraft {
+  key?: string;
+  label: string;
+  type: 'text' | 'longtext' | 'choice' | 'multi' | 'scale';
+  options?: { value?: string; label: string }[];
+  allowCustom?: boolean;
+  poles?: [string, string];
 }
 
 /** Definição do formulário de aparência, servida pela API (§12.1): o app monta a tela a partir dela. */
@@ -475,6 +494,7 @@ export interface Place {
   mapY: number | null;
   portraitId: string | null;
   portraitUrl: string | null;
+  custom: AppearanceValues;
   version: number;
   updatedAt: string;
 }
@@ -542,6 +562,7 @@ export interface Lore {
   aliases: string[];
   values: AppearanceValues;
   places: PlaceRef[];
+  custom: AppearanceValues;
   version: number;
   updatedAt: string;
 }
@@ -552,6 +573,7 @@ export interface LoreUpdate {
   aliases: string[];
   values: AppearanceValues;
   placeIds: string[];
+  custom?: AppearanceValues;
 }
 
 /** Item do mundo gerado com o mapa; os lugares vão pelo nome. */
@@ -572,6 +594,7 @@ export interface PlaceUpdate {
   name: string;
   aliases: string[];
   sheet: PlaceSheet;
+  custom?: AppearanceValues;
 }
 
 // ===== Linha do tempo =====

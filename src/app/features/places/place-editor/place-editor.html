@@ -85,6 +85,9 @@
       }
     </section>
 
+    <app-custom-fields [universeId]="current.universeId" scope="place" [fields]="customDefinition()['place'] ?? []"
+      [values]="draft().custom" (valueChange)="setCustom($event)" />
+
     @if (lore().length > 0 && loreDefinition(); as definition) {
       <section class="glass-card here" aria-labelledby="here-title">
         <h2 id="here-title" class="here-title">Aqui</h2>

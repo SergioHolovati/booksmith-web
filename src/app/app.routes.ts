@@ -155,6 +155,12 @@ export const routes: Routes = [
         loadComponent: () => import('./features/gallery/gallery-page').then((c) => c.GalleryPageComponent),
       },
       {
+        path: 'universes/:universeId/campos',
+        loadComponent: () =>
+          import('./features/custom-fields/custom-fields-page').then((c) => c.CustomFieldsPageComponent),
+        canDeactivate: [unsavedChangesGuard],
+      },
+      {
         path: 'universes/:universeId/mundo',
         loadComponent: () => import('./features/lore/lore-list/lore-list').then((c) => c.LoreListComponent),
       },
