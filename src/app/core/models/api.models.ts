@@ -60,6 +60,25 @@ export interface BookDetail {
   pages: BookPages;
   /** Diagramação do PDF. */
   layout: BookLayout;
+  /** Desenho da capa feita no editor; null = a capa não foi feita nele. */
+  coverDesign: CoverDesign | null;
+}
+
+/** Escolhas da capa feita no editor (a imagem é desenhada no aparelho). */
+export interface CoverDesign {
+  template: 'classic' | 'band' | 'minimal';
+  backgroundColor: string;
+  /** Imagem da biblioteca do universo no fundo. */
+  imageId: string | null;
+  /** Quanto a imagem escurece, de 0 a 70. */
+  shade: number;
+  title: string;
+  subtitle: string | null;
+  author: string | null;
+  font: 'serif' | 'sans';
+  titleSize: 's' | 'm' | 'l';
+  textColor: string;
+  accentColor: string;
 }
 
 /** Diagramação do PDF (as opções estão em book-layout). */

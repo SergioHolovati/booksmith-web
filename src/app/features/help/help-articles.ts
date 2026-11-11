@@ -185,6 +185,19 @@ export const HELP_ARTICLES: HelpArticle[] = [
     ],
   },
   {
+    slug: 'capa',
+    title: 'Montar a capa do livro',
+    summary: 'Modelo, cores, letra e uma imagem do universo, sem sair do app.',
+    topic: 'livros',
+    keywords: ['capa', 'cover', 'criar capa', 'imagem', 'título', 'fundo', 'ebook'],
+    body: [
+      { steps: ['Abra o livro e toque em **Capa**.', 'Escolha o modelo (**Clássica**, **Faixa** ou **Minimalista**), o fundo e, se quiser, uma imagem da biblioteca do universo.', 'Ajuste título, subtítulo, autor, letra e cores.', 'Toque em **Usar como capa**.'] },
+      { p: 'A capa sai em 1600 × 2560, o tamanho recomendado para e-book, e vale no app, no ePub e no PDF. O desenho fica guardado: dá para voltar e mudar quando quiser.' },
+      { p: 'Para usar uma foto ou um desenho seu como fundo, envie primeiro para a **biblioteca do universo**. Se preferir uma capa pronta, envie a imagem em **Editar** livro.' },
+      { p: 'A capa completa para gráfica (com lombada e contracapa) ainda não está no app.' },
+    ],
+  },
+  {
     slug: 'diagramacao',
     title: 'Diagramação do PDF: tamanho, letra e margens',
     summary: 'Escolha um modelo, ajuste e veja as páginas de verdade antes de baixar.',

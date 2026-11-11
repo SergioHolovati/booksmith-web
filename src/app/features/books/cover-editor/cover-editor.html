@@ -1,0 +1,144 @@
+<div class="page narrow">
+  <a [routerLink]="['/books', bookId()]" class="back-link"><i class="pi pi-arrow-left"></i> {{ book()?.title ?? 'Livro' }}</a>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Capa</h1>
+      <p class="page-subtitle">Monte a capa com um modelo, uma cor ou uma imagem do universo. Ela vale no app, no ePub
+        e no PDF.</p>
+    </div>
+  </div>
+
+  @if (loadError(); as message) {
+    <div class="glass-card empty-state">
+      <i class="pi pi-exclamation-circle"></i>
+      <p>{{ message }}</p>
+      <p-button label="Tentar de novo" severity="secondary" [outlined]="true" (onClick)="load()" />
+    </div>
+  } @else if (book()) {
+    <div class="stage">
+      <canvas #canvas [width]="width" [height]="height" role="img"
+        [attr.aria-label]="'Capa: ' + design().title"></canvas>
+      @if (!fontsReady()) {
+        <p-progress-spinner strokeWidth="4" styleClass="spinner" />
+      }
+    </div>
+
+    <div class="group" data-group="template">
+      <span class="group-label" id="g-template">Modelo</span>
+      <div class="chips" role="radiogroup" aria-labelledby="g-template">
+        @for (t of templates; track t.value) {
+          <button type="button" class="chip" role="radio" [class.on]="design().template === t.value"
+            [attr.aria-checked]="design().template === t.value" (click)="set('template', t.value)">{{ t.label }}</button>
+        }
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="cover-title">Título</label>
+      <input id="cover-title" pInputText maxlength="200" [ngModel]="design().title"
+        (ngModelChange)="setText('title', $event)" />
+    </div>
+    <div class="field">
+      <label for="cover-subtitle">Subtítulo</label>
+      <input id="cover-subtitle" pInputText maxlength="200" placeholder="Opcional"
+        [ngModel]="design().subtitle ?? ''" (ngModelChange)="setText('subtitle', $event)" />
+    </div>
+    <div class="field">
+      <label for="cover-author">Autor</label>
+      <input id="cover-author" pInputText maxlength="120" [ngModel]="design().author ?? ''"
+        (ngModelChange)="setText('author', $event)" />
+    </div>
+
+    <div class="group" data-group="background">
+      <span class="group-label" id="g-background">Fundo</span>
+      <div class="swatches" role="radiogroup" aria-labelledby="g-background">
+        @for (color of backgrounds; track color) {
+          <button type="button" class="swatch" role="radio" [style.background]="color"
+            [class.on]="design().backgroundColor === color" [attr.aria-checked]="design().backgroundColor === color"
+            [attr.aria-label]="'Fundo ' + color" (click)="setBackground(color)"></button>
+        }
+        <label class="swatch custom" title="Outra cor">
+          <input type="color" [ngModel]="design().backgroundColor" (ngModelChange)="setBackground($event)"
+            aria-label="Outra cor de fundo" />
+          <i class="pi pi-palette" aria-hidden="true"></i>
+        </label>
+      </div>
+    </div>
+
+    <div class="group" data-group="image">
+      <span class="group-label">Imagem</span>
+      @if (images().length) {
+        <div class="thumbs" role="radiogroup" aria-label="Imagem de fundo">
+          <button type="button" class="thumb none" role="radio" [class.on]="!design().imageId"
+            [attr.aria-checked]="!design().imageId" (click)="set('imageId', null)">Sem imagem</button>
+          @for (image of images(); track image.id) {
+            <button type="button" class="thumb" role="radio" [class.on]="design().imageId === image.id"
+              [attr.aria-checked]="design().imageId === image.id" [attr.aria-label]="image.caption || 'Imagem'"
+              (click)="set('imageId', image.id)">
+              <img [src]="image.url" alt="" loading="lazy" />
+            </button>
+          }
+        </div>
+        @if (design().imageId) {
+          <label class="slider-label" for="cover-shade">Escurecer a imagem: {{ design().shade }}%</label>
+          <p-slider inputId="cover-shade" [ngModel]="design().shade" (ngModelChange)="set('shade', $event)"
+            [min]="0" [max]="70" [step]="5" styleClass="slider" />
+        }
+      } @else {
+        <p class="muted small">Sem imagens ainda. Envie fotos ou desenhos na
+          <a [routerLink]="['/universes', book()?.universeId, 'imagens']">biblioteca do universo</a> e volte aqui.</p>
+      }
+    </div>
+
+    <div class="group" data-group="font">
+      <span class="group-label" id="g-font">Letra</span>
+      <div class="chips" role="radiogroup" aria-labelledby="g-font">
+        <button type="button" class="chip serif" role="radio" [class.on]="design().font === 'serif'"
+          [attr.aria-checked]="design().font === 'serif'" (click)="set('font', 'serif')">Serifada</button>
+        <button type="button" class="chip sans" role="radio" [class.on]="design().font === 'sans'"
+          [attr.aria-checked]="design().font === 'sans'" (click)="set('font', 'sans')">Sem serifa</button>
+      </div>
+      <div class="chips" role="radiogroup" aria-label="Tamanho do título">
+        @for (size of ['s', 'm', 'l']; track size) {
+          <button type="button" class="chip" role="radio" [class.on]="design().titleSize === size"
+            [attr.aria-checked]="design().titleSize === size" (click)="set('titleSize', $any(size))">
+            {{ size === 's' ? 'Título pequeno' : size === 'm' ? 'Médio' : 'Grande' }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="group" data-group="text-color">
+      <span class="group-label" id="g-text">Cor do texto</span>
+      <div class="swatches" role="radiogroup" aria-labelledby="g-text">
+        @for (color of textColors; track color) {
+          <button type="button" class="swatch" role="radio" [style.background]="color"
+            [class.on]="design().textColor === color" [attr.aria-checked]="design().textColor === color"
+            [attr.aria-label]="'Texto ' + color" (click)="set('textColor', color)"></button>
+        }
+      </div>
+    </div>
+
+    @if (design().template !== 'classic') {
+      <div class="group" data-group="accent">
+        <span class="group-label" id="g-accent">{{ design().template === 'band' ? 'Cor da faixa' : 'Cor da moldura' }}</span>
+        <div class="swatches" role="radiogroup" aria-labelledby="g-accent">
+          @for (color of ['#c8743a', '#8c2f39', '#2f5d50', '#1f2a44', '#e9dfc9', '#111111']; track color) {
+            <button type="button" class="swatch" role="radio" [style.background]="color"
+              [class.on]="design().accentColor === color" [attr.aria-checked]="design().accentColor === color"
+              [attr.aria-label]="'Destaque ' + color" (click)="set('accentColor', color)"></button>
+          }
+        </div>
+      </div>
+    }
+
+    <div class="save-bar" role="region" aria-label="Usar a capa">
+      <span class="muted small">{{ applied() ? 'Esta é a capa do livro' : dirty() ? 'Alterações não salvas' : 'Ainda não é a capa do livro' }}</span>
+      <p-button label="Usar como capa" icon="pi pi-check" [loading]="saving()" [disabled]="!canSave() || applied()"
+        (onClick)="save()" />
+    </div>
+  } @else {
+    <div class="center"><p-progress-spinner strokeWidth="4" /></div>
+  }
+</div>

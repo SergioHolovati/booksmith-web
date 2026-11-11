@@ -104,6 +104,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/books/book-export/book-export').then((c) => c.BookExportComponent),
       },
       {
+        path: 'books/:bookId/capa',
+        loadComponent: () => import('./features/books/cover-editor/cover-editor').then((c) => c.CoverEditorComponent),
+        canDeactivate: [unsavedChangesGuard],
+      },
+      {
         path: 'books/:bookId/diagramacao',
         loadComponent: () => import('./features/books/book-layout/book-layout').then((c) => c.BookLayoutComponent),
         canDeactivate: [unsavedChangesGuard],

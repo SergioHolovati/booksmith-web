@@ -18,6 +18,10 @@
       </label>
       <input id="cover" type="file" accept="image/*" class="visually-hidden" (change)="onCoverSelected($event)" />
       <p class="field-hint">Opcional. Pode ser uma foto ou um desenho seu; a imagem é reduzida no aparelho antes do envio.</p>
+      @if (isEdit()) {
+        <a class="cover-maker-link" [routerLink]="['/books', bookId(), 'capa']"><i class="pi pi-palette"></i> Ou monte a
+          capa aqui, com título, cores e imagens do universo</a>
+      }
     </div>
 
     <div class="field">

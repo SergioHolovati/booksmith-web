@@ -47,6 +47,8 @@
             [routerLink]="['/books', book.id, 'edit']" />
           <p-button label="Importar" icon="pi pi-file-import" severity="secondary" [outlined]="true"
             [routerLink]="['/books', book.id, 'import']" />
+          <p-button label="Capa" icon="pi pi-image" severity="secondary" [outlined]="true"
+            [routerLink]="['/books', book.id, 'capa']" />
           <p-button label="Páginas" icon="pi pi-bookmark" severity="secondary" [outlined]="true"
             [routerLink]="['/books', book.id, 'paginas']" />
           @if (book.chapters.length > 0) {

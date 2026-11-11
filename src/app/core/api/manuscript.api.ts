@@ -8,6 +8,7 @@ import {
   BookDetail,
   BookLayout,
   BookPages,
+  CoverDesign,
   BookRequest,
   BookSummary,
   UniverseMove,
@@ -40,6 +41,11 @@ export class ManuscriptApi {
 
   updateBook(bookId: string, request: BookRequest): Observable<BookDetail> {
     return this.http.put<BookDetail>(`${this.base}/books/${bookId}`, request);
+  }
+
+  /** Capa feita no editor: a imagem (JPEG) vira a capa do livro e o desenho fica guardado. */
+  saveCover(bookId: string, design: CoverDesign, image: string): Observable<{ coverUrl: string; design: CoverDesign }> {
+    return this.http.put<{ coverUrl: string; design: CoverDesign }>(`${this.base}/books/${bookId}/cover`, { ...design, image });
   }
 
   /** Troca a diagramação do PDF. */

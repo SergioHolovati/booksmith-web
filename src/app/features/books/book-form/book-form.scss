@@ -72,3 +72,12 @@
 .section-title i {
   color: var(--bs-ember);
 }
+
+.cover-maker-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-height: var(--bs-touch);
+  color: var(--bs-ember);
+  font-size: .85rem;
+}
