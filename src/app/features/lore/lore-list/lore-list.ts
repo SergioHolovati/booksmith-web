@@ -11,10 +11,10 @@ import { problemMessage } from '../../../core/api/problem';
 import { UniverseApi } from '../../../core/api/universe.api';
 import { LoreDefinition, LoreSummary, LoreType, UniverseDetail } from '../../../core/models/api.models';
 
-export const LORE_TYPES: LoreType[] = ['religion', 'government', 'language', 'organization'];
+export const LORE_TYPES: LoreType[] = ['religion', 'government', 'language', 'organization', 'creature', 'object', 'term'];
 
 /**
- * Contexto do mundo (`/universes/:id/mundo`): religiões, sistemas políticos, idiomas e organizações, cada um
+ * Contexto do mundo (`/universes/:id/mundo`): religiões, governos, idiomas, organizações, criaturas, objetos e termos, cada um
  * com os lugares onde está presente. Abas por tipo; `?tipo=` abre direto numa delas.
  */
 @Component({

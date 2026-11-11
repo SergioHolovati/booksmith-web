@@ -189,7 +189,7 @@
 
       @if (loreOptions().length > 0) {
         <div class="field">
-          <label for="event-lore" class="field-label">Religiões, governos e organizações</label>
+          <label for="event-lore" class="field-label">Do mundo (religiões, organizações, objetos…)</label>
           <p-multiselect inputId="event-lore" name="lore" [options]="loreOptions()" optionLabel="label"
             optionValue="value" [ngModel]="draft.loreIds" (ngModelChange)="patch({ loreIds: $event ?? [] })"
             placeholder="Quem está envolvido" display="chip" [filter]="loreOptions().length > 8"

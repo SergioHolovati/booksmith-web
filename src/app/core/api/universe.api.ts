@@ -133,7 +133,7 @@ export class UniverseApi {
     return this.http.post<MapImport>(`${this.base}/universes/${universeId}/places/from-map`, { places });
   }
 
-  // ===== Contexto do mundo (religiões, governos, idiomas, organizações) =====
+  // ===== Contexto do mundo (religiões, governos, idiomas, organizações, criaturas, objetos, termos) =====
 
   private lore$?: Observable<LoreDefinition>;
 

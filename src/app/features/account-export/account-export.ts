@@ -30,7 +30,7 @@ import { formatSize, saveFile } from '../../core/util/save-file';
           <li><i class="pi pi-book" aria-hidden="true"></i><span><strong>Livros:</strong> cada um em Word, pronto para
             abrir, e também só o texto e os dados completos, com a capa.</span></li>
           <li><i class="pi pi-globe" aria-hidden="true"></i><span><strong>Universos:</strong> personagens, lugares,
-            religiões e governos, linha do tempo, relações, mapa e imagens.</span></li>
+            religiões, governos, criaturas, objetos e termos, linha do tempo, relações, mapa e imagens.</span></li>
           <li><i class="pi pi-user" aria-hidden="true"></i><span><strong>Conta:</strong> seu cadastro e o perfil de
             autor.</span></li>
           <li><i class="pi pi-comments" aria-hidden="true"></i><span><strong>Suporte:</strong> os pedidos que você

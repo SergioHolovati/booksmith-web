@@ -78,7 +78,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     body: [
       { p: 'Enquanto você escreve, o Booksmith revisa o texto: **vermelho** é ortografia, **azul** é gramática (crase, concordância, regência) e **tracejado** é sugestão de estilo.' },
       { steps: ['Toque na palavra sublinhada.', 'Toque na sugestão certa para trocar, ou em **Ignorar**.'] },
-      { p: 'Nomes de personagens, lugares e do seu mundo nunca são marcados. Inventou uma palavra? Toque nela e em **Adicionar ao dicionário do livro**: ela deixa de ser marcada em todos os capítulos.' },
+      { p: 'Nomes de personagens, lugares e do seu mundo nunca são marcados. Palavras do glossário do universo (Mundo → Termos) também valem. Inventou outra? Toque nela e em **Adicionar ao dicionário do livro**: ela deixa de ser marcada em todos os capítulos.' },
       { p: 'Personagem que fala errado de propósito? Toque no erro e em **Não revisar este parágrafo**, ou selecione o trecho e toque no olho cortado na barra. O trecho fica com um fundo leve e o corretor deixa ele em paz.' },
       { p: 'O texto é revisado no servidor do Booksmith e não fica guardado lá. Sem internet, o corretor do celular ou do navegador continua funcionando.' },
     ],

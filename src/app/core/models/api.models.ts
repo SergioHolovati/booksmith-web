@@ -498,7 +498,7 @@ export interface MapImport {
 }
 
 /** Contexto do mundo: religião, sistema político, idioma ou organização. */
-export type LoreType = 'religion' | 'government' | 'language' | 'organization';
+export type LoreType = 'religion' | 'government' | 'language' | 'organization' | 'creature' | 'object' | 'term';
 
 export interface LoreTypeDefinition {
   label: string;
@@ -598,7 +598,7 @@ export interface TimelineEvent {
   dateLabel: string | null;
   /** Idade de cada personagem do evento, a partir do nascimento dele na linha do tempo. */
   ages: { id: string; name: string; years: number }[];
-  /** Religiões, governos e organizações envolvidos. */
+  /** Fichas do mundo envolvidas (religiões, governos, organizações, objetos…). */
   lore: EntityRef[];
   version: number;
   updatedAt: string;

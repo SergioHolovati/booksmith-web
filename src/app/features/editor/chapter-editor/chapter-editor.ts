@@ -69,6 +69,9 @@ const LORE_HINT: Record<string, string> = {
   government: 'Governo',
   language: 'Idioma',
   organization: 'Organização',
+  creature: 'Criatura',
+  object: 'Objeto',
+  term: 'Termo',
 };
 
 @Component({
