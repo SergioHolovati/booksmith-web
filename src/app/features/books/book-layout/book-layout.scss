@@ -1,0 +1,130 @@
+@use '../../../shared/builder/builder-layout';
+
+.narrow {
+  max-width: 720px;
+  padding-bottom: 5rem;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-height: var(--bs-touch);
+  color: var(--bs-ember);
+  font-size: .9rem;
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  padding: 4rem 0;
+}
+
+.models {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .5rem;
+  margin-bottom: 1rem;
+}
+
+.model {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+  min-height: var(--bs-touch);
+  padding: .6rem .5rem;
+  border: 1px solid var(--bs-border);
+  border-radius: 12px;
+  background: var(--bs-surface);
+  color: var(--bs-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.model.on {
+  border-color: var(--bs-ember);
+  background: var(--bs-sand-soft);
+}
+
+.preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .25rem;
+  margin-bottom: 1.25rem;
+  padding: .75rem;
+}
+
+.sheet {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 300px;
+  transition: opacity .15s;
+}
+
+.sheet.loading {
+  opacity: .55;
+}
+
+.sheet img {
+  display: block;
+  max-width: 100%;
+  max-height: 62vh;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px rgb(0 0 0 / .35);
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.center-text {
+  text-align: center;
+}
+
+.choice {
+  margin-bottom: 1rem;
+}
+
+.choice-label {
+  display: block;
+  margin-bottom: .4rem;
+  font-size: .9rem;
+  font-weight: 600;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+
+.chip {
+  min-height: 40px;
+  min-width: 44px;
+  padding: 0 .8rem;
+  border: 1px solid var(--bs-border);
+  border-radius: 999px;
+  background: var(--bs-surface);
+  color: var(--bs-text-soft);
+  font: inherit;
+  font-size: .9rem;
+  cursor: pointer;
+}
+
+.chip.on {
+  border-color: var(--bs-ember);
+  background: var(--bs-sand-soft);
+  color: var(--bs-text);
+}
+
+.hint {
+  display: flex;
+  align-items: flex-start;
+  gap: .4rem;
+}

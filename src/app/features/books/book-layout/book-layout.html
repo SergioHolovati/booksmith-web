@@ -1,0 +1,83 @@
+<div class="page narrow">
+  <a [routerLink]="['/books', bookId(), 'export']" class="back-link"><i class="pi pi-arrow-left"></i> Baixar o livro</a>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Diagramação</h1>
+      <p class="page-subtitle">Como o livro fica no PDF. Escolha um modelo e ajuste o que quiser; a prévia mostra as
+        páginas de verdade.</p>
+    </div>
+  </div>
+
+  @if (loadError(); as message) {
+    <div class="glass-card empty-state">
+      <i class="pi pi-exclamation-circle"></i>
+      <p>{{ message }}</p>
+      <p-button label="Tentar de novo" severity="secondary" [outlined]="true" (onClick)="load()" />
+    </div>
+  } @else if (book(); as book) {
+    <div class="models" role="radiogroup" aria-label="Modelos">
+      @for (m of models; track m.name) {
+        <button type="button" class="model" role="radio" [class.on]="model() === m.name"
+          [attr.aria-checked]="model() === m.name" (click)="useModel(m.layout)">
+          <strong>{{ m.name }}</strong>
+          <span class="muted small">{{ m.hint }}</span>
+        </button>
+      }
+    </div>
+
+    <section class="glass-card preview" aria-label="Prévia">
+      @if (book.chapters.length === 0) {
+        <p class="muted center-text">Escreva o primeiro capítulo para ver a prévia.</p>
+      } @else {
+        <div class="sheet" [class.loading]="previewLoading()">
+          @if (image(); as src) {
+            <img [src]="src" [alt]="'Página ' + page() + ' do livro'" />
+          } @else if (previewError(); as message) {
+            <p class="muted center-text">{{ message }}</p>
+          } @else {
+            <p-progress-spinner strokeWidth="4" styleClass="spinner" />
+          }
+        </div>
+        <div class="pager">
+          <p-button icon="pi pi-angle-left" severity="secondary" [text]="true" ariaLabel="Página anterior"
+            [disabled]="page() <= 1" (onClick)="go(-1)" />
+          <span class="small" aria-live="polite">
+            Página {{ page() }}@if (pageCount(); as total) { de {{ total }}}
+          </span>
+          <p-button icon="pi pi-angle-right" severity="secondary" [text]="true" ariaLabel="Próxima página"
+            [disabled]="pageCount() !== null && page() >= (pageCount() ?? 0)" (onClick)="go(1)" />
+        </div>
+      }
+    </section>
+
+    @for (choice of choices; track choice.key) {
+      <div class="choice" [attr.data-choice]="choice.key">
+        <span class="choice-label" [id]="'choice-' + choice.key">{{ choice.label }}</span>
+        <div class="chips" role="radiogroup" [attr.aria-labelledby]="'choice-' + choice.key">
+          @for (option of choice.options; track option.value) {
+            <button type="button" class="chip" role="radio" [class.on]="isOn(choice.key, option.value)"
+              [attr.aria-checked]="isOn(choice.key, option.value)" (click)="choose(choice.key, option.value)">
+              {{ option.label }}
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    <p class="muted small hint"><i class="pi pi-info-circle" aria-hidden="true"></i> Vale para o PDF. No ePub, quem
+      escolhe a letra é o leitor; o Word sai no formato de manuscrito.</p>
+
+    @if (dirty()) {
+      <div class="save-bar" role="region" aria-label="Alterações não salvas">
+        <span class="muted small">Alterações não salvas</span>
+        <div class="save-actions">
+          <p-button label="Descartar" severity="secondary" [text]="true" [disabled]="saving()" (onClick)="discard()" />
+          <p-button label="Salvar" icon="pi pi-check" [loading]="saving()" (onClick)="save()" />
+        </div>
+      </div>
+    }
+  } @else {
+    <div class="center"><p-progress-spinner strokeWidth="4" /></div>
+  }
+</div>

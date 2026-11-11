@@ -185,6 +185,19 @@ export const HELP_ARTICLES: HelpArticle[] = [
     ],
   },
   {
+    slug: 'diagramacao',
+    title: 'Diagramação do PDF: tamanho, letra e margens',
+    summary: 'Escolha um modelo, ajuste e veja as páginas de verdade antes de baixar.',
+    topic: 'livros',
+    keywords: ['diagramação', 'diagramar', 'tamanho', '14x21', 'a5', '16x23', '6x9', 'fonte', 'letra', 'margem', 'entrelinha', 'abertura de capítulo', 'ornamento', 'prévia'],
+    body: [
+      { steps: ['Abra o livro e toque em **Baixar**.', 'Toque em **Diagramação do PDF**.', 'Escolha um modelo (**Clássico**, **Moderno** ou **Econômico**) e ajuste o que quiser.', 'Toque em **Salvar**. O PDF passa a sair assim.'] },
+      { p: 'Dá para escolher o **tamanho** (A5, 14×21, 16×23 ou 6×9 polegadas, o mais comum na Amazon), a **letra**, o **espaço entre linhas**, as **margens**, a **abertura de capítulo** e o desenho da **quebra de cena**.' },
+      { p: 'A prévia mostra as páginas reais do PDF; passe com as setas. Mudou a letra ou o tamanho, o número de páginas muda junto.' },
+      { p: 'Vale para o PDF. No ePub, quem escolhe a letra é o leitor; o Word sai no formato de manuscrito.' },
+    ],
+  },
+  {
     slug: 'paginas-do-livro',
     title: 'Dedicatória, agradecimentos e outras páginas',
     summary: 'Créditos, dedicatória, epígrafe, agradecimentos e a página sobre você.',

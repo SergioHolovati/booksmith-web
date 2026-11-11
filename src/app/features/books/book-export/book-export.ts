@@ -10,6 +10,7 @@ import { ManuscriptApi } from '../../../core/api/manuscript.api';
 import { problemMessage } from '../../../core/api/problem';
 import { BookDetail } from '../../../core/models/api.models';
 import { saveFile } from '../../../core/util/save-file';
+import { CHOICES, MODELS, normalizeLayout, sameLayout } from '../book-layout/book-layout';
 import { pageCount } from '../book-pages/book-pages';
 
 interface FormatOption {
@@ -30,7 +31,7 @@ const FORMATS: FormatOption[] = [
     format: 'pdf',
     title: 'PDF de leitura',
     icon: 'pi pi-file-pdf',
-    description: 'Páginas de livro (A5), com sumário. Bom para mandar a leitores beta ou imprimir em casa.',
+    description: 'Páginas de livro, com sumário, na diagramação que você escolher. Bom para leitores beta ou imprimir em casa.',
   },
   {
     format: 'docx',
@@ -40,6 +41,15 @@ const FORMATS: FormatOption[] = [
       'Manuscrito para editoras, concursos e revisores: Times 12, espaço 1,5, um capítulo por página. Abre no Word e no Google Docs.',
   },
 ];
+
+/** "Clássico · A5, letra 11", ou o tamanho e a letra quando as escolhas não batem com um modelo. */
+export function layoutSummary(book: BookDetail): string {
+  const layout = normalizeLayout(book.layout);
+  const model = MODELS.find((m) => sameLayout(m.layout, layout));
+  const trim = CHOICES[0].options.find((o) => o.value === layout.trim)?.label ?? layout.trim;
+  const details = `${trim}, letra ${String(layout.fontSize).replace('.', ',')}`;
+  return model ? `${model.name} · ${details}` : `Personalizada · ${details}`;
+}
 
 /** Tamanho legível: "84 KB", "1,2 MB". */
 export function fileSize(bytes: number): string {
@@ -67,6 +77,7 @@ export class BookExportComponent {
 
   readonly formats = FORMATS;
   readonly fileSize = fileSize;
+  readonly layoutSummary = layoutSummary;
   readonly pageCount = (pages: BookDetail['pages'] | undefined) => (pages ? pageCount(pages) : 0);
   readonly book = signal<BookDetail | null>(null);
   readonly loadError = signal<string | null>(null);

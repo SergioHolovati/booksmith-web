@@ -6,6 +6,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   BookDetail,
+  BookLayout,
   BookPages,
   BookRequest,
   BookSummary,
@@ -39,6 +40,11 @@ export class ManuscriptApi {
 
   updateBook(bookId: string, request: BookRequest): Observable<BookDetail> {
     return this.http.put<BookDetail>(`${this.base}/books/${bookId}`, request);
+  }
+
+  /** Troca a diagramação do PDF. */
+  updateLayout(bookId: string, layout: BookLayout): Observable<BookLayout> {
+    return this.http.put<BookLayout>(`${this.base}/books/${bookId}/layout`, layout);
   }
 
   /** Troca as páginas antes e depois da história; campo vazio tira a página do livro. */

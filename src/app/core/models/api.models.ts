@@ -58,6 +58,24 @@ export interface BookDetail {
   chapters: ChapterSummary[];
   /** Páginas antes e depois da história; null = a página não sai no livro. */
   pages: BookPages;
+  /** Diagramação do PDF. */
+  layout: BookLayout;
+}
+
+/** Diagramação do PDF (as opções estão em book-layout). */
+export interface BookLayout {
+  trim: 'a5' | '14x21' | '16x23' | '6x9';
+  fontSize: number;
+  leading: 'compact' | 'normal' | 'airy';
+  margins: 'narrow' | 'normal' | 'wide';
+  chapterStyle: 'classic' | 'modern' | 'simple';
+  sceneBreak: 'asterisks' | 'asterism' | 'diamond' | 'dots' | 'space';
+}
+
+/** Páginas do PDF como imagens (prévia), numeradas a partir de 1. */
+export interface LayoutPreview {
+  pageCount: number;
+  pages: { number: number; image: string }[];
 }
 
 /** Créditos, dedicatória, epígrafe, agradecimentos e "sobre" (texto simples: cada linha, um parágrafo). */

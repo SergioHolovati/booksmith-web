@@ -22,7 +22,7 @@
         <p-message severity="info" styleClass="block-message"
           text="Fanfic sai como edição de fã: uma página de aviso diz que é para uso pessoal, sem venda, e dá os créditos à obra original." />
       }
-      <a class="pages-link glass-card" [routerLink]="['/books', book.id, 'paginas']">
+      <a class="pages-link glass-card book-pages-link" [routerLink]="['/books', book.id, 'paginas']">
         <i class="pi pi-bookmark" aria-hidden="true"></i>
         <span>
           <strong>Páginas do livro</strong>
@@ -33,6 +33,14 @@
               Dedicatória, agradecimentos, sobre você…
             }
           </span>
+        </span>
+        <i class="pi pi-angle-right muted" aria-hidden="true"></i>
+      </a>
+      <a class="pages-link glass-card layout-link" [routerLink]="['/books', book.id, 'diagramacao']">
+        <i class="pi pi-palette" aria-hidden="true"></i>
+        <span>
+          <strong>Diagramação do PDF</strong>
+          <span class="muted small">{{ layoutSummary(book) }}</span>
         </span>
         <i class="pi pi-angle-right muted" aria-hidden="true"></i>
       </a>
@@ -73,7 +81,7 @@
         }
       </ul>
       <p class="muted small hint">
-        PDF para gráfica (com sangria e cores de impressão) e capa completa chegam com a diagramação.
+        PDF para gráfica (com sangria e cores de impressão) e capa completa chegam depois.
       </p>
     }
   } @else {

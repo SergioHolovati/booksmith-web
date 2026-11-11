@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, from, map, switchMap, throwError } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
+import { BookLayout, LayoutPreview } from '../models/api.models';
 
 export type ExportFormat = 'epub' | 'pdf' | 'docx';
 
@@ -16,6 +17,11 @@ export interface ExportedFile {
 export class ExportApi {
   private readonly http = inject(HttpClient);
   private readonly base = environment.apiBaseUrl;
+
+  /** Páginas do PDF com a diagramação dada (salva ou não), como imagens; até 4 por pedido. */
+  preview(bookId: string, layout: BookLayout, from: number, count = 2): Observable<LayoutPreview> {
+    return this.http.post<LayoutPreview>(`${this.base}/books/${bookId}/export/preview`, { ...layout, from, count });
+  }
 
   download(bookId: string, format: ExportFormat): Observable<ExportedFile> {
     return this.file(`${this.base}/books/${bookId}/export/${format}`, `livro.${format}`);
