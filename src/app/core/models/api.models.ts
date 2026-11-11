@@ -62,6 +62,17 @@ export interface BookDetail {
   layout: BookLayout;
   /** Desenho da capa feita no editor; null = a capa não foi feita nele. */
   coverDesign: CoverDesign | null;
+  /** Capa feita fora do app e importada em PDF; null = sem PDF. */
+  coverPdf: CoverPdf | null;
+}
+
+/** Capa importada em PDF: só a frente (página em pé) ou a capa aberta (deitada). */
+export interface CoverPdf {
+  url: string;
+  kind: 'front' | 'wrap';
+  widthMm: number;
+  heightMm: number;
+  fileName: string;
 }
 
 /** Escolhas da capa feita no editor (a imagem é desenhada no aparelho). */
@@ -99,6 +110,11 @@ export interface PrintCoverSpec {
   /** Cabe texto na lombada. */
   spineText: boolean;
   warnings: string[];
+  /** A capa importada em PDF, se houver, e (na capa aberta) se as medidas batem. */
+  imported: 'front' | 'wrap' | null;
+  importedWidthMm: number | null;
+  importedHeightMm: number | null;
+  importedFits: boolean | null;
 }
 
 /** Diagramação do PDF (as opções estão em book-layout). */

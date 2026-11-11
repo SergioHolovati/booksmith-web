@@ -195,7 +195,7 @@ export class CoverEditorComponent implements HasUnsavedChanges {
     try {
       const image = canvas.toDataURL('image/jpeg', 0.9);
       const result = await firstValueFrom(this.api.saveCover(this.bookId(), this.design(), image));
-      this.book.update((book) => (book ? { ...book, coverUrl: result.coverUrl, coverDesign: result.design } : book));
+      this.book.update((book) => (book ? { ...book, coverUrl: result.coverUrl, coverDesign: result.design, coverPdf: null } : book));
       this.saved.set(JSON.stringify(this.design()));
       this.toast.add({ severity: 'success', summary: 'Capa salva', detail: 'Já vale no livro e nos arquivos baixados.', life: 3000 });
     } catch (error) {

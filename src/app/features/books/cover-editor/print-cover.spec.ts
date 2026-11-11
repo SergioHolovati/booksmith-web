@@ -13,6 +13,10 @@ const SPEC: PrintCoverSpec = {
   heightMm: 235,
   spineText: true,
   warnings: [],
+  imported: null,
+  importedWidthMm: null,
+  importedHeightMm: null,
+  importedFits: null,
 };
 
 describe('capa para gráfica', () => {

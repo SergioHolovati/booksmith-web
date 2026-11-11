@@ -113,3 +113,60 @@
 .hint {
   margin-top: .75rem;
 }
+
+.import {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+}
+
+.import h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.import p {
+  margin: 0;
+}
+
+.imported {
+  display: flex;
+  align-items: flex-start;
+  gap: .45rem;
+  overflow-wrap: anywhere;
+}
+
+.import-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+}
+
+.import-button {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  min-height: var(--bs-touch);
+  cursor: pointer;
+}
+
+.field textarea {
+  width: 100%;
+}
+
+/* O campo de arquivo fica escondido dentro do botão (o toque no botão abre a escolha do arquivo) */
+.import-button {
+  position: relative;
+}
+
+.import-button input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

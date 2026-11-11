@@ -181,3 +181,11 @@
   color: var(--bs-ember);
   font-size: .9rem;
 }
+
+.pdf-note {
+  display: flex;
+  align-items: flex-start;
+  gap: .5rem;
+  margin: 0 0 1rem;
+  padding: .75rem 1rem;
+}

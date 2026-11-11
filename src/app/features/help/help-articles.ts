@@ -207,6 +207,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
       { p: 'No **KDP** (Amazon), a lombada é calculada pelo número de páginas do seu PDF e pelo papel (branco, creme ou colorido premium), com 3,2 mm de sangria. O KDP aceita A5 e 6×9 e livros a partir de 24 páginas; a lombada só leva texto a partir de 80 páginas.' },
       { p: 'Em **outra gráfica** (Clube de Autores, UICLAP ou uma gráfica local), cada uma tem a sua conta para a lombada. Digite a medida que ela informar para o seu número de páginas, e a sangria que ela pedir.' },
       { p: 'A prévia mostra o corte (vermelho) e as dobras da lombada (azul). O PDF sai em 300 DPI, em cores de tela; confira no gabarito da gráfica antes de mandar imprimir. Mudou a diagramação? O número de páginas muda, e a lombada junto.' },
+      { p: '**Já tem a capa pronta em PDF?** Toque em **Importar capa em PDF**. Se for só a frente (página em pé), ela vira a capa do livro e entra sem perder qualidade, com a lombada e a contracapa daqui. Se for a capa aberta (deitada), conferimos as medidas: se a lombada não bate, dizemos quanto falta ou sobra; se bate, você baixa o seu próprio arquivo, conferido.' },
     ],
   },
   {

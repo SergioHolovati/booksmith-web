@@ -9,6 +9,7 @@ import {
   BookLayout,
   BookPages,
   CoverDesign,
+  CoverPdf,
   BookRequest,
   BookSummary,
   UniverseMove,
@@ -46,6 +47,22 @@ export class ManuscriptApi {
   /** Capa feita no editor: a imagem (JPEG) vira a capa do livro e o desenho fica guardado. */
   saveCover(bookId: string, design: CoverDesign, image: string): Observable<{ coverUrl: string; design: CoverDesign }> {
     return this.http.put<{ coverUrl: string; design: CoverDesign }>(`${this.base}/books/${bookId}/cover`, { ...design, image });
+  }
+
+  /** Capa feita fora do app, em PDF: a frente vira a capa do livro e o PDF fica para a gráfica. */
+  importCoverPdf(bookId: string, file: File): Observable<{ coverUrl: string; coverPdf: CoverPdf }> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.post<{ coverUrl: string; coverPdf: CoverPdf }>(`${this.base}/books/${bookId}/cover/pdf`, form);
+  }
+
+  removeCoverPdf(bookId: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/books/${bookId}/cover/pdf`);
+  }
+
+  /** Só o desenho (texto da contracapa, cores), sem trocar a imagem de capa. */
+  saveCoverDesign(bookId: string, design: CoverDesign): Observable<CoverDesign> {
+    return this.http.put<CoverDesign>(`${this.base}/books/${bookId}/cover/design`, design);
   }
 
   /** Troca a diagramação do PDF. */

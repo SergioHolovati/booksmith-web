@@ -1,7 +1,20 @@
-import { Component, DestroyRef, ElementRef, computed, effect, inject, input, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  WritableSignal,
+  computed,
+  effect,
+  inject,
+  input,
+  signal,
+  viewChild,
+} from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
+import { TextareaModule } from 'primeng/textarea';
 import { MessageModule } from 'primeng/message';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { firstValueFrom } from 'rxjs';
@@ -10,8 +23,10 @@ import { ExportApi } from '../../../core/api/export.api';
 import { ManuscriptApi } from '../../../core/api/manuscript.api';
 import { problemMessage } from '../../../core/api/problem';
 import { UniverseApi } from '../../../core/api/universe.api';
-import { BookDetail, PrintCoverSpec, PrintProfile } from '../../../core/models/api.models';
+import { AuthService } from '../../../core/auth/auth.service';
+import { BookDetail, CoverDesign, PrintCoverSpec, PrintProfile } from '../../../core/models/api.models';
 import { saveFile } from '../../../core/util/save-file';
+import { initialDesign } from './cover-editor';
 import { PRINT_PX_PER_MM, drawPrintCover, printSize } from './print-cover-canvas';
 
 export const PROFILES: { value: PrintProfile; label: string; hint: string }[] = [
@@ -39,7 +54,7 @@ export function mm(value: number): string {
  */
 @Component({
   selector: 'app-print-cover',
-  imports: [RouterLink, ButtonModule, InputTextModule, MessageModule, ProgressSpinnerModule],
+  imports: [RouterLink, FormsModule, TextareaModule, ButtonModule, InputTextModule, MessageModule, ProgressSpinnerModule],
   templateUrl: './print-cover.html',
   styleUrl: './print-cover.scss',
 })
@@ -47,6 +62,7 @@ export class PrintCoverComponent {
   private readonly api = inject(ManuscriptApi);
   private readonly exportApi = inject(ExportApi);
   private readonly universeApi = inject(UniverseApi);
+  private readonly auth = inject(AuthService);
 
   readonly bookId = input.required<string>();
   private readonly canvas = viewChild<ElementRef<HTMLCanvasElement>>('canvas');
@@ -65,6 +81,24 @@ export class PrintCoverComponent {
   readonly generateError = signal<string | null>(null);
   readonly fontsReady = signal(false);
   private readonly background = signal<HTMLImageElement | null>(null);
+  /** A frente vinda do PDF importado (a imagem de capa do livro), para a prévia e o desenho em 300 DPI. */
+  private readonly frontImage = signal<HTMLImageElement | null>(null);
+  readonly importing = signal(false);
+  readonly importError = signal<string | null>(null);
+  /** Texto da contracapa editado aqui (capa importada em PDF, sem o editor de capa). */
+  readonly backText = signal('');
+
+  /** O desenho: o salvo, ou o inicial (capa importada sem desenho). O texto da contracapa é o desta tela. */
+  readonly design = computed<CoverDesign | null>(() => {
+    const book = this.book();
+    if (!book) {
+      return null;
+    }
+    const base = book.coverDesign ?? initialDesign(book.title, this.auth.user()?.displayName ?? null, book.synopsis);
+    return { ...base, backText: this.backText().trim() || null };
+  });
+  readonly coverPdf = computed(() => this.book()?.coverPdf ?? null);
+  readonly canUse = computed(() => !!this.book()?.coverDesign || !!this.coverPdf());
 
   /** Escala da prévia: a capa aberta cabe em ~700 px de largura. */
   readonly previewScale = computed(() => {
@@ -87,8 +121,9 @@ export class PrintCoverComponent {
     effect(() => {
       const canvas = this.canvas()?.nativeElement;
       const spec = this.spec();
-      const design = this.book()?.coverDesign;
+      const design = this.design();
       const image = this.background();
+      const frontImage = this.coverPdf()?.kind === 'front' ? this.frontImage() : null;
       this.fontsReady();
       const size = this.previewSize();
       if (!canvas || !spec || !design) {
@@ -98,7 +133,7 @@ export class PrintCoverComponent {
       canvas.height = size.height;
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        drawPrintCover(ctx, design, image, spec, { pxPerMm: this.previewScale(), guides: true });
+        drawPrintCover(ctx, design, image, spec, { pxPerMm: this.previewScale(), guides: true, frontImage });
       }
     });
   }
@@ -108,12 +143,14 @@ export class PrintCoverComponent {
     try {
       const book = await firstValueFrom(this.api.getBook(this.bookId()));
       this.book.set(book);
+      this.backText.set(book.coverDesign?.backText ?? book.synopsis ?? '');
       const imageId = book.coverDesign?.imageId;
       if (imageId && book.universeId) {
         const images = await firstValueFrom(this.universeApi.listImages(book.universeId));
-        this.loadBackground(images.find((i) => i.id === imageId)?.url ?? null);
+        this.loadImage(images.find((i) => i.id === imageId)?.url ?? null, this.background);
       }
-      if (book.coverDesign && book.chapters.length > 0) {
+      this.loadImage(book.coverPdf ? book.coverUrl : null, this.frontImage);
+      if ((book.coverDesign || book.coverPdf) && book.chapters.length > 0) {
         void this.fetchSpec();
       }
     } catch (error) {
@@ -121,14 +158,54 @@ export class PrintCoverComponent {
     }
   }
 
-  private loadBackground(url: string | null): void {
+  private loadImage(url: string | null, target: WritableSignal<HTMLImageElement | null>): void {
     if (!url) {
+      target.set(null);
       return;
     }
     const image = new Image();
     image.crossOrigin = 'anonymous';
-    image.onload = () => this.background.set(image);
+    image.onload = () => target.set(image);
     image.src = url;
+  }
+
+  /** Capa feita fora do app, em PDF: só a frente ou a capa aberta. */
+  async importPdf(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) {
+      return;
+    }
+    this.importing.set(true);
+    this.importError.set(null);
+    try {
+      const result = await firstValueFrom(this.api.importCoverPdf(this.bookId(), file));
+      this.book.update((book) => (book ? { ...book, coverUrl: result.coverUrl, coverPdf: result.coverPdf } : book));
+      this.loadImage(result.coverPdf.kind === 'front' ? result.coverUrl : null, this.frontImage);
+      if ((this.book()?.chapters.length ?? 0) > 0 && (this.profile() !== 'custom' || this.spineMm())) {
+        void this.fetchSpec();
+      }
+    } catch (error) {
+      this.importError.set(problemMessage(error, 'Não foi possível importar o PDF.'));
+    } finally {
+      this.importing.set(false);
+    }
+  }
+
+  async removePdf(): Promise<void> {
+    try {
+      await firstValueFrom(this.api.removeCoverPdf(this.bookId()));
+      this.book.update((book) => (book ? { ...book, coverPdf: null } : book));
+      this.frontImage.set(null);
+      if (this.book()?.coverDesign) {
+        void this.fetchSpec();
+      } else {
+        this.spec.set(null);
+      }
+    } catch (error) {
+      this.importError.set(problemMessage(error, 'Não foi possível tirar o PDF.'));
+    }
   }
 
   chooseProfile(profile: PrintProfile): void {
@@ -169,16 +246,39 @@ export class PrintCoverComponent {
     }
   }
 
-  /** Desenha em 300 DPI fora da tela (sem as linhas-guia) e manda para virar PDF. */
+  /**
+   * Desenha em 300 DPI fora da tela (sem as linhas-guia) e manda para virar PDF. Capa aberta importada que bate
+   * com as medidas sai como veio, sem desenho.
+   */
   async generate(): Promise<void> {
     const spec = this.spec();
-    const design = this.book()?.coverDesign;
+    const design = this.design();
     if (!spec || !design) {
       return;
     }
     this.generating.set(true);
     this.generateError.set(null);
     try {
+      const pdf = this.coverPdf();
+      if (pdf?.kind === 'front') {
+        // O texto da contracapa editado aqui fica guardado no livro
+        const saved = await firstValueFrom(this.api.saveCoverDesign(this.bookId(), design));
+        this.book.update((book) => (book ? { ...book, coverDesign: saved } : book));
+      }
+      const custom = this.profile() === 'custom';
+      if (pdf?.kind === 'wrap') {
+        saveFile(
+          await firstValueFrom(
+            this.exportApi.printCover(this.bookId(), {
+              profile: this.profile(),
+              spineMm: custom ? this.spineMm() : null,
+              bleedMm: custom ? this.bleedMm() : null,
+              image: '',
+            }),
+          ),
+        );
+        return;
+      }
       const size = printSize(spec, PRINT_PX_PER_MM);
       const canvas = document.createElement('canvas');
       canvas.width = size.width;
@@ -187,8 +287,11 @@ export class PrintCoverComponent {
       if (!ctx) {
         throw new Error('canvas');
       }
-      drawPrintCover(ctx, design, this.background(), spec, { pxPerMm: PRINT_PX_PER_MM, guides: false });
-      const custom = this.profile() === 'custom';
+      drawPrintCover(ctx, design, this.background(), spec, {
+        pxPerMm: PRINT_PX_PER_MM,
+        guides: false,
+        frontImage: pdf?.kind === 'front' ? this.frontImage() : null,
+      });
       const file = await firstValueFrom(
         this.exportApi.printCover(this.bookId(), {
           profile: this.profile(),

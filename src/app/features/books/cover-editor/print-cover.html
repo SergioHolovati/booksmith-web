@@ -16,10 +16,43 @@
       <p-button label="Tentar de novo" severity="secondary" [outlined]="true" (onClick)="load()" />
     </div>
   } @else if (book(); as book) {
-    @if (!book.coverDesign) {
+    <section class="glass-card import" aria-labelledby="import-title">
+      <h2 id="import-title">Já tem a capa pronta em PDF?</h2>
+      @if (coverPdf(); as pdf) {
+        <p class="small imported" data-imported>
+          <i class="pi pi-file-pdf" aria-hidden="true"></i>
+          <span><strong>{{ pdf.fileName }}</strong> ·
+            {{ pdf.kind === 'wrap' ? 'capa aberta' : 'só a frente' }} · {{ mm(pdf.widthMm) }} × {{ mm(pdf.heightMm) }} mm</span>
+        </p>
+        <p class="muted small">
+          {{ pdf.kind === 'wrap'
+            ? 'Conferimos as medidas com o que a gráfica pede para este livro.'
+            : 'A frente entra como está (vetor, sem perder qualidade); a lombada e a contracapa saem daqui.' }}
+        </p>
+      } @else {
+        <p class="muted small">Envie a frente (página em pé) ou a capa aberta (deitada: contracapa, lombada e
+          frente). A frente também vira a capa do livro no app, no ePub e no PDF.</p>
+      }
+      <div class="import-actions">
+        <label class="p-button p-button-outlined p-button-secondary import-button" [class.p-disabled]="importing()">
+          <i class="pi pi-upload" aria-hidden="true"></i>
+          {{ importing() ? 'Importando…' : coverPdf() ? 'Trocar o PDF' : 'Importar capa em PDF' }}
+          <input type="file" accept="application/pdf,.pdf" class="visually-hidden" [disabled]="importing()"
+            (change)="importPdf($event)" aria-label="Importar capa em PDF" />
+        </label>
+        @if (coverPdf()) {
+          <p-button label="Tirar o PDF" severity="secondary" [text]="true" (onClick)="removePdf()" />
+        }
+      </div>
+      @if (importError(); as message) {
+        <p-message severity="error" [text]="message" styleClass="block-message" />
+      }
+    </section>
+
+    @if (!canUse()) {
       <div class="glass-card empty-state">
         <i class="pi pi-image"></i>
-        <p>Monte e salve a frente da capa primeiro; a capa aberta usa o mesmo desenho.</p>
+        <p>Ou monte e salve a frente da capa aqui no app; a capa aberta usa o mesmo desenho.</p>
         <p-button label="Montar a capa" [routerLink]="['/books', book.id, 'capa']" />
       </div>
     } @else if (book.chapters.length === 0) {
@@ -67,30 +100,49 @@
           <span>lombada <strong>{{ mm(spec.spineMm) }} mm</strong></span>
           <span>capa aberta <strong>{{ mm(spec.widthMm) }} × {{ mm(spec.heightMm) }} mm</strong></span>
         </div>
+        @if (spec.imported === 'wrap' && spec.importedFits) {
+          <p-message severity="success" styleClass="block-message fits"
+            text="As medidas da sua capa batem com as deste livro nesse destino." />
+        }
         @for (warning of spec.warnings; track warning) {
           <p-message severity="warn" [text]="warning" styleClass="block-message" />
         }
-        @if (!spec.spineText) {
-          <p class="muted small">Lombada fina demais para texto: ela sai só com a cor.</p>
-        }
 
-        <div class="stage">
-          <canvas #canvas role="img" aria-label="Capa aberta: contracapa, lombada e frente"></canvas>
-        </div>
-        <p class="muted small legend">
-          <span class="dash red"></span> corte (o que passa fica na sangria)
-          <span class="dash blue"></span> dobras da lombada
-        </p>
+        @if (spec.imported !== 'wrap') {
+          @if (!spec.spineText) {
+            <p class="muted small">Lombada fina demais para texto: ela sai só com a cor.</p>
+          }
+          @if (spec.imported === 'front') {
+            <div class="field">
+              <label for="print-back">Texto da contracapa</label>
+              <textarea id="print-back" pTextarea rows="3" [autoResize]="true" maxlength="1500"
+                [ngModel]="backText()" (ngModelChange)="backText.set($event)"></textarea>
+            </div>
+          }
+          <div class="stage">
+            <canvas #canvas role="img" aria-label="Capa aberta: contracapa, lombada e frente"></canvas>
+          </div>
+          <p class="muted small legend">
+            <span class="dash red"></span> corte (o que passa fica na sangria)
+            <span class="dash blue"></span> dobras da lombada
+          </p>
+        }
 
         @if (generateError(); as message) {
           <p-message severity="error" [text]="message" styleClass="block-message" />
         }
-        <p-button label="Baixar o PDF da capa" icon="pi pi-download" styleClass="full-width" [loading]="generating()"
-          [disabled]="!fontsReady()"
-          (onClick)="generate()" />
+        <p-button [label]="spec.imported === 'wrap' ? 'Baixar a sua capa conferida' : 'Baixar o PDF da capa'"
+          icon="pi pi-download" styleClass="full-width" [loading]="generating()"
+          [disabled]="!fontsReady() || (spec.imported === 'wrap' && !spec.importedFits)" (onClick)="generate()" />
         <p class="muted small hint">
-          Em cores de tela (RGB), 300 DPI. Confira as medidas no gabarito da gráfica antes de mandar imprimir.
-          O texto da contracapa e as cores mudam na <a [routerLink]="['/books', book.id, 'capa']">capa</a>.
+          @if (spec.imported === 'wrap') {
+            A capa sai como você fez. Se a lombada não bate, refaça no seu programa com a medida acima.
+          } @else {
+            Em cores de tela (RGB), 300 DPI. Confira as medidas no gabarito da gráfica antes de mandar imprimir.
+            @if (spec.imported !== 'front') {
+              O texto da contracapa e as cores mudam na <a [routerLink]="['/books', book.id, 'capa']">capa</a>.
+            }
+          }
         </p>
       } @else if (loadingSpec()) {
         <div class="center"><p-progress-spinner strokeWidth="4" /></div>

@@ -15,7 +15,14 @@
       <p>{{ message }}</p>
       <p-button label="Tentar de novo" severity="secondary" [outlined]="true" (onClick)="load()" />
     </div>
-  } @else if (book()) {
+  } @else if (book(); as book) {
+    @if (book.coverPdf; as pdf) {
+      <p class="glass-card pdf-note small" data-pdf-note>
+        <i class="pi pi-file-pdf" aria-hidden="true"></i>
+        <span>A capa do livro veio do seu PDF (<strong>{{ pdf.fileName }}</strong>). Usar o desenho daqui substitui
+          o PDF, inclusive na <a [routerLink]="['/books', book.id, 'capa', 'grafica']">capa para gráfica</a>.</span>
+      </p>
+    }
     <div class="stage">
       <canvas #canvas [width]="width" [height]="height" role="img"
         [attr.aria-label]="'Capa: ' + design().title"></canvas>
@@ -87,7 +94,7 @@
         }
       } @else {
         <p class="muted small">Sem imagens ainda. Envie fotos ou desenhos na
-          <a [routerLink]="['/universes', book()?.universeId, 'imagens']">biblioteca do universo</a> e volte aqui.</p>
+          <a [routerLink]="['/universes', book.universeId, 'imagens']">biblioteca do universo</a> e volte aqui.</p>
       }
     </div>
 
@@ -144,6 +151,9 @@
       </div>
       <a class="print-link" [routerLink]="['/books', bookId(), 'capa', 'grafica']">
         <i class="pi pi-print" aria-hidden="true"></i> Capa para gráfica (frente, lombada e contracapa)
+      </a>
+      <a class="print-link" [routerLink]="['/books', bookId(), 'capa', 'grafica']" data-import-link>
+        <i class="pi pi-file-pdf" aria-hidden="true"></i> Já tem a capa pronta em PDF? Importe aqui
       </a>
     </section>
 

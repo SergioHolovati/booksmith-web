@@ -1,5 +1,5 @@
 import { CoverDesign, PrintCoverSpec } from '../../../core/models/api.models';
-import { drawCover, fontFamily, wrapText } from './cover-canvas';
+import { Box, drawCover, fontFamily, wrapText } from './cover-canvas';
 
 /** 300 DPI, o que as gráficas pedem: pixels por milímetro. */
 export const PRINT_PX_PER_MM = 300 / 25.4;
@@ -27,7 +27,7 @@ export function drawPrintCover(
   design: CoverDesign,
   image: HTMLImageElement | null,
   spec: PrintCoverSpec,
-  options: { pxPerMm: number; guides: boolean },
+  options: { pxPerMm: number; guides: boolean; frontImage?: HTMLImageElement | null },
 ): void {
   const k = options.pxPerMm;
   const { width, height } = printSize(spec, k);
@@ -40,8 +40,14 @@ export function drawPrintCover(
   ctx.fillStyle = back;
   ctx.fillRect(0, 0, Math.round(spineEnd * k), height);
 
-  // Frente: do começo dela até a sangria da direita
-  drawCover(ctx, design, image, { x: spineEnd * k, y: 0, w: width - spineEnd * k, h: height });
+  // Frente: do começo dela até a sangria da direita. Com a capa importada em PDF, a imagem dela (o servidor põe
+  // o PDF original por cima, como vetor)
+  const front = { x: spineEnd * k, y: 0, w: width - spineEnd * k, h: height };
+  if (options.frontImage) {
+    coverImage(ctx, options.frontImage, front);
+  } else {
+    drawCover(ctx, design, image, front);
+  }
 
   ctx.fillStyle = design.textColor;
   ctx.textBaseline = 'top';
@@ -91,6 +97,14 @@ export function drawPrintCover(
   if (options.guides) {
     drawGuides(ctx, spec, k, { backEnd, spineEnd });
   }
+}
+
+/** A imagem cobrindo o retângulo, cortando o que sobra. */
+function coverImage(ctx: CanvasRenderingContext2D, image: HTMLImageElement, { x, y, w, h }: Box): void {
+  const scale = Math.max(w / image.naturalWidth, h / image.naturalHeight);
+  const sw = w / scale;
+  const sh = h / scale;
+  ctx.drawImage(image, (image.naturalWidth - sw) / 2, (image.naturalHeight - sh) / 2, sw, sh, x, y, w, h);
 }
 
 /** Linha tracejada no corte (sangria) e nas dobras da lombada; só na tela. */
