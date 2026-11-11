@@ -56,6 +56,20 @@ export interface BookDetail {
   createdAt: string;
   updatedAt: string;
   chapters: ChapterSummary[];
+  /** Páginas antes e depois da história; null = a página não sai no livro. */
+  pages: BookPages;
+}
+
+/** Créditos, dedicatória, epígrafe, agradecimentos e "sobre" (texto simples: cada linha, um parágrafo). */
+export interface BookPages {
+  credits: string | null;
+  dedication: string | null;
+  epigraph: string | null;
+  epigraphSource: string | null;
+  acknowledgments: string | null;
+  aboutAuthor: string | null;
+  /** Título da página "sobre"; null = o nome de quem escreveu. */
+  aboutAuthorTitle: string | null;
 }
 
 export interface BookRequest {

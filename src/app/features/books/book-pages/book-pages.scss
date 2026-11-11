@@ -1,0 +1,50 @@
+@use '../../../shared/builder/builder-layout';
+
+.narrow {
+  max-width: 720px;
+  padding-bottom: 5rem;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-height: var(--bs-touch);
+  color: var(--bs-ember);
+  font-size: .9rem;
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  padding: 4rem 0;
+}
+
+.group {
+  margin: 1.25rem 0 .5rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.page-card {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  margin-bottom: .75rem;
+  padding: 1rem;
+}
+
+.page-card .field {
+  margin: 0;
+}
+
+.page-card textarea,
+.page-card input {
+  width: 100%;
+}
+
+.hint {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}

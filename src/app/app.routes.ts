@@ -104,6 +104,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/books/book-export/book-export').then((c) => c.BookExportComponent),
       },
       {
+        path: 'books/:bookId/paginas',
+        loadComponent: () => import('./features/books/book-pages/book-pages').then((c) => c.BookPagesComponent),
+        canDeactivate: [unsavedChangesGuard],
+      },
+      {
         path: 'books/:bookId/edit',
         loadComponent: () => import('./features/books/book-form/book-form').then((c) => c.BookFormComponent),
       },

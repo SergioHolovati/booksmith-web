@@ -85,3 +85,26 @@
 .hint {
   margin-top: 1rem;
 }
+
+.pages-link {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  min-height: var(--bs-touch);
+  margin-bottom: 1rem;
+  padding: .75rem 1rem;
+  color: var(--bs-text);
+  text-decoration: none;
+}
+
+.pages-link > .pi:first-child {
+  color: var(--bs-ember);
+  font-size: 1.2rem;
+}
+
+.pages-link > span {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: .15rem;
+}

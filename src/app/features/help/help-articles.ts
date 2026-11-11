@@ -185,6 +185,19 @@ export const HELP_ARTICLES: HelpArticle[] = [
     ],
   },
   {
+    slug: 'paginas-do-livro',
+    title: 'Dedicatória, agradecimentos e outras páginas',
+    summary: 'Créditos, dedicatória, epígrafe, agradecimentos e a página sobre você.',
+    topic: 'livros',
+    keywords: ['dedicatória', 'epígrafe', 'agradecimentos', 'sobre o autor', 'sobre a autora', 'créditos', 'copyright', 'direitos', 'pré-textual'],
+    body: [
+      { steps: ['Abra o livro e toque em **Páginas** (ou, em **Baixar**, em **Páginas do livro**).', 'Escreva o que quiser; cada linha vira um parágrafo.', 'Toque em **Salvar**.'] },
+      { p: 'Antes da história saem os **créditos** (no verso da folha de rosto), a **dedicatória** e a **epígrafe**. Depois do último capítulo, os **agradecimentos** e a página **sobre você**, os dois também no sumário.' },
+      { p: 'A página sobre você leva o título que você escolher ("Sobre a autora", "Sobre mim"); em branco, vai o seu nome. O que ficar vazio não aparece no livro.' },
+      { p: 'No Word, essas páginas não viram capítulos se você importar o arquivo de novo.' },
+    ],
+  },
+  {
     slug: 'partes',
     title: 'Dividir o livro em partes',
     summary: '"Parte I — A partida": agrupe capítulos, com página própria no livro.',

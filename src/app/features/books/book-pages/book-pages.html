@@ -1,0 +1,93 @@
+<div class="page narrow">
+  <a [routerLink]="['/books', bookId()]" class="back-link"><i class="pi pi-arrow-left"></i> {{ book()?.title ?? 'Livro' }}</a>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Páginas do livro</h1>
+      <p class="page-subtitle">O que vem antes e depois da história. Saem no ePub, no PDF e no Word; o que ficar em
+        branco não aparece.</p>
+    </div>
+  </div>
+
+  @if (loadError(); as message) {
+    <div class="glass-card empty-state">
+      <i class="pi pi-exclamation-circle"></i>
+      <p>{{ message }}</p>
+      <p-button label="Tentar de novo" severity="secondary" [outlined]="true" (onClick)="load()" />
+    </div>
+  } @else if (book()) {
+    <p class="muted small group">Antes da história</p>
+
+    <section class="glass-card page-card" data-page="credits">
+      <div class="field">
+        <label for="credits">Créditos</label>
+        <textarea id="credits" pTextarea rows="3" [autoResize]="true" maxlength="3000" [placeholder]="creditsHint()"
+          [ngModel]="draft().credits" (ngModelChange)="set('credits', $event)"></textarea>
+        <small class="field-hint">Verso da folha de rosto: direitos, quem fez a capa, as ilustrações, a revisão.</small>
+      </div>
+    </section>
+
+    <section class="glass-card page-card" data-page="dedication">
+      <div class="field">
+        <label for="dedication">Dedicatória</label>
+        <textarea id="dedication" pTextarea rows="2" [autoResize]="true" maxlength="2000"
+          placeholder="Para quem me ensinou a ler." [ngModel]="draft().dedication"
+          (ngModelChange)="set('dedication', $event)"></textarea>
+      </div>
+    </section>
+
+    <section class="glass-card page-card" data-page="epigraph">
+      <div class="field">
+        <label for="epigraph">Epígrafe</label>
+        <textarea id="epigraph" pTextarea rows="2" [autoResize]="true" maxlength="2000"
+          placeholder="Uma frase que abre o livro." [ngModel]="draft().epigraph"
+          (ngModelChange)="set('epigraph', $event)"></textarea>
+      </div>
+      <div class="field">
+        <label for="epigraph-source">De quem é</label>
+        <input id="epigraph-source" pInputText maxlength="200" placeholder="Autor, obra"
+          [ngModel]="draft().epigraphSource" (ngModelChange)="set('epigraphSource', $event)" />
+      </div>
+    </section>
+
+    <p class="muted small group">Depois da história</p>
+
+    <section class="glass-card page-card" data-page="acknowledgments">
+      <div class="field">
+        <label for="acknowledgments">Agradecimentos</label>
+        <textarea id="acknowledgments" pTextarea rows="4" [autoResize]="true" maxlength="20000"
+          placeholder="Quem esteve com você enquanto o livro nascia." [ngModel]="draft().acknowledgments"
+          (ngModelChange)="set('acknowledgments', $event)"></textarea>
+      </div>
+    </section>
+
+    <section class="glass-card page-card" data-page="about">
+      <div class="field">
+        <label for="about-title">Título da página sobre você</label>
+        <input id="about-title" pInputText maxlength="80" [placeholder]="authorName()"
+          [ngModel]="draft().aboutAuthorTitle" (ngModelChange)="set('aboutAuthorTitle', $event)" />
+        <small class="field-hint">Sobre a autora, Sobre o autor, Sobre mim… Em branco, vai o seu nome.</small>
+      </div>
+      <div class="field">
+        <label for="about">Sobre você</label>
+        <textarea id="about" pTextarea rows="4" [autoResize]="true" maxlength="5000"
+          placeholder="Onde vive, o que escreve, onde encontrar você." [ngModel]="draft().aboutAuthor"
+          (ngModelChange)="set('aboutAuthor', $event)"></textarea>
+      </div>
+    </section>
+
+    <p class="muted small hint"><i class="pi pi-info-circle" aria-hidden="true"></i> Cada linha vira um parágrafo.</p>
+
+    @if (dirty()) {
+      <div class="save-bar" role="region" aria-label="Alterações não salvas">
+        <span class="muted small">Alterações não salvas</span>
+        <div class="save-actions">
+          <p-button label="Descartar" severity="secondary" [text]="true" [disabled]="saving()" (onClick)="discard()" />
+          <p-button label="Salvar" icon="pi pi-check" [loading]="saving()" (onClick)="save()" />
+        </div>
+      </div>
+    }
+  } @else {
+    <div class="center"><p-progress-spinner strokeWidth="4" /></div>
+  }
+</div>

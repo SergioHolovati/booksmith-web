@@ -10,6 +10,7 @@ import { ManuscriptApi } from '../../../core/api/manuscript.api';
 import { problemMessage } from '../../../core/api/problem';
 import { BookDetail } from '../../../core/models/api.models';
 import { saveFile } from '../../../core/util/save-file';
+import { pageCount } from '../book-pages/book-pages';
 
 interface FormatOption {
   format: ExportFormat;
@@ -66,6 +67,7 @@ export class BookExportComponent {
 
   readonly formats = FORMATS;
   readonly fileSize = fileSize;
+  readonly pageCount = (pages: BookDetail['pages'] | undefined) => (pages ? pageCount(pages) : 0);
   readonly book = signal<BookDetail | null>(null);
   readonly loadError = signal<string | null>(null);
   readonly generating = signal<ExportFormat | null>(null);
