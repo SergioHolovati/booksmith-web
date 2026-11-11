@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, from, map, switchMap, throwError } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { BookLayout, LayoutPreview } from '../models/api.models';
+import { BookLayout, LayoutPreview, PrintCoverSpec, PrintProfile } from '../models/api.models';
 
 export type ExportFormat = 'epub' | 'pdf' | 'docx';
 
@@ -21,6 +21,34 @@ export class ExportApi {
   /** Páginas do PDF com a diagramação dada (salva ou não), como imagens; até 4 por pedido. */
   preview(bookId: string, layout: BookLayout, from: number, count = 2): Observable<LayoutPreview> {
     return this.http.post<LayoutPreview>(`${this.base}/books/${bookId}/export/preview`, { ...layout, from, count });
+  }
+
+  /** Medidas da capa aberta; em `custom`, a lombada (e a sangria) vêm da gráfica. */
+  printCoverSpec(bookId: string, profile: PrintProfile, spineMm?: number | null, bleedMm?: number | null): Observable<PrintCoverSpec> {
+    const params: Record<string, string> = { profile };
+    if (spineMm !== null && spineMm !== undefined) {
+      params['spineMm'] = String(spineMm);
+    }
+    if (bleedMm !== null && bleedMm !== undefined) {
+      params['bleedMm'] = String(bleedMm);
+    }
+    return this.http.get<PrintCoverSpec>(`${this.base}/books/${bookId}/export/print-cover`, { params });
+  }
+
+  /** PDF da capa aberta, a partir da imagem desenhada no aparelho. */
+  printCover(
+    bookId: string,
+    request: { profile: PrintProfile; spineMm: number | null; bleedMm: number | null; image: string },
+  ): Observable<ExportedFile> {
+    return this.http
+      .post(`${this.base}/books/${bookId}/export/print-cover`, request, { observe: 'response', responseType: 'blob' })
+      .pipe(
+        map((response: HttpResponse<Blob>) => ({
+          filename: filenameOf(response.headers.get('Content-Disposition')) ?? 'capa.pdf',
+          blob: response.body ?? new Blob(),
+        })),
+        catchError((error: unknown) => from(withJsonBody(error)).pipe(switchMap((parsed) => throwError(() => parsed)))),
+      );
   }
 
   download(bookId: string, format: ExportFormat): Observable<ExportedFile> {

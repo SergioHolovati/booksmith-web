@@ -1,0 +1,115 @@
+.narrow {
+  max-width: 760px;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-height: var(--bs-touch);
+  color: var(--bs-ember);
+  font-size: .9rem;
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  padding: 3rem 0;
+}
+
+.profiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .5rem;
+  margin-bottom: 1rem;
+}
+
+.profile {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+  min-height: var(--bs-touch);
+  padding: .6rem .7rem;
+  border: 1px solid var(--bs-border);
+  border-radius: 12px;
+  background: var(--bs-surface);
+  color: var(--bs-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.profile.on {
+  border-color: var(--bs-ember);
+  background: var(--bs-sand-soft);
+}
+
+.custom {
+  margin-bottom: 1rem;
+  padding: 1rem;
+}
+
+.custom p {
+  margin: 0 0 .75rem;
+}
+
+.custom-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .75rem;
+}
+
+.custom-fields .field {
+  margin: 0;
+}
+
+.custom-fields ::ng-deep .p-inputnumber,
+.custom-fields ::ng-deep input {
+  width: 100%;
+}
+
+.numbers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem 1rem;
+  margin-bottom: .75rem;
+  font-size: .9rem;
+}
+
+.stage {
+  margin: .5rem 0;
+}
+
+.stage canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+  box-shadow: 0 4px 18px rgb(0 0 0 / .4);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .3rem .6rem;
+  margin: 0 0 1rem;
+}
+
+.dash {
+  display: inline-block;
+  width: 1.4rem;
+  border-top: 2px dashed;
+}
+
+.dash.red {
+  color: rgb(255 64 64);
+}
+
+.dash.blue {
+  color: rgb(64 160 255);
+}
+
+.hint {
+  margin-top: .75rem;
+}

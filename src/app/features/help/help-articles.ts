@@ -194,7 +194,19 @@ export const HELP_ARTICLES: HelpArticle[] = [
       { steps: ['Abra o livro e toque em **Capa**.', 'Escolha o modelo (**Clássica**, **Faixa** ou **Minimalista**), o fundo e, se quiser, uma imagem da biblioteca do universo.', 'Ajuste título, subtítulo, autor, letra e cores.', 'Toque em **Usar como capa**.'] },
       { p: 'A capa sai em 1600 × 2560, o tamanho recomendado para e-book, e vale no app, no ePub e no PDF. O desenho fica guardado: dá para voltar e mudar quando quiser.' },
       { p: 'Para usar uma foto ou um desenho seu como fundo, envie primeiro para a **biblioteca do universo**. Se preferir uma capa pronta, envie a imagem em **Editar** livro.' },
-      { p: 'A capa completa para gráfica (com lombada e contracapa) ainda não está no app.' },
+    ],
+  },
+  {
+    slug: 'capa-para-grafica',
+    title: 'Capa para gráfica: lombada e contracapa',
+    summary: 'A capa aberta nas medidas do KDP ou da sua gráfica, em PDF.',
+    topic: 'livros',
+    keywords: ['lombada', 'contracapa', 'capa aberta', 'gráfica', 'kdp', 'amazon', 'clube de autores', 'uiclap', 'sangria', 'impressão', 'livro impresso'],
+    body: [
+      { steps: ['Monte e salve a frente em **Capa**, e escreva o **texto da contracapa** ali mesmo.', 'Toque em **Capa para gráfica**.', 'Escolha onde vai imprimir.', 'Confira as medidas e toque em **Baixar o PDF da capa**.'] },
+      { p: 'No **KDP** (Amazon), a lombada é calculada pelo número de páginas do seu PDF e pelo papel (branco, creme ou colorido premium), com 3,2 mm de sangria. O KDP aceita A5 e 6×9 e livros a partir de 24 páginas; a lombada só leva texto a partir de 80 páginas.' },
+      { p: 'Em **outra gráfica** (Clube de Autores, UICLAP ou uma gráfica local), cada uma tem a sua conta para a lombada. Digite a medida que ela informar para o seu número de páginas, e a sangria que ela pedir.' },
+      { p: 'A prévia mostra o corte (vermelho) e as dobras da lombada (azul). O PDF sai em 300 DPI, em cores de tela; confira no gabarito da gráfica antes de mandar imprimir. Mudou a diagramação? O número de páginas muda, e a lombada junto.' },
     ],
   },
   {

@@ -79,6 +79,26 @@ export interface CoverDesign {
   titleSize: 's' | 'm' | 'l';
   textColor: string;
   accentColor: string;
+  /** Texto da contracapa (capa para gráfica); uma linha por parágrafo. */
+  backText?: string | null;
+}
+
+export type PrintProfile = 'kdp-white' | 'kdp-cream' | 'kdp-color-premium' | 'custom';
+
+/** Medidas da capa aberta para gráfica, em mm. */
+export interface PrintCoverSpec {
+  profile: PrintProfile;
+  /** Páginas do miolo (o PDF diagramado, sem a página da capa). */
+  pages: number;
+  trimWidthMm: number;
+  trimHeightMm: number;
+  spineMm: number;
+  bleedMm: number;
+  widthMm: number;
+  heightMm: number;
+  /** Cabe texto na lombada. */
+  spineText: boolean;
+  warnings: string[];
 }
 
 /** Diagramação do PDF (as opções estão em book-layout). */

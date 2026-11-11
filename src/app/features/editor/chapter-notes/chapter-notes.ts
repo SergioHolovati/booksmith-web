@@ -10,6 +10,7 @@ import { firstValueFrom } from 'rxjs';
 import { ManuscriptApi } from '../../../core/api/manuscript.api';
 import { problemMessage } from '../../../core/api/problem';
 import { ChapterNote } from '../../../core/models/api.models';
+import { uuidV4 } from '../../../core/util/uuid';
 import { addNoteAnchor, noteAnchors, removeNoteAnchor, setResolvedNotes } from '../schema/comment-anchor';
 
 /** Nota com o trecho atual: na ordem do texto; as sem trecho (apagado) por último. */
@@ -105,7 +106,7 @@ export class ChapterNotesComponent {
     if (!draft || !editor || !body) {
       return;
     }
-    const id = crypto.randomUUID();
+    const id = uuidV4();
     this.busy.set(true);
     try {
       const note = await firstValueFrom(this.api.createNote(this.chapterId(), { id, body, quote: draft.quote }));

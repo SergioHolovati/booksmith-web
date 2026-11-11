@@ -55,7 +55,7 @@ function block(
   return options.y + lines.length * lineHeight;
 }
 
-interface Box {
+export interface Box {
   x: number;
   y: number;
   w: number;
@@ -77,12 +77,31 @@ function shade(ctx: CanvasRenderingContext2D, amount: number, { x, y, w, h }: Bo
   }
 }
 
-/** Desenha a capa inteira no contexto (1600 × 2560). {@code image}: o fundo já carregado, ou null. */
-export function drawCover(ctx: CanvasRenderingContext2D, design: CoverDesign, image: HTMLImageElement | null): void {
-  const W = COVER_WIDTH;
-  const H = COVER_HEIGHT;
+/**
+ * Desenha a frente da capa. Sem {@code area}, ocupa o canvas de 1600 × 2560; com ela, desenha só naquele
+ * retângulo (a frente da capa aberta para gráfica), com as medidas proporcionais à largura.
+ * {@code image}: o fundo já carregado, ou null.
+ */
+export function drawCover(
+  ctx: CanvasRenderingContext2D,
+  design: CoverDesign,
+  image: HTMLImageElement | null,
+  area: Box = { x: 0, y: 0, w: COVER_WIDTH, h: COVER_HEIGHT },
+): void {
+  ctx.save();
+  ctx.translate(area.x, area.y);
+  ctx.beginPath();
+  ctx.rect(0, 0, area.w, area.h);
+  ctx.clip();
+  drawFront(ctx, design, image, area.w, area.h);
+  ctx.restore();
+}
+
+function drawFront(ctx: CanvasRenderingContext2D, design: CoverDesign, image: HTMLImageElement | null, W: number, H: number): void {
+  // Medidas fixas pensadas para 1600 de largura, proporcionais ao tamanho de verdade
+  const s = W / COVER_WIDTH;
   const family = fontFamily(design.font);
-  const titleSize = TITLE_SIZES[design.titleSize];
+  const titleSize = TITLE_SIZES[design.titleSize] * s;
   ctx.clearRect(0, 0, W, H);
   ctx.fillStyle = design.backgroundColor;
   ctx.fillRect(0, 0, W, H);
@@ -99,10 +118,10 @@ export function drawCover(ctx: CanvasRenderingContext2D, design: CoverDesign, im
     const margin = W * 0.08;
     const y = block(ctx, design.title, { x: margin, y: bandTop + H * 0.05, width: W - 2 * margin, size: titleSize, weight: '600', family, maxLines: 3, align: 'left' });
     if (design.subtitle) {
-      block(ctx, design.subtitle, { x: margin, y: y + 30, width: W - 2 * margin, size: titleSize * 0.4, weight: '400', family, italic: design.font === 'serif', maxLines: 2, align: 'left' });
+      block(ctx, design.subtitle, { x: margin, y: y + 30 * s, width: W - 2 * margin, size: titleSize * 0.4, weight: '400', family, italic: design.font === 'serif', maxLines: 2, align: 'left' });
     }
     if (design.author) {
-      block(ctx, design.author, { x: margin, y: H * 0.9, width: W - 2 * margin, size: 72, weight: '400', family, maxLines: 1, align: 'left' });
+      block(ctx, design.author, { x: margin, y: H * 0.9, width: W - 2 * margin, size: 72 * s, weight: '400', family, maxLines: 1, align: 'left' });
     }
     return;
   }
@@ -115,15 +134,15 @@ export function drawCover(ctx: CanvasRenderingContext2D, design: CoverDesign, im
       shade(ctx, design.shade, box);
     }
     ctx.strokeStyle = design.accentColor;
-    ctx.lineWidth = 8;
-    ctx.strokeRect(80, 80, W - 160, H - 160);
+    ctx.lineWidth = 8 * s;
+    ctx.strokeRect(80 * s, 80 * s, W - 160 * s, H - 160 * s);
     ctx.fillStyle = design.textColor;
     const y = block(ctx, design.title, { x: W / 2, y: H * 0.14, width: W * 0.74, size: titleSize, weight: '600', family, maxLines: 4, align: 'center' });
     if (design.subtitle) {
-      block(ctx, design.subtitle, { x: W / 2, y: y + 30, width: W * 0.7, size: titleSize * 0.4, weight: '400', family, italic: design.font === 'serif', maxLines: 2, align: 'center' });
+      block(ctx, design.subtitle, { x: W / 2, y: y + 30 * s, width: W * 0.7, size: titleSize * 0.4, weight: '400', family, italic: design.font === 'serif', maxLines: 2, align: 'center' });
     }
     if (design.author) {
-      block(ctx, design.author, { x: W / 2, y: H * 0.85, width: W * 0.74, size: 76, weight: '400', family, maxLines: 2, align: 'center' });
+      block(ctx, design.author, { x: W / 2, y: H * 0.85, width: W * 0.74, size: 76 * s, weight: '400', family, maxLines: 2, align: 'center' });
     }
     return;
   }
@@ -135,13 +154,13 @@ export function drawCover(ctx: CanvasRenderingContext2D, design: CoverDesign, im
   }
   ctx.fillStyle = design.textColor;
   ctx.shadowColor = image ? 'rgba(0, 0, 0, 0.45)' : 'transparent';
-  ctx.shadowBlur = image ? 24 : 0;
+  ctx.shadowBlur = image ? 24 * s : 0;
   const y = block(ctx, design.title, { x: W / 2, y: H * 0.12, width: W * 0.84, size: titleSize, weight: '600', family, maxLines: 4, align: 'center' });
   if (design.subtitle) {
-    block(ctx, design.subtitle, { x: W / 2, y: y + 30, width: W * 0.78, size: titleSize * 0.4, weight: '400', family, italic: design.font === 'serif', maxLines: 2, align: 'center' });
+    block(ctx, design.subtitle, { x: W / 2, y: y + 30 * s, width: W * 0.78, size: titleSize * 0.4, weight: '400', family, italic: design.font === 'serif', maxLines: 2, align: 'center' });
   }
   if (design.author) {
-    block(ctx, design.author, { x: W / 2, y: H * 0.88, width: W * 0.84, size: 80, weight: '400', family, maxLines: 2, align: 'center' });
+    block(ctx, design.author, { x: W / 2, y: H * 0.88, width: W * 0.84, size: 80 * s, weight: '400', family, maxLines: 2, align: 'center' });
   }
   ctx.shadowColor = 'transparent';
   ctx.shadowBlur = 0;

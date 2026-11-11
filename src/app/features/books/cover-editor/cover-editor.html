@@ -133,6 +133,20 @@
       </div>
     }
 
+    <section class="glass-card print-card" aria-labelledby="print-title">
+      <h2 id="print-title">Para o livro impresso</h2>
+      <div class="field">
+        <label for="cover-back">Texto da contracapa</label>
+        <textarea id="cover-back" pTextarea rows="4" [autoResize]="true" maxlength="1500"
+          placeholder="Um resumo que faça querer ler. Começa com a sinopse do livro."
+          [ngModel]="design().backText ?? ''" (ngModelChange)="setText('backText', $event)"></textarea>
+        <small class="field-hint">Vai na capa aberta, com a lombada. Salve a capa antes de gerar.</small>
+      </div>
+      <a class="print-link" [routerLink]="['/books', bookId(), 'capa', 'grafica']">
+        <i class="pi pi-print" aria-hidden="true"></i> Capa para gráfica (frente, lombada e contracapa)
+      </a>
+    </section>
+
     <div class="save-bar" role="region" aria-label="Usar a capa">
       <span class="muted small">{{ applied() ? 'Esta é a capa do livro' : dirty() ? 'Alterações não salvas' : 'Ainda não é a capa do livro' }}</span>
       <p-button label="Usar como capa" icon="pi pi-check" [loading]="saving()" [disabled]="!canSave() || applied()"

@@ -1,0 +1,102 @@
+<div class="page narrow">
+  <a [routerLink]="['/books', bookId(), 'capa']" class="back-link"><i class="pi pi-arrow-left"></i> Capa</a>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Capa para gráfica</h1>
+      <p class="page-subtitle">A capa aberta: contracapa, lombada e frente, nas medidas de onde o livro vai ser
+        impresso. A lombada sai do número de páginas do PDF.</p>
+    </div>
+  </div>
+
+  @if (loadError(); as message) {
+    <div class="glass-card empty-state">
+      <i class="pi pi-exclamation-circle"></i>
+      <p>{{ message }}</p>
+      <p-button label="Tentar de novo" severity="secondary" [outlined]="true" (onClick)="load()" />
+    </div>
+  } @else if (book(); as book) {
+    @if (!book.coverDesign) {
+      <div class="glass-card empty-state">
+        <i class="pi pi-image"></i>
+        <p>Monte e salve a frente da capa primeiro; a capa aberta usa o mesmo desenho.</p>
+        <p-button label="Montar a capa" [routerLink]="['/books', book.id, 'capa']" />
+      </div>
+    } @else if (book.chapters.length === 0) {
+      <div class="glass-card empty-state">
+        <i class="pi pi-file"></i>
+        <p>Escreva o primeiro capítulo: a lombada depende do número de páginas.</p>
+      </div>
+    } @else {
+      <div class="profiles" role="radiogroup" aria-label="Onde o livro vai ser impresso">
+        @for (p of profiles; track p.value) {
+          <button type="button" class="profile" role="radio" [class.on]="profile() === p.value"
+            [attr.aria-checked]="profile() === p.value" (click)="chooseProfile(p.value)">
+            <strong>{{ p.label }}</strong>
+            <span class="muted small">{{ p.hint }}</span>
+          </button>
+        }
+      </div>
+
+      @if (profile() === 'custom') {
+        <div class="glass-card custom">
+          <p class="small">Cada gráfica tem a sua conta para a lombada (depende do papel). Use a medida que ela
+            informar para o seu número de páginas.</p>
+          <div class="custom-fields">
+            <div class="field">
+              <label for="spine">Lombada (mm)</label>
+              <input id="spine" pInputText inputmode="decimal" autocomplete="off" placeholder="ex.: 12,5"
+                (input)="setCustom('spine', $any($event.target).value)" />
+            </div>
+            <div class="field">
+              <label for="bleed">Sangria (mm)</label>
+              <input id="bleed" pInputText inputmode="decimal" autocomplete="off"
+                value="3" (input)="setCustom('bleed', $any($event.target).value)" />
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (specError(); as message) {
+        <p-message severity="error" [text]="message" styleClass="block-message" />
+      }
+
+      @if (spec(); as spec) {
+        <div class="numbers" aria-live="polite">
+          <span><strong>{{ spec.pages }}</strong> páginas</span>
+          <span>lombada <strong>{{ mm(spec.spineMm) }} mm</strong></span>
+          <span>capa aberta <strong>{{ mm(spec.widthMm) }} × {{ mm(spec.heightMm) }} mm</strong></span>
+        </div>
+        @for (warning of spec.warnings; track warning) {
+          <p-message severity="warn" [text]="warning" styleClass="block-message" />
+        }
+        @if (!spec.spineText) {
+          <p class="muted small">Lombada fina demais para texto: ela sai só com a cor.</p>
+        }
+
+        <div class="stage">
+          <canvas #canvas role="img" aria-label="Capa aberta: contracapa, lombada e frente"></canvas>
+        </div>
+        <p class="muted small legend">
+          <span class="dash red"></span> corte (o que passa fica na sangria)
+          <span class="dash blue"></span> dobras da lombada
+        </p>
+
+        @if (generateError(); as message) {
+          <p-message severity="error" [text]="message" styleClass="block-message" />
+        }
+        <p-button label="Baixar o PDF da capa" icon="pi pi-download" styleClass="full-width" [loading]="generating()"
+          [disabled]="!fontsReady()"
+          (onClick)="generate()" />
+        <p class="muted small hint">
+          Em cores de tela (RGB), 300 DPI. Confira as medidas no gabarito da gráfica antes de mandar imprimir.
+          O texto da contracapa e as cores mudam na <a [routerLink]="['/books', book.id, 'capa']">capa</a>.
+        </p>
+      } @else if (loadingSpec()) {
+        <div class="center"><p-progress-spinner strokeWidth="4" /></div>
+      }
+    }
+  } @else {
+    <div class="center"><p-progress-spinner strokeWidth="4" /></div>
+  }
+</div>

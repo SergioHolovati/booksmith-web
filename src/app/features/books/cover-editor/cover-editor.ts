@@ -6,6 +6,7 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { SliderModule } from 'primeng/slider';
+import { TextareaModule } from 'primeng/textarea';
 import { firstValueFrom } from 'rxjs';
 
 import { ManuscriptApi } from '../../../core/api/manuscript.api';
@@ -26,8 +27,8 @@ export const TEMPLATES: { value: CoverDesign['template']; label: string }[] = [
 export const BACKGROUNDS = ['#1f2a44', '#2d1b2e', '#123524', '#3b1f12', '#111111', '#5a2a27', '#e9dfc9', '#f4f1ea'];
 export const TEXT_COLORS = ['#ffffff', '#f4e4c1', '#c8743a', '#111111', '#1f2a44'];
 
-/** O desenho inicial: o título do livro e o nome de quem escreve, sobre azul-noite. */
-export function initialDesign(title: string, author: string | null): CoverDesign {
+/** O desenho inicial: o título do livro e o nome de quem escreve, sobre azul-noite; a sinopse na contracapa. */
+export function initialDesign(title: string, author: string | null, synopsis: string | null = null): CoverDesign {
   return {
     template: 'classic',
     backgroundColor: '#1f2a44',
@@ -40,6 +41,7 @@ export function initialDesign(title: string, author: string | null): CoverDesign
     titleSize: 'm',
     textColor: '#ffffff',
     accentColor: '#c8743a',
+    backText: synopsis?.trim() || null,
   };
 }
 
@@ -57,7 +59,7 @@ export function isLight(hex: string): boolean {
  */
 @Component({
   selector: 'app-cover-editor',
-  imports: [RouterLink, FormsModule, ButtonModule, InputTextModule, ProgressSpinnerModule, SliderModule],
+  imports: [RouterLink, FormsModule, ButtonModule, InputTextModule, ProgressSpinnerModule, SliderModule, TextareaModule],
   templateUrl: './cover-editor.html',
   styleUrl: './cover-editor.scss',
 })
@@ -142,7 +144,7 @@ export class CoverEditorComponent implements HasUnsavedChanges {
     try {
       const book = await firstValueFrom(this.api.getBook(this.bookId()));
       this.book.set(book);
-      const design = book.coverDesign ?? initialDesign(book.title, this.auth.user()?.displayName ?? null);
+      const design = book.coverDesign ?? initialDesign(book.title, this.auth.user()?.displayName ?? null, book.synopsis);
       this.design.set(design);
       this.saved.set(JSON.stringify(design));
       if (book.universeId) {
@@ -180,7 +182,7 @@ export class CoverEditorComponent implements HasUnsavedChanges {
     });
   }
 
-  setText(key: 'title' | 'subtitle' | 'author', value: string): void {
+  setText(key: 'title' | 'subtitle' | 'author' | 'backText', value: string): void {
     this.set(key, key === 'title' ? value : value.trim() === '' ? null : value);
   }
 
