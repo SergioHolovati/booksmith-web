@@ -54,6 +54,10 @@
           @if (book.chapters.length > 0) {
             <p-button label="Baixar" icon="pi pi-download" severity="secondary" [outlined]="true"
               [routerLink]="['/books', book.id, 'export']" />
+            @if (book.kind !== 'FANFIC') {
+              <p-button label="Publicar" icon="pi pi-send" severity="secondary" [outlined]="true"
+                [routerLink]="['/books', book.id, 'publicar']" />
+            }
           }
         </div>
         <p-button icon="pi pi-trash" severity="danger" [text]="true" ariaLabel="Excluir livro"

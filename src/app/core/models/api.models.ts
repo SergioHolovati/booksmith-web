@@ -64,6 +64,23 @@ export interface BookDetail {
   coverDesign: CoverDesign | null;
   /** Capa feita fora do app e importada em PDF; null = sem PDF. */
   coverPdf: CoverPdf | null;
+  /** Guia de publicação: destino, ISBNs, palavras-chave e passos feitos. */
+  publishing: Publishing;
+}
+
+export type PublishingDestination = 'kdp' | 'clube' | 'uiclap' | 'grafica';
+
+/** Passos que o autor marca como feitos (o app não tem como conferir). */
+export type PublishingStep = 'conta' | 'isbn-kdp' | 'ficha' | 'envio' | 'prova' | 'preco' | 'deposito';
+
+/** O ISBN do impresso sai nos créditos do PDF; o do e-book, nos créditos e no identificador do ePub. */
+export interface Publishing {
+  destination: PublishingDestination | null;
+  isbnPrint: string | null;
+  isbnEbook: string | null;
+  /** Até 7 (os campos do KDP). */
+  keywords: string[];
+  done: PublishingStep[];
 }
 
 /** Capa importada em PDF: só a frente (página em pé) ou a capa aberta (deitada). */

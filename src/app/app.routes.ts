@@ -118,6 +118,10 @@ export const routes: Routes = [
         canDeactivate: [unsavedChangesGuard],
       },
       {
+        path: 'books/:bookId/publicar',
+        loadComponent: () => import('./features/books/publish-guide/publish-guide').then((c) => c.PublishGuideComponent),
+      },
+      {
         path: 'books/:bookId/paginas',
         loadComponent: () => import('./features/books/book-pages/book-pages').then((c) => c.BookPagesComponent),
         canDeactivate: [unsavedChangesGuard],

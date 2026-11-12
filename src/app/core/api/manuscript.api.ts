@@ -21,6 +21,7 @@ import {
   ImportPlan,
   Page,
   SaveResult,
+  Publishing,
   TrashItem, MentionedIn, ChapterNote, ProofreadBlock } from '../models/api.models';
 
 @Injectable({ providedIn: 'root' })
@@ -80,6 +81,11 @@ export class ManuscriptApi {
   }
 
   /** Troca a diagramação do PDF. */
+  /** Guia de publicação; 422 {@code publishing_invalid} com ISBN que não confere. */
+  updatePublishing(bookId: string, publishing: Publishing): Observable<Publishing> {
+    return this.http.put<Publishing>(`${this.base}/books/${bookId}/publishing`, publishing);
+  }
+
   updateLayout(bookId: string, layout: BookLayout): Observable<BookLayout> {
     return this.http.put<BookLayout>(`${this.base}/books/${bookId}/layout`, layout);
   }

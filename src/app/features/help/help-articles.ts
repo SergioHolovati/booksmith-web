@@ -198,6 +198,21 @@ export const HELP_ARTICLES: HelpArticle[] = [
     ],
   },
   {
+    slug: 'guia-de-publicacao',
+    title: 'Publicar o livro: ISBN, KDP, Clube de Autores e UICLAP',
+    summary: 'O caminho do texto pronto até o livro na loja, com o que falta para o destino escolhido.',
+    topic: 'livros',
+    keywords: ['publicar', 'publicação', 'isbn', 'kdp', 'amazon', 'clube de autores', 'uiclap', 'gráfica', 'ficha catalográfica', 'depósito legal', 'biblioteca nacional', 'palavras-chave', 'vender'],
+    body: [
+      { steps: ['Na tela do livro, toque em **Publicar**.', 'Escolha para onde o livro vai: Amazon KDP, Clube de Autores, UICLAP ou uma gráfica.', 'Siga a lista: o que tiver o ícone de aviso precisa de ajuste; o resto você marca quando fizer.'] },
+      { p: 'O Booksmith confere sozinho o que ele sabe: texto, sinopse, "sobre o autor", tamanho do livro, número de páginas e capa. No KDP, ele avisa se o tamanho não é aceito (use A5 ou 6×9), se o livro tem menos de 24 páginas ou se a sinopse passa de 4.000 caracteres.' },
+      { p: '**ISBN:** é emitido pela Agência Brasileira do ISBN, da Câmara Brasileira do Livro, com uma taxa por número; o livro impresso e o e-book têm cada um o seu. O KDP oferece um ISBN grátis para o impresso, que só vale na Amazon. Digite o seu no guia: o Booksmith confere se nenhum número ficou trocado e coloca o ISBN nos créditos do livro (o do impresso no PDF, o do e-book no ePub).' },
+      { p: '**Ficha catalográfica:** é feita por um bibliotecário, com o ISBN. Cole o texto dela em **Páginas › Créditos**.' },
+      { p: '**Depósito legal:** depois de publicar, mande pelo menos 1 exemplar à Biblioteca Nacional em até 30 dias (Lei 10.994/2004). Não tem taxa; o envio é por sua conta.' },
+      { p: 'Preços, tamanhos e regras das plataformas mudam: confira no site de cada uma antes de pagar ou enviar. Fanfic não aparece no guia, porque a edição de fã não pode ser vendida.' },
+    ],
+  },
+  {
     slug: 'capa-para-grafica',
     title: 'Capa para gráfica: lombada e contracapa',
     summary: 'A capa aberta nas medidas do KDP ou da sua gráfica, em PDF.',

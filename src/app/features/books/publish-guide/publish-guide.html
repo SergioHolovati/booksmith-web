@@ -1,0 +1,118 @@
+<div class="page narrow">
+  <a [routerLink]="['/books', bookId()]" class="back-link"><i class="pi pi-arrow-left"></i> {{ book()?.title ?? 'Livro' }}</a>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Publicar o livro</h1>
+      <p class="page-subtitle">O caminho do texto pronto até o livro na loja. O que o app consegue conferir, ele confere;
+        o resto você marca quando fizer.</p>
+    </div>
+  </div>
+
+  @if (loadError(); as message) {
+    <div class="glass-card empty-state">
+      <i class="pi pi-exclamation-circle"></i>
+      <p>{{ message }}</p>
+      <p-button label="Tentar de novo" severity="secondary" [outlined]="true" (onClick)="load()" />
+    </div>
+  } @else if (book(); as book) {
+    @if (book.kind === 'FANFIC') {
+      <p-message severity="info" styleClass="block-message" data-fanfic
+        text="Fanfic não vai para a loja: a edição de fã é para ler e compartilhar, sem venda e sem ISBN. Para publicar, transforme a história numa obra original." />
+    } @else {
+      <div class="destinations" role="radiogroup" aria-label="Para onde o livro vai">
+        @for (d of destinations; track d.value) {
+          <button type="button" class="destination" role="radio" [class.on]="publishing().destination === d.value"
+            [attr.aria-checked]="publishing().destination === d.value" [attr.data-destination]="d.value"
+            (click)="chooseDestination(d.value)">
+            <strong>{{ d.label }}</strong>
+            <span class="muted small">{{ d.hint }}</span>
+          </button>
+        }
+      </div>
+
+      @if (!publishing().destination) {
+        <p class="muted center-text hint">Escolha para onde o livro vai: o guia se ajusta ao destino.</p>
+      } @else {
+        <div class="summary glass-card" data-progress>
+          <div>
+            <strong>{{ progress().done }} de {{ progress().total }}</strong>
+            <span class="muted small"> passos feitos</span>
+          </div>
+          <div class="bar" role="progressbar" [attr.aria-valuenow]="progress().done" aria-valuemin="0"
+            [attr.aria-valuemax]="progress().total">
+            <span [style.width.%]="progress().total ? (100 * progress().done) / progress().total : 0"></span>
+          </div>
+          @if (site()?.site; as url) {
+            <a [href]="url" target="_blank" rel="noopener" class="site-link">
+              Abrir o site {{ site()?.value === 'uiclap' ? 'da' : 'do' }} {{ site()?.label }} <i class="pi pi-external-link"></i>
+            </a>
+          }
+        </div>
+
+        @for (section of sections(); track section.title) {
+          <section class="glass-card guide-section" [attr.aria-label]="section.title">
+            <h2>{{ section.title }}</h2>
+            <ul>
+              @for (item of section.items; track item.key) {
+                <li [class]="'item status-' + item.status" [attr.data-item]="item.key">
+                  <div class="item-row">
+                    @if (item.step; as step) {
+                      <input type="checkbox" class="step-check" [id]="'step-' + step" [checked]="isDone(step)"
+                        [disabled]="saving()" (change)="toggleStep(step, $any($event.target).checked)" />
+                    } @else {
+                      <i [class]="'pi status-icon ' + icon(item)" aria-hidden="true"></i>
+                    }
+                    <div class="item-text">
+                      @if (item.step) {
+                        <label [for]="'step-' + item.step"><strong>{{ item.title }}</strong></label>
+                      } @else {
+                        <strong>{{ item.title }}</strong>
+                      }
+                      <p class="muted small">{{ item.detail }}</p>
+                    </div>
+                    @if (item.route; as route) {
+                      <a [routerLink]="route" class="item-link">{{ item.routeLabel }} <i class="pi pi-angle-right"></i></a>
+                    }
+                  </div>
+
+                  @if (item.key === 'isbn') {
+                    <div class="isbn-form">
+                      <div class="field">
+                        <label for="isbn-print" class="field-label">ISBN do livro impresso</label>
+                        <input pInputText id="isbn-print" inputmode="numeric" placeholder="978-65-00-00000-0"
+                          [ngModel]="isbnPrint()" (ngModelChange)="isbnPrint.set($event)" />
+                        @if (printProblem(); as problem) {
+                          <small class="error" data-isbn-problem>{{ problem }}</small>
+                        }
+                      </div>
+                      <div class="field">
+                        <label for="isbn-ebook" class="field-label">ISBN do e-book</label>
+                        <input pInputText id="isbn-ebook" inputmode="numeric" placeholder="978-65-00-00000-0"
+                          [ngModel]="isbnEbook()" (ngModelChange)="isbnEbook.set($event)" />
+                        @if (ebookProblem(); as problem) {
+                          <small class="error">{{ problem }}</small>
+                        }
+                      </div>
+                      <p-button label="Salvar ISBN" icon="pi pi-check" size="small" (onClick)="saveIsbn()"
+                        [disabled]="!isbnChanged() || !!printProblem() || !!ebookProblem()" [loading]="saving()" />
+                    </div>
+                  }
+
+                  @if (item.key === 'keywords') {
+                    <div class="field keywords">
+                      <p-autocomplete inputId="keywords" ariaLabel="Palavras-chave" [ngModel]="publishing().keywords" (ngModelChange)="setKeywords($event)"
+                        [multiple]="true" [typeahead]="false" placeholder="Digite e tecle Enter" styleClass="full-width" />
+                    </div>
+                  }
+                </li>
+              }
+            </ul>
+          </section>
+        }
+        <p class="muted small center-text">Preços, tamanhos e regras das plataformas mudam: confira no site de cada uma
+          antes de pagar ou enviar.</p>
+      }
+    }
+  }
+</div>
