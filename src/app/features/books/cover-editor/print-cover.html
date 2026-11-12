@@ -24,6 +24,25 @@
           <span><strong>{{ pdf.fileName }}</strong> ·
             {{ pdf.kind === 'wrap' ? 'capa aberta' : 'só a frente' }} · {{ mm(pdf.widthMm) }} × {{ mm(pdf.heightMm) }} mm</span>
         </p>
+        @if (pdf.trim) {
+          <p class="small read-spec" data-read-spec>
+            Capa para livro {{ trimLabel(pdf.trim) }}
+            @if (pdf.spineMm; as spine) { · lombada {{ mm(spine) }} mm }
+            @if (pdf.bleedMm; as bleed) { · sangria {{ mm(bleed) }} mm }
+            @if (pdf.marksMm) { · marcas de corte de {{ mm(pdf.marksMm) }} mm (saem no PDF entregue) }
+          </p>
+        } @else {
+          <p-message severity="warn" styleClass="block-message"
+            text="Não deu para saber para qual tamanho de livro é esta capa: a frente pode ter saído com bordas ou cortada. Informe as especificações abaixo e importe de novo." />
+        }
+        @if (trimMismatch(); as trim) {
+          <div class="trim-mismatch" data-trim-mismatch>
+            <p-message severity="warn" styleClass="block-message"
+              [text]="'A capa é para um livro ' + trimLabel(trim) + ', e o livro está diagramado em ' + trimLabel(book.layout.trim) + '.'" />
+            <p-button [label]="'Diagramar em ' + trimLabel(trim)" icon="pi pi-arrows-alt" size="small"
+              [loading]="changingTrim()" (onClick)="useCoverTrim()" />
+          </div>
+        }
         <p class="muted small">
           {{ pdf.kind === 'wrap'
             ? 'Conferimos as medidas com o que a gráfica pede para este livro.'
@@ -33,6 +52,36 @@
         <p class="muted small">Envie a frente (página em pé) ou a capa aberta (deitada: contracapa, lombada e
           frente). A frente também vira a capa do livro no app, no ePub e no PDF.</p>
       }
+      <details class="cover-spec" [open]="!coverPdf()">
+        <summary>Especificações da capa</summary>
+        <p class="muted small">Diga para qual tamanho de livro a capa foi feita: com isso o Booksmith acha o corte, tira as
+          marcas de corte e recorta a frente certinha. A lombada e a sangria, se você souber, são conferidas.</p>
+        <div class="trims" role="group" aria-label="Tamanho do livro">
+          @for (t of trims; track t.value) {
+            <button type="button" class="chip" [class.on]="specTrim() === t.value" [attr.aria-pressed]="specTrim() === t.value"
+              (click)="specTrim.set(t.value)">{{ t.label }}</button>
+          }
+        </div>
+        <div class="spec-fields">
+          <label>Lombada (mm)
+            <input pInputText inputmode="decimal" [ngModel]="specSpine()" (ngModelChange)="specSpine.set($event)"
+              placeholder="ex.: 48" />
+          </label>
+          <label>Sangria (mm)
+            <input pInputText inputmode="decimal" [ngModel]="specBleed()" (ngModelChange)="specBleed.set($event)"
+              placeholder="ex.: 5" />
+          </label>
+        </div>
+        <label class="paste">Ou cole a especificação (do designer, da gráfica…)
+          <textarea pTextarea rows="3" [ngModel]="specText()" (ngModelChange)="specText.set($event)"
+            placeholder="16 × 23 cm, sangria 5 mm, lombada 48 mm…"></textarea>
+        </label>
+        <p-button label="Ler a especificação" icon="pi pi-search" severity="secondary" [outlined]="true" size="small"
+          [disabled]="!specText().trim()" (onClick)="readSpec()" />
+        @if (specRead(); as message) {
+          <p class="small muted" role="status" data-spec-read>{{ message }}</p>
+        }
+      </details>
       <div class="import-actions">
         <label class="p-button p-button-outlined p-button-secondary import-button" [class.p-disabled]="importing()">
           <i class="pi pi-upload" aria-hidden="true"></i>
@@ -99,6 +148,11 @@
           <span><strong>{{ spec.pages }}</strong> páginas</span>
           <span>lombada <strong>{{ mm(spec.spineMm) }} mm</strong></span>
           <span>capa aberta <strong>{{ mm(spec.widthMm) }} × {{ mm(spec.heightMm) }} mm</strong></span>
+        </div>
+        <div class="template">
+          <p-button [label]="copied() ? 'Copiado!' : 'Copiar modelo de especificação'" icon="pi pi-copy"
+            severity="secondary" [text]="true" size="small" (onClick)="copyTemplate()" />
+          <span class="muted small">As medidas deste livro, para mandar a quem for fazer a capa.</span>
         </div>
         @if (spec.imported === 'wrap' && spec.importedFits) {
           <p-message severity="success" styleClass="block-message fits"

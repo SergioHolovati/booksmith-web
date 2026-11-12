@@ -25,7 +25,9 @@ import { problemMessage } from '../../../core/api/problem';
 import { UniverseApi } from '../../../core/api/universe.api';
 import { AuthService } from '../../../core/auth/auth.service';
 import { BookDetail, CoverDesign, PrintCoverSpec, PrintProfile } from '../../../core/models/api.models';
+import { copyText } from '../../../core/util/copy-text';
 import { saveFile } from '../../../core/util/save-file';
+import { TRIM_OPTIONS, parseCoverSpec, specTemplate } from './cover-spec';
 import { initialDesign } from './cover-editor';
 import { PRINT_PX_PER_MM, drawPrintCover, printSize } from './print-cover-canvas';
 
@@ -87,6 +89,25 @@ export class PrintCoverComponent {
   readonly importError = signal<string | null>(null);
   /** Texto da contracapa editado aqui (capa importada em PDF, sem o editor de capa). */
   readonly backText = signal('');
+  /**
+   * Especificações da capa que vai ser importada: o tamanho do livro (começa com o da diagramação), a lombada e a
+   * sangria. Com o tamanho, a frente sai recortada no corte, sem sangria e sem marcas de corte.
+   */
+  readonly trims = TRIM_OPTIONS;
+  readonly specTrim = signal<string | null>(null);
+  readonly specSpine = signal('');
+  readonly specBleed = signal('');
+  readonly specText = signal('');
+  readonly specRead = signal<string | null>(null);
+  readonly copied = signal(false);
+  readonly changingTrim = signal(false);
+  /** A capa importada foi feita para outro tamanho de livro que o da diagramação. */
+  readonly trimMismatch = computed(() => {
+    const pdf = this.coverPdf();
+    const book = this.book();
+    return pdf?.trim && book && pdf.trim !== book.layout.trim ? pdf.trim : null;
+  });
+  readonly trimLabel = (trim: string | null | undefined) => TRIM_OPTIONS.find((t) => t.value === trim)?.label ?? '';
 
   /** O desenho: o salvo, ou o inicial (capa importada sem desenho). O texto da contracapa é o desta tela. */
   readonly design = computed<CoverDesign | null>(() => {
@@ -144,6 +165,7 @@ export class PrintCoverComponent {
       const book = await firstValueFrom(this.api.getBook(this.bookId()));
       this.book.set(book);
       this.backText.set(book.coverDesign?.backText ?? book.synopsis ?? '');
+      this.specTrim.update((trim) => trim ?? book.coverPdf?.trim ?? book.layout.trim);
       const imageId = book.coverDesign?.imageId;
       if (imageId && book.universeId) {
         const images = await firstValueFrom(this.universeApi.listImages(book.universeId));
@@ -180,7 +202,13 @@ export class PrintCoverComponent {
     this.importing.set(true);
     this.importError.set(null);
     try {
-      const result = await firstValueFrom(this.api.importCoverPdf(this.bookId(), file));
+      const result = await firstValueFrom(
+        this.api.importCoverPdf(this.bookId(), file, {
+          trim: this.specTrim(),
+          spineMm: parseMm(this.specSpine()),
+          bleedMm: parseMm(this.specBleed()),
+        }),
+      );
       this.book.update((book) => (book ? { ...book, coverUrl: result.coverUrl, coverPdf: result.coverPdf } : book));
       this.loadImage(result.coverPdf.kind === 'front' ? result.coverUrl : null, this.frontImage);
       if ((this.book()?.chapters.length ?? 0) > 0 && (this.profile() !== 'custom' || this.spineMm())) {
@@ -191,6 +219,59 @@ export class PrintCoverComponent {
     } finally {
       this.importing.set(false);
     }
+  }
+
+  /** Lê a especificação colada (do designer, da gráfica ou de outra IA) e preenche os campos. */
+  readSpec(): void {
+    const found = parseCoverSpec(this.specText());
+    if (found.trim) {
+      this.specTrim.set(found.trim);
+    }
+    if (typeof found.spineMm === 'number') {
+      this.specSpine.set(String(found.spineMm).replace('.', ','));
+    }
+    if (typeof found.bleedMm === 'number') {
+      this.specBleed.set(String(found.bleedMm).replace('.', ','));
+    }
+    const parts = [
+      found.trim ? `tamanho ${this.trimLabel(found.trim)}` : null,
+      typeof found.spineMm === 'number' ? `lombada ${mm(found.spineMm)} mm` : null,
+      typeof found.bleedMm === 'number' ? `sangria ${mm(found.bleedMm)} mm` : null,
+    ].filter(Boolean);
+    this.specRead.set(parts.length ? `Lido: ${parts.join(', ')}.` : 'Não achei tamanho, lombada nem sangria no texto.');
+  }
+
+  /** Muda a diagramação para o tamanho da capa importada e refaz as medidas. */
+  async useCoverTrim(): Promise<void> {
+    const book = this.book();
+    const trim = this.trimMismatch();
+    if (!book || !trim) {
+      return;
+    }
+    this.changingTrim.set(true);
+    try {
+      const layout = await firstValueFrom(
+        this.api.updateLayout(this.bookId(), { ...book.layout, trim: trim as typeof book.layout.trim }),
+      );
+      this.book.update((current) => (current ? { ...current, layout } : current));
+      await this.fetchSpec();
+    } catch (error) {
+      this.specError.set(problemMessage(error, 'Não foi possível mudar o tamanho na diagramação.'));
+    } finally {
+      this.changingTrim.set(false);
+    }
+  }
+
+  /** Copia o modelo de especificação com as medidas deste livro, para mandar a quem for fazer a capa. */
+  async copyTemplate(): Promise<void> {
+    const spec = this.spec();
+    const book = this.book();
+    if (!spec || !book) {
+      return;
+    }
+    const profile = PROFILES.find((p) => p.value === this.profile())?.label ?? '';
+    this.copied.set(await copyText(specTemplate(spec, book.title, this.auth.user()?.displayName ?? null, profile)));
+    setTimeout(() => this.copied.set(false), 3000);
   }
 
   async removePdf(): Promise<void> {

@@ -170,3 +170,101 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+// Especificações da capa importada
+.cover-spec {
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+  margin: .75rem 0;
+
+  summary {
+    min-height: 40px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  p {
+    margin: .4rem 0;
+  }
+}
+
+.trims {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin: .4rem 0;
+}
+
+.chip {
+  min-height: 40px;
+  padding: 0 .85rem;
+  border: 1px solid var(--bs-border);
+  border-radius: 999px;
+  background: var(--bs-surface);
+  color: var(--bs-text-soft);
+  font: inherit;
+  font-size: .9rem;
+  cursor: pointer;
+
+  &.on {
+    border-color: var(--bs-ember);
+    background: var(--bs-sand-soft);
+    color: var(--bs-text);
+  }
+}
+
+.spec-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .6rem;
+  margin: .4rem 0;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+    font-size: .85rem;
+  }
+
+  input {
+    width: 100%;
+  }
+}
+
+.paste {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  margin: .4rem 0;
+  font-size: .85rem;
+
+  textarea {
+    width: 100%;
+    font-size: 1rem;
+  }
+}
+
+.read-spec {
+  margin: .3rem 0;
+  color: var(--bs-text-soft);
+}
+
+.trim-mismatch {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+
+  // o aviso ocupa a largura toda; só o botão fica do tamanho dele
+  p-button {
+    align-self: flex-start;
+  }
+}
+
+.template {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .25rem .5rem;
+  margin: .25rem 0 .5rem;
+}

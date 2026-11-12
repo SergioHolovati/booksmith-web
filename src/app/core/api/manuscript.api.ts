@@ -50,9 +50,23 @@ export class ManuscriptApi {
   }
 
   /** Capa feita fora do app, em PDF: a frente vira a capa do livro e o PDF fica para a gráfica. */
-  importCoverPdf(bookId: string, file: File): Observable<{ coverUrl: string; coverPdf: CoverPdf }> {
+  /** @param spec as especificações da capa (tamanho do livro, lombada, sangria), quando o autor informa */
+  importCoverPdf(
+    bookId: string,
+    file: File,
+    spec?: { trim: string | null; spineMm: number | null; bleedMm: number | null },
+  ): Observable<{ coverUrl: string; coverPdf: CoverPdf }> {
     const form = new FormData();
     form.append('file', file);
+    if (spec?.trim) {
+      form.append('trim', spec.trim);
+    }
+    if (typeof spec?.spineMm === 'number') {
+      form.append('spineMm', String(spec.spineMm));
+    }
+    if (typeof spec?.bleedMm === 'number') {
+      form.append('bleedMm', String(spec.bleedMm));
+    }
     return this.http.post<{ coverUrl: string; coverPdf: CoverPdf }>(`${this.base}/books/${bookId}/cover/pdf`, form);
   }
 

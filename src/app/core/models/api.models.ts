@@ -70,9 +70,17 @@ export interface BookDetail {
 export interface CoverPdf {
   url: string;
   kind: 'front' | 'wrap';
+  /** A página inteira (com as marcas de corte, se houver). */
   widthMm: number;
   heightMm: number;
   fileName: string;
+  /** O tamanho do livro para o qual a capa foi feita (informado ou lido do PDF); null quando não se sabe. */
+  trim?: string | null;
+  /** A lombada medida (capa aberta). */
+  spineMm?: number | null;
+  bleedMm?: number | null;
+  /** A margem das marcas de corte em volta da sangria (sai no PDF entregue). */
+  marksMm?: number | null;
 }
 
 /** Escolhas da capa feita no editor (a imagem é desenhada no aparelho). */
@@ -115,6 +123,10 @@ export interface PrintCoverSpec {
   importedWidthMm: number | null;
   importedHeightMm: number | null;
   importedFits: boolean | null;
+  /** O tamanho do livro da capa importada, a lombada dela e a margem das marcas de corte, quando se sabe. */
+  importedTrim: string | null;
+  importedSpineMm: number | null;
+  importedMarksMm: number | null;
 }
 
 /** Diagramação do PDF (as opções estão em book-layout). */
