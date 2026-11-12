@@ -287,7 +287,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
       },
       { p: 'Escolha **Ideias** (4 possibilidades) ou **Perguntas para mim** (4 perguntas para você pensar). Se quiser, peça algo específico, como "algo ligado ao mar".' },
       { p: '**Usar no campo** acrescenta a ideia no fim do campo, num parágrafo novo, para você reescrever. Nada é salvo sozinho: só quando você toca em **Salvar**. No enredo, a ideia só pode ser copiada; nada entra no texto do livro.' },
-      { p: 'A IA lê o que está na tela e o resumo do seu universo (e, no enredo, a sinopse e o fim do último capítulo). Hoje ela roda **no próprio computador do Booksmith**, então o seu texto não vai para outra empresa. O rodapé do painel mostra onde a IA roda e quantos pedidos ainda restam hoje. A primeira sugestão do dia pode levar até um minuto.' },
+      { p: 'A IA lê o que está na tela e o resumo do seu universo (e, no enredo, a sinopse e o fim do último capítulo). A IA é o Claude, da Anthropic: o trecho usado no pedido é enviado a ela, que não o usa para treinar modelos. O rodapé do painel mostra quantos pedidos ainda restam hoje.' },
     ],
   },
   {

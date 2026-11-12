@@ -15,9 +15,9 @@ function result(check: ReviewCheck, nextBlock: string | null = null, part = 1, p
     part,
     parts,
     remaining: 100,
-    provider: 'ollama',
-    model: 'qwen3:8b',
-    local: true,
+    provider: 'anthropic',
+    model: 'claude-haiku-5-5',
+    local: false,
   };
 }
 

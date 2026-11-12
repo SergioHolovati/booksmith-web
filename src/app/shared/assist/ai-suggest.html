@@ -29,7 +29,7 @@
 
       @if (loading()) {
         <p class="muted small ai-wait" role="status">
-          Pensando… a primeira sugestão do dia pode levar até um minuto.
+          Pensando…
         </p>
       }
       @if (error(); as message) {
@@ -60,11 +60,7 @@
 
       @if (status(); as s) {
         <p class="muted small ai-footer">
-          @if (s.local) {
-            IA deste computador: o seu texto não sai daqui.
-          } @else {
-            IA da Anthropic (Claude): o trecho usado no pedido é enviado a ela.
-          }
+          IA da Anthropic (Claude): o trecho usado no pedido é enviado a ela, que não o usa para treinar modelos.
           Restam {{ s.remaining }} de {{ s.dailyLimit }} hoje.
         </p>
       }
