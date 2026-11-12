@@ -159,7 +159,7 @@
           <app-builder-field [field]="field" [value]="value(field)" (valueChange)="setValue(field, $event)" />
           @if (field.type === 'longtext') {
             <app-ai-suggest class="field-ai" kind="universe" [field]="field.key" [fieldLabel]="field.label"
-              [universeId]="universe.id" [current]="textOf(field)" [context]="universeContext"
+              [fieldHelp]="field.help ?? field.placeholder ?? ''" [universeId]="universe.id" [current]="textOf(field)" [context]="universeContext"
               (use)="appendText(field, $event)" />
           }
         }

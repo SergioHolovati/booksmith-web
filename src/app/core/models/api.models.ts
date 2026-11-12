@@ -975,6 +975,10 @@ export interface SuggestionRequest {
   bookId?: string | null;
   field: string;
   fieldLabel?: string;
+  /** O que o campo pede, como a tela explica. */
+  fieldHelp?: string;
+  /** Personagem da ficha aberta: as relações dele vêm primeiro no contexto. */
+  characterId?: string | null;
   current?: string;
   context?: ContextLine[];
   hint?: string;

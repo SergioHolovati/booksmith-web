@@ -30,6 +30,9 @@ export class AiSuggestComponent {
   readonly kind = input.required<SuggestionKind>();
   readonly field = input.required<string>();
   readonly fieldLabel = input('');
+  /** O que o campo pede (o texto de ajuda ou o exemplo da tela). */
+  readonly fieldHelp = input('');
+  readonly characterId = input<string | null>(null);
   readonly universeId = input<string | null>(null);
   readonly bookId = input<string | null>(null);
   /** O que já está escrito no campo (mesmo sem salvar). */
@@ -86,6 +89,8 @@ export class AiSuggestComponent {
           bookId: this.bookId(),
           field: this.field(),
           fieldLabel: this.fieldLabel(),
+          fieldHelp: this.fieldHelp().slice(0, 300),
+          characterId: this.characterId(),
           current: this.current(),
           context: this.context()().filter((line) => line.text.trim() !== ''),
           hint: this.hint().trim(),

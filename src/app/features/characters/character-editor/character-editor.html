@@ -66,6 +66,7 @@
                 [placeholder]="field.placeholder" [ngModel]="draft().sheet[field.key] ?? ''"
                 (ngModelChange)="setSheet(field.key, $event)" maxlength="4000"></textarea>
               <app-ai-suggest kind="character" [field]="field.key" [fieldLabel]="field.label"
+                [fieldHelp]="field.placeholder" [characterId]="character.id"
                 [universeId]="character.universeId" [current]="draft().sheet[field.key] ?? ''"
                 [context]="sheetContext" (use)="appendSheet(field.key, $event)" />
             } @else {
