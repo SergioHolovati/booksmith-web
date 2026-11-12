@@ -21,6 +21,40 @@ describe('menção com @', () => {
     expect(filterTargets(targets, '')).toHaveLength(3);
   });
 
+  it('acha pelo apelido: a sugestão mostra o apelido, diz de quem é e leva o id do personagem', () => {
+    const withAliases: MentionTarget[] = [
+      { id: '1', kind: 'character', label: 'José Ribeiro', hint: 'Personagem', aliases: ['Zé', 'Capitão'] },
+      { id: '2', kind: 'character', label: 'Zélia', hint: 'Personagem' },
+      { id: '3', kind: 'place', label: 'Porto de Vel', hint: 'Lugar', aliases: ['O Porto'] },
+    ];
+
+    // nome antes de apelido; o mesmo personagem não aparece duas vezes
+    expect(filterTargets(withAliases, 'ze')).toEqual([
+      withAliases[1],
+      { id: '1', kind: 'character', label: 'Zé', hint: 'Apelido de José Ribeiro' },
+    ]);
+    expect(filterTargets(withAliases, 'capi')).toEqual([
+      { id: '1', kind: 'character', label: 'Capitão', hint: 'Apelido de José Ribeiro' },
+    ]);
+    expect(filterTargets(withAliases, 'jose').map((t) => t.label)).toEqual(['José Ribeiro']);
+    expect(filterTargets(withAliases, 'porto')[0]).toEqual({ id: '3', kind: 'place', label: 'Porto de Vel', hint: 'Lugar', aliases: ['O Porto'] });
+    expect(filterTargets(withAliases, 'o p')[0]).toMatchObject({ id: '3', label: 'O Porto', hint: 'Outro nome de Porto de Vel' });
+  });
+
+  it('menção pelo apelido continua com o apelido; apelido apagado da ficha volta ao nome', () => {
+    const editor = new Editor({ element: document.createElement('div'), extensions: manuscriptExtensions('') });
+    editor.commands.setContent({
+      type: 'doc',
+      content: [{ type: 'paragraph', content: [{ type: 'mention', attrs: { id: LIA_ID, kind: 'character', label: 'Li' } }] }],
+    });
+
+    expect(refreshMentionLabels(editor, [{ id: LIA_ID, kind: 'character', label: 'Lia', hint: '', aliases: ['Li'] }])).toBe(0);
+    expect(editor.getText()).toBe('Li');
+    expect(refreshMentionLabels(editor, [{ id: LIA_ID, kind: 'character', label: 'Lia', hint: '', aliases: [] }])).toBe(1);
+    expect(editor.getText()).toBe('Lia');
+    editor.destroy();
+  });
+
   it('o JSON da menção tem só o que o servidor aceita (id, kind, label) e o nome conta como texto', () => {
     const editor = new Editor({ element: document.createElement('div'), extensions: manuscriptExtensions('') });
     editor.commands.setContent({

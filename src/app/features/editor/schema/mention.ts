@@ -9,6 +9,8 @@ export interface MentionTarget {
   label: string;
   /** "Personagem", "Lugar", "Religião"... */
   hint: string;
+  /** Apelidos e outros nomes: "@Zé" também acha o José, e a menção mostra "Zé" ligada a ele. */
+  aliases?: string[];
 }
 
 export type MentionSource = () => MentionTarget[];
@@ -25,17 +27,41 @@ export function normalize(text: string): string {
   return text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 }
 
-/** Quem começa com o que foi digitado vem primeiro; depois quem tem a palavra no meio do nome. */
+/** "Zé" de "José": a sugestão mostra o apelido e diz de quem é; escolhida, a menção leva o apelido e o id dele. */
+function aliasOf(target: MentionTarget, alias: string): MentionTarget {
+  const hint = target.kind === 'character' ? `Apelido de ${target.label}` : `Outro nome de ${target.label}`;
+  return { id: target.id, kind: target.kind, label: alias, hint };
+}
+
+/**
+ * Quem começa com o que foi digitado vem primeiro; depois quem tem a palavra no meio do nome. O nome vale mais que
+ * o apelido; o apelido só aparece se o nome não bateu (o mesmo personagem não aparece duas vezes).
+ */
 export function filterTargets(targets: MentionTarget[], query: string): MentionTarget[] {
   const q = normalize(query.trim());
   if (!q) {
     return targets.slice(0, MAX_SUGGESTIONS);
   }
-  const starts = targets.filter((t) => normalize(t.label).startsWith(q));
-  const words = targets.filter(
-    (t) => !starts.includes(t) && normalize(t.label).split(/\s+/).some((w) => w.startsWith(q)),
-  );
-  return [...starts, ...words].slice(0, MAX_SUGGESTIONS);
+  const starts = (text: string) => normalize(text).startsWith(q);
+  const inWords = (text: string) => normalize(text).split(/\s+/).some((w) => w.startsWith(q));
+  const found: MentionTarget[] = [];
+  const taken = new Set<string>();
+  const add = (target: MentionTarget, item: MentionTarget = target) => {
+    if (!taken.has(target.id)) {
+      taken.add(target.id);
+      found.push(item);
+    }
+  };
+  for (const test of [starts, inWords]) {
+    targets.filter((t) => test(t.label)).forEach((t) => add(t));
+    for (const t of targets) {
+      const alias = (t.aliases ?? []).find(test);
+      if (alias) {
+        add(t, aliasOf(t, alias));
+      }
+    }
+  }
+  return found.slice(0, MAX_SUGGESTIONS);
 }
 
 /**
@@ -190,17 +216,19 @@ class SuggestionPopup {
 }
 
 /**
- * Atualiza os nomes das menções para o nome atual (personagem renomeado). Devolve quantas mudaram; se mudou, o
- * salvamento automático leva o texto novo.
+ * Atualiza os nomes das menções para o nome atual (personagem renomeado). Menção pelo apelido continua com o apelido
+ * enquanto ele existir na ficha. Devolve quantas mudaram; se mudou, o salvamento automático leva o texto novo.
  */
 export function refreshMentionLabels(editor: Editor, targets: MentionTarget[]): number {
-  const names = new Map(targets.map((t) => [t.id, t.label]));
+  const byId = new Map(targets.map((t) => [t.id, t]));
   const tr = editor.state.tr;
   let changed = 0;
   editor.state.doc.descendants((node, pos) => {
     if (node.type.name === 'mention') {
-      const current = names.get(node.attrs['id']);
-      if (current && current !== node.attrs['label']) {
+      const target = byId.get(node.attrs['id']);
+      const current = target?.label;
+      const label = node.attrs['label'];
+      if (current && current !== label && !(target.aliases ?? []).includes(label)) {
         tr.setNodeMarkup(pos, undefined, { ...node.attrs, label: current });
         changed++;
       }

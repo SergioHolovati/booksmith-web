@@ -78,9 +78,10 @@ export const HELP_ARTICLES: HelpArticle[] = [
     title: 'Mencionar personagens e lugares com @',
     summary: 'Ligue o trecho ao personagem e veja depois em quais capítulos ele aparece.',
     topic: 'universo',
-    keywords: ['menção', 'mencionar', 'arroba', '@', 'personagem', 'lugar', 'aparece em', 'ligar'],
+    keywords: ['menção', 'mencionar', 'arroba', '@', 'personagem', 'lugar', 'aparece em', 'ligar', 'apelido'],
     body: [
       { steps: ['No editor, digite **@** e o começo do nome.', 'Toque no personagem, lugar ou ficha do mundo na lista.'] },
+      { p: 'Também vale o **apelido**: com "Zé" nos apelidos da ficha do José, digite **@Zé**. A lista mostra "Apelido de José", o texto fica com "Zé" e a menção conta para o José.' },
       { p: 'O nome fica destacado no texto. No livro baixado (ePub, PDF ou Word) ele sai como texto normal: o leitor não vê nada diferente.' },
       { p: 'Na ficha do personagem ou lugar, o cartão **Aparece em** mostra os capítulos que o mencionam. Se o personagem mudar de nome, as menções acompanham da próxima vez que você abrir o capítulo.' },
     ],

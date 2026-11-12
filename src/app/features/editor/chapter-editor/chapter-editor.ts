@@ -607,9 +607,9 @@ export class ChapterEditorComponent {
         firstValueFrom(this.universeApi.listLore(universeId)),
       ]);
       this.mentionTargets = [
-        ...characters.map((c) => ({ id: c.id, kind: 'character' as const, label: c.name, hint: 'Personagem' })),
-        ...places.map((p) => ({ id: p.id, kind: 'place' as const, label: p.name, hint: 'Lugar' })),
-        ...lore.map((l) => ({ id: l.id, kind: 'lore' as const, label: l.name, hint: LORE_HINT[l.type] ?? 'Mundo' })),
+        ...characters.map((c) => ({ id: c.id, kind: 'character' as const, label: c.name, hint: 'Personagem', aliases: c.aliases })),
+        ...places.map((p) => ({ id: p.id, kind: 'place' as const, label: p.name, hint: 'Lugar', aliases: p.aliases })),
+        ...lore.map((l) => ({ id: l.id, kind: 'lore' as const, label: l.name, hint: LORE_HINT[l.type] ?? 'Mundo', aliases: l.aliases })),
       ];
       if (this.editor && refreshMentionLabels(this.editor, this.mentionTargets) > 0) {
         this.autosave?.markChanged();
