@@ -11,7 +11,7 @@ import { firstValueFrom } from 'rxjs';
 import { ExportApi } from '../../../core/api/export.api';
 import { ManuscriptApi } from '../../../core/api/manuscript.api';
 import { problemMessage } from '../../../core/api/problem';
-import { BookDetail, Publishing, PublishingDestination, PublishingStep } from '../../../core/models/api.models';
+import { BookDetail, PrintCheckIllustration, Publishing, PublishingDestination, PublishingStep } from '../../../core/models/api.models';
 import { normalizeLayout } from '../book-layout/book-layout';
 import {
   DESTINATIONS,
@@ -55,6 +55,7 @@ export class PublishGuideComponent {
   readonly loadError = signal<string | null>(null);
   readonly publishing = signal<Publishing>(EMPTY_PUBLISHING);
   readonly pages = signal<number | null>(null);
+  readonly illustrations = signal<PrintCheckIllustration[] | null>(null);
   readonly saving = signal(false);
 
   readonly isbnPrint = signal('');
@@ -68,7 +69,7 @@ export class PublishGuideComponent {
 
   readonly sections = computed(() => {
     const book = this.book();
-    return book ? guideSections(book, this.publishing(), this.pages()) : [];
+    return book ? guideSections(book, this.publishing(), this.pages(), this.illustrations()) : [];
   });
   readonly progress = computed(() => progress(this.sections()));
   readonly site = computed(() => DESTINATIONS.find((d) => d.value === this.publishing().destination) ?? null);
@@ -88,6 +89,9 @@ export class PublishGuideComponent {
       this.isbnEbook.set(publishing.isbnEbook ?? '');
       if (book.kind !== 'FANFIC' && book.chapters.length > 0) {
         void this.countPages(book);
+        void this.checkIllustrations(book);
+      } else {
+        this.illustrations.set([]);
       }
     } catch (error) {
       this.loadError.set(problemMessage(error, 'Não foi possível abrir o livro.'));
@@ -101,6 +105,16 @@ export class PublishGuideComponent {
       this.pages.set(preview.pageCount);
     } catch {
       // sem a contagem, o item fica como "contando"; o resto do guia segue
+    }
+  }
+
+  /** DPI das ilustrações na diagramação salva. */
+  private async checkIllustrations(book: BookDetail): Promise<void> {
+    try {
+      const check = await firstValueFrom(this.exportApi.printCheck(book.id, normalizeLayout(book.layout)));
+      this.illustrations.set(check.illustrations);
+    } catch {
+      this.illustrations.set([]);
     }
   }
 

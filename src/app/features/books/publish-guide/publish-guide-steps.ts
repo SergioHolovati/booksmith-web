@@ -1,4 +1,5 @@
-import { BookDetail, Publishing, PublishingDestination, PublishingStep } from '../../../core/models/api.models';
+import { BookDetail, PrintCheckIllustration, Publishing, PublishingDestination, PublishingStep } from '../../../core/models/api.models';
+import { printCheckSummary } from '../print-check';
 
 /** Para onde o livro vai. O site abre numa aba nova; a gráfica é a que o autor escolher. */
 export const DESTINATIONS: { value: PublishingDestination; label: string; hint: string; site: string | null }[] = [
@@ -83,10 +84,15 @@ function stepItem(publishing: Publishing, step: PublishingStep, title: string, d
 
 /**
  * O checklist do livro para o destino escolhido. {@code pages}: páginas do miolo na diagramação (null = ainda
- * contando). Os textos dizem o que fazer e onde; o que muda com o tempo (preço do ISBN, tamanhos de cada
+ * contando). {@code illustrations}: as ilustrações do texto com o DPI na diagramação (null = ainda conferindo). Os textos dizem o que fazer e onde; o que muda com o tempo (preço do ISBN, tamanhos de cada
  * plataforma) fica para conferir no site oficial.
  */
-export function guideSections(book: BookDetail, publishing: Publishing, pages: number | null): GuideSection[] {
+export function guideSections(
+  book: BookDetail,
+  publishing: Publishing,
+  pages: number | null,
+  illustrations: PrintCheckIllustration[] | null = [],
+): GuideSection[] {
   const destination = publishing.destination;
   const kdp = destination === 'kdp';
   const site = DESTINATIONS.find((d) => d.value === destination);
@@ -151,6 +157,7 @@ export function guideSections(book: BookDetail, publishing: Publishing, pages: n
         : 'A lombada da capa depende deste número: gere a capa aberta com o texto final.',
       status: pages === null ? 'info' : fewPages ? 'warn' : 'ok',
     },
+    ...illustrationItems(illustrations),
     {
       key: 'cover',
       title: 'Capa',
@@ -219,6 +226,24 @@ export function guideSections(book: BookDetail, publishing: Publishing, pages: n
     { title: 'Na loja', items: store },
     { title: 'Depois de publicar', items: after },
   ];
+}
+
+/** As ilustrações para impressão (300 DPI); sem ilustração no texto, o item não aparece. */
+function illustrationItems(illustrations: PrintCheckIllustration[] | null): GuideItem[] {
+  if (illustrations === null) {
+    return [{ key: 'illustrations', title: 'Conferindo as ilustrações…', detail: 'Em que tamanho cada uma sai na página.', status: 'info' }];
+  }
+  if (!illustrations.length) {
+    return [];
+  }
+  const problem = printCheckSummary(illustrations);
+  const count = illustrations.length === 1 ? '1 ilustração' : `${illustrations.length} ilustrações`;
+  return [{
+    key: 'illustrations',
+    title: 'Ilustrações',
+    detail: problem ?? `${count} com 300 DPI ou mais: saem nítidas na impressão.`,
+    status: problem ? 'warn' : 'ok',
+  }];
 }
 
 /** Quanto do caminho já está feito (o que é só informação não conta). */

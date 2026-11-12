@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, from, map, switchMap, throwError } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { BookLayout, LayoutPreview, PrintCoverSpec, PrintProfile } from '../models/api.models';
+import { BookLayout, LayoutPreview, PrintCheck, PrintCoverSpec, PrintProfile } from '../models/api.models';
 
 export type ExportFormat = 'epub' | 'pdf' | 'docx';
 
@@ -21,6 +21,11 @@ export class ExportApi {
   /** Páginas do PDF com a diagramação dada (salva ou não), como imagens; até 4 por pedido. */
   preview(bookId: string, layout: BookLayout, from: number, count = 2): Observable<LayoutPreview> {
     return this.http.post<LayoutPreview>(`${this.base}/books/${bookId}/export/preview`, { ...layout, from, count });
+  }
+
+  /** As ilustrações do texto na diagramação dada (salva ou não): tamanho na página e DPI para impressão. */
+  printCheck(bookId: string, layout: BookLayout): Observable<PrintCheck> {
+    return this.http.post<PrintCheck>(`${this.base}/books/${bookId}/export/print-check`, layout);
   }
 
   /** Medidas da capa aberta; em `custom`, a lombada (e a sangria) vêm da gráfica. */

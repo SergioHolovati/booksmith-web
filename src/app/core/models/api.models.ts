@@ -157,6 +157,29 @@ export interface BookLayout {
 }
 
 /** Páginas do PDF como imagens (prévia), numeradas a partir de 1. */
+/** Uma ilustração do texto no PDF diagramado: tamanho na página e DPI para impressão. */
+export interface PrintCheckIllustration {
+  imageId: string;
+  chapter: string;
+  caption: string;
+  widthPx: number;
+  heightPx: number;
+  widthMm: number;
+  heightMm: number;
+  dpi: number;
+  /** Entra no PDF (WebP não entra: sai só a legenda). */
+  printable: boolean;
+  /** Largura mínima, em pixels, para 300 DPI no mesmo tamanho na página. */
+  minWidthPx: number;
+  ok: boolean;
+}
+
+export interface PrintCheck {
+  minDpi: number;
+  textWidthMm: number;
+  illustrations: PrintCheckIllustration[];
+}
+
 export interface LayoutPreview {
   pageCount: number;
   pages: { number: number; image: string }[];

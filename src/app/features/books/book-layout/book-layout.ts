@@ -2,6 +2,7 @@ import { Component, DestroyRef, HostListener, computed, inject, input, signal } 
 import { RouterLink } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
+import { MessageModule } from 'primeng/message';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { firstValueFrom } from 'rxjs';
 
@@ -10,6 +11,7 @@ import { ManuscriptApi } from '../../../core/api/manuscript.api';
 import { problemMessage } from '../../../core/api/problem';
 import { BookDetail, BookLayout } from '../../../core/models/api.models';
 import { HasUnsavedChanges } from '../../../core/util/unsaved-changes.guard';
+import { printCheckSummary } from '../print-check';
 
 export const DEFAULT_LAYOUT: BookLayout = {
   trim: 'a5',
@@ -115,7 +117,7 @@ export function normalizeLayout(layout: Partial<BookLayout> | null | undefined):
  */
 @Component({
   selector: 'app-book-layout',
-  imports: [RouterLink, ButtonModule, ProgressSpinnerModule],
+  imports: [RouterLink, ButtonModule, MessageModule, ProgressSpinnerModule],
   templateUrl: './book-layout.html',
   styleUrl: './book-layout.scss',
 })
@@ -139,6 +141,9 @@ export class BookLayoutComponent implements HasUnsavedChanges {
   readonly images = signal<Record<number, string>>({});
   readonly previewLoading = signal(false);
   readonly previewError = signal<string | null>(null);
+  /** Aviso das ilustrações que saem borradas nesta diagramação (null = nenhuma). */
+  readonly printWarning = signal<string | null>(null);
+  private checkRequest = 0;
 
   readonly dirty = computed(() => !sameLayout(this.layout(), this.saved()));
   readonly model = computed(() => MODELS.find((m) => sameLayout(m.layout, this.layout()))?.name ?? null);
@@ -174,6 +179,7 @@ export class BookLayoutComponent implements HasUnsavedChanges {
       this.saved.set(layout);
       if (book.chapters.length > 0) {
         void this.fetch(1);
+        void this.checkIllustrations();
       }
     } catch (error) {
       this.loadError.set(problemMessage(error, 'Não foi possível abrir o livro.'));
@@ -197,7 +203,23 @@ export class BookLayoutComponent implements HasUnsavedChanges {
     this.layout.set(layout);
     this.images.set({});
     clearTimeout(this.timer);
-    this.timer = setTimeout(() => void this.fetch(this.page()), 400);
+    this.timer = setTimeout(() => {
+      void this.fetch(this.page());
+      void this.checkIllustrations();
+    }, 400);
+  }
+
+  /** O DPI das ilustrações muda com o tamanho da página e as margens. Falhar aqui não atrapalha a prévia. */
+  async checkIllustrations(): Promise<void> {
+    const id = ++this.checkRequest;
+    try {
+      const check = await firstValueFrom(this.exportApi.printCheck(this.bookId(), this.layout()));
+      if (id === this.checkRequest) {
+        this.printWarning.set(printCheckSummary(check.illustrations));
+      }
+    } catch {
+      // sem a conferência, sem aviso
+    }
   }
 
   go(step: number): void {

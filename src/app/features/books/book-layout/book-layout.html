@@ -51,6 +51,10 @@
       }
     </section>
 
+    @if (printWarning(); as warning) {
+      <p-message severity="warn" styleClass="block-message print-warning" data-print-warning [text]="warning" />
+    }
+
     @for (choice of choices; track choice.key) {
       <div class="choice" [attr.data-choice]="choice.key">
         <span class="choice-label" [id]="'choice-' + choice.key">{{ choice.label }}</span>

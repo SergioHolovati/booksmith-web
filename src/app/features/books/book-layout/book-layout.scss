@@ -128,3 +128,8 @@
   align-items: flex-start;
   gap: .4rem;
 }
+
+:host ::ng-deep .print-warning {
+  display: block;
+  margin: 0 0 1rem;
+}
