@@ -48,7 +48,9 @@ export class AskBookComponent {
   readonly history = signal<AskEntry[]>([]);
   readonly status = this.api.status;
   readonly enabled = computed(() => this.status()?.enabled === true);
-  readonly canAsk = computed(() => !this.loading() && this.question().trim().length > 0);
+  readonly canAsk = computed(
+    () => !this.loading() && this.question().trim().length > 0 && this.status()?.remaining !== 0,
+  );
 
   constructor() {
     void this.api.ensureStatus();

@@ -1,20 +1,51 @@
-<p-drawer [visible]="visible()" (visibleChange)="visible.set($event)" position="right" header="Revisão da IA"
+<p-drawer [visible]="visible()" (visibleChange)="visible.set($event)" position="right" header="Revisão do capítulo"
   styleClass="review-drawer" [style]="{ width: 'min(440px, 100vw)' }">
-  <p class="review-note">
-    <span class="ai-badge">IA</span>
-    A IA aponta; você decide o que mudar. Nada muda no texto sem você tocar.
-  </p>
-  <p class="muted small help">
-    Revisa tudo de uma vez: formatação, ortografia, frases e estilo, furos de roteiro, continuidade e melhorias no
-    enredo. Os apontamentos aparecem conforme cada parte termina.
-  </p>
+  <section class="action" aria-labelledby="format-title">
+    <div class="action-head">
+      <h3 id="format-title">Formatação</h3>
+      <span class="free-badge">sem IA · livre</span>
+    </div>
+    <p class="muted small help">
+      Aspas ou travessão, fala em minúscula, nome escrito de dois jeitos, marcação de fala repetida. Comparada com o
+      resto do livro, na hora e sem limite.
+    </p>
+    <p-button [label]="formatStarted() ? 'Revisar formatação de novo' : 'Revisar formatação'" icon="pi pi-align-left"
+      severity="secondary" (onClick)="runFormat()" styleClass="run" [disabled]="!bookId() || running()" />
+    <ng-container *ngTemplateOutlet="groupList; context: { $implicit: formatGroups() }" />
+  </section>
+
+  <section class="action ai" aria-labelledby="ai-title">
+    <div class="action-head">
+      <h3 id="ai-title">Revisão com IA</h3>
+      <span class="ai-badge">IA</span>
+    </div>
+    <p class="muted small help">
+      Ortografia, frases e estilo, furos de roteiro, continuidade e melhorias no enredo, de uma vez. A IA aponta; você
+      decide o que mudar.
+    </p>
+    @if (!aiEnabled()) {
+      <p class="muted small">A IA está desligada neste servidor. A formatação continua funcionando.</p>
+    } @else {
+      <p class="usage small" [class.out]="remaining() === 0">
+        @if (remaining() > 0) {
+          Usa 1 dos seus usos de IA: restam {{ remaining() }} de {{ status()?.dailyLimit }} nas últimas 24 horas.
+        } @else {
+          Você já usou os {{ status()?.dailyLimit }} usos de IA das últimas 24 horas (revisões, ideias e perguntas).
+          A formatação continua livre.
+        }
+      </p>
+      <p-button [label]="aiStarted() ? 'Revisar com IA de novo' : 'Revisão com IA'" icon="pi pi-sparkles"
+        (onClick)="runAi()" styleClass="run" [disabled]="!bookId() || running() || remaining() === 0" />
+    }
+    <ng-container *ngTemplateOutlet="groupList; context: { $implicit: aiGroups() }" />
+  </section>
 
   @if (running()) {
     <div class="running" role="status">
       <p-progressbar [value]="percent()" [showValue]="false" styleClass="bar" />
       <span class="muted small">
         @if (progress(); as p) {
-          Revisando {{ currentLabel().toLowerCase() }} ({{ p.step + 1 }} de {{ checks.length }})
+          Revisando {{ currentLabel().toLowerCase() }} ({{ p.step + 1 }} de {{ runningChecks().length }})
           @if (p.parts > 1) {
             · parte {{ p.part > p.parts ? p.parts : p.part }} de {{ p.parts }}
           }
@@ -23,26 +54,32 @@
       </span>
       <p-button label="Parar" severity="secondary" [text]="true" size="small" (onClick)="stop()" />
     </div>
-  } @else {
-    <p-button [label]="started() ? 'Revisar de novo' : 'Revisar o capítulo'" icon="pi pi-check-square"
-      (onClick)="run()" styleClass="run" [disabled]="!bookId()" />
   }
 
   @if (error(); as message) {
     <p class="error small" role="alert">{{ message }}</p>
   }
 
-  @for (group of groups(); track group.value) {
+  @if (status(); as s) {
+    <p class="muted small footer">
+      Na revisão com IA, o texto vai para a Anthropic (Claude), que não o usa para treinar modelos. A formatação não
+      sai do Booksmith.
+    </p>
+  }
+</p-drawer>
+
+<ng-template #groupList let-groups>
+  @for (group of groups; track group.value) {
     <section class="group" [attr.data-check]="group.value" [attr.data-state]="group.state">
-      <h3 class="group-title">
-        {{ group.label }}
+      <h4 class="group-title">
+        {{ group.ai ? group.label : 'Pontos encontrados' }}
         @if (group.items.length) {
           <span class="count">{{ group.items.length }}</span>
         }
         @if (group.state === 'running') {
           <i class="pi pi-spin pi-spinner muted" aria-hidden="true"></i>
         }
-      </h3>
+      </h4>
 
       @if (group.error) {
         <p class="error small" role="alert">{{ group.error }}</p>
@@ -107,11 +144,4 @@
       }
     </section>
   }
-
-  @if (status(); as s) {
-    <p class="muted small footer">
-      IA da Anthropic (Claude): o texto revisado é enviado a ela, que não o usa para treinar modelos.
-      Restam {{ s.remaining }} de {{ s.dailyLimit }} pedidos hoje (cada revisão completa usa pelo menos 5; a formatação não conta).
-    </p>
-  }
-</p-drawer>
+</ng-template>

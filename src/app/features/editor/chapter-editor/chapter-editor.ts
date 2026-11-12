@@ -31,7 +31,6 @@ import { UniverseApi } from '../../../core/api/universe.api';
 import { ChapterHistoryComponent, HistoryActions } from '../chapter-history/chapter-history';
 import { ChapterNotesComponent } from '../chapter-notes/chapter-notes';
 import { ChapterReviewComponent } from '../chapter-review/chapter-review';
-import { AssistApi } from '../../../core/api/assist.api';
 import { noteAt } from '../schema/comment-anchor';
 import { proofreadOffParagraph } from '../schema/proofread-off';
 import { PlacedIssue, Proofread, issueAt } from '../proofread/proofread';
@@ -89,7 +88,6 @@ const LORE_HINT: Record<string, string> = {
 })
 export class ChapterEditorComponent {
   private readonly api = inject(ManuscriptApi);
-  private readonly assist = inject(AssistApi);
   private readonly drafts = inject(DraftStore);
   private readonly router = inject(Router);
   private readonly injector = inject(Injector);
@@ -139,8 +137,6 @@ export class ChapterEditorComponent {
   readonly historyOpen = signal(false);
   readonly notesOpen = signal(false);
   readonly reviewOpen = signal(false);
-  /** Revisão da IA: o botão só aparece com a IA ligada. */
-  readonly aiEnabled = computed(() => this.assist.status()?.enabled === true);
   /** A revisão lê o texto do servidor: salva o que estiver pendente antes. */
   readonly flushSave = (): Promise<void> => this.autosaveRef()?.flush() ?? Promise.resolve();
   /** Ilustrações: o universo do livro (para a biblioteca), o endereço de cada imagem e a selecionada no texto. */

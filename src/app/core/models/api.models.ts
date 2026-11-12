@@ -1007,6 +1007,14 @@ export interface ReviewRequest {
   check: ReviewCheck;
   /** Onde começa a parte pedida (`nextBlock` da resposta anterior); vazio = a primeira. */
   fromBlock?: string | null;
+  /** A revisão com IA aberta (`startReview`); a formatação não precisa. */
+  runId?: string | null;
+}
+
+/** Abrir a revisão com IA gasta um uso da cota; as chamadas seguintes levam o `runId`. */
+export interface ReviewStart {
+  runId: string;
+  remaining: number;
 }
 
 /** Um apontamento: o trecho (se houver), o problema e a sugestão. */

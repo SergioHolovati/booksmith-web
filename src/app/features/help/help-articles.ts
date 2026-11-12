@@ -287,7 +287,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
       },
       { p: 'Escolha **Ideias** (4 possibilidades) ou **Perguntas para mim** (4 perguntas para você pensar). Se quiser, peça algo específico, como "algo ligado ao mar".' },
       { p: '**Usar no campo** acrescenta a ideia no fim do campo, num parágrafo novo, para você reescrever. Nada é salvo sozinho: só quando você toca em **Salvar**. No enredo, a ideia só pode ser copiada; nada entra no texto do livro.' },
-      { p: 'A IA lê o que está na tela e o resumo do seu universo (e, no enredo, a sinopse e o fim do último capítulo). A IA é o Claude, da Anthropic: o trecho usado no pedido é enviado a ela, que não o usa para treinar modelos. O rodapé do painel mostra quantos pedidos ainda restam hoje.' },
+      { p: 'A IA lê o que está na tela e o resumo do seu universo (e, no enredo, a sinopse e o fim do último capítulo). A IA é o Claude, da Anthropic: o trecho usado no pedido é enviado a ela, que não o usa para treinar modelos. Cada pedido usa 1 dos seus 3 usos de IA a cada 24 horas (revisões, ideias e perguntas somam juntos), e o rodapé do painel mostra quantos restam.' },
     ],
   },
   {
@@ -300,20 +300,20 @@ export const HELP_ARTICLES: HelpArticle[] = [
       { p: 'Na página do livro, abra **Pergunte ao seu livro** e escreva o que quer saber: "Quem já sabe do segredo?", "Quantos anos o Ben tem?", "Onde a Lia estava no capítulo 3?".' },
       { p: 'A IA lê o texto e as fichas do universo e responde em poucas frases. Embaixo vêm os **trechos de origem**: toque num deles para abrir o editor naquele parágrafo.' },
       { p: 'Se o livro não responde, ela diz que não encontrou, em vez de inventar. Se o texto e as fichas discordam (a ficha diz 5 meses e a sinopse diz 6, por exemplo), ela avisa.' },
-      { p: 'As perguntas ficam só na tela; nada é guardado. Cada pergunta usa um pedido da cota do dia. O texto vai para a Anthropic (Claude), que não o usa para treinar modelos.' },
+      { p: 'As perguntas ficam só na tela; nada é guardado. Cada pergunta usa 1 dos seus 3 usos de IA a cada 24 horas. O texto vai para a Anthropic (Claude), que não o usa para treinar modelos.' },
     ],
   },
   {
     slug: 'revisao-da-ia',
-    title: 'Revisão da IA no capítulo',
+    title: 'Revisão do capítulo',
     summary: 'Formatação, ortografia, frases, furos de roteiro, continuidade e melhorias no enredo. A IA aponta; você decide.',
     topic: 'texto',
     keywords: ['revisão', 'revisar', 'ortografia', 'gramática', 'erro', 'furo', 'roteiro', 'continuidade', 'enredo', 'melhorar', 'ia', 'formatação', 'travessão', 'aspas', 'frase', 'estilo'],
     body: [
-      { p: 'No editor, toque em **Revisão da IA** (o quadradinho com o visto, no alto) e depois em **Revisar o capítulo**. Não precisa escolher nada: são seis revisões de uma vez, e os apontamentos aparecem separados por tipo:' },
+      { p: 'No editor, toque em **Revisão do capítulo** (o quadradinho com o visto, no alto). São duas ações separadas: **Revisar formatação**, sem IA e sem limite, e **Revisão com IA**, que faz cinco revisões de uma vez e usa 1 dos seus 3 usos de IA a cada 24 horas. Os apontamentos aparecem separados por tipo:' },
       {
         list: [
-          '**Formatação** (sem IA, não gasta a cota): falas com aspas onde o livro usa travessão, fala começando com minúscula, "dona Lurdes" num lugar e "Dona Lurdes" em outro, "perguntou Ana" repetido.',
+          '**Formatação** (sem IA, livre): falas com aspas onde o livro usa travessão, fala começando com minúscula, "dona Lurdes" num lugar e "Dona Lurdes" em outro, "perguntou Ana" repetido.',
           '**Ortografia:** acentos, concordância, crase, pontuação. Os nomes do seu universo não contam como erro.',
           '**Frases e estilo:** redundância, ordem estranha das palavras, palavra que sobra. A sua voz e a fala dos personagens ficam como estão.',
           '**Furos de roteiro:** o que não se sustenta, comparando com os capítulos anteriores, as notas e as fichas.',
@@ -322,7 +322,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
         ],
       },
       { p: 'Toque no trecho destacado para ir até ele no texto. Quando há **Corrigir** (formatação, ortografia, frases), ele troca só aquele trecho, e dá para desfazer. Para corrigir vários de uma vez, marque as caixinhas (ou **Marcar todos**) e toque em **Corrigir marcados**. Na formatação, tudo já vem marcado: um capítulo inteiro com aspas vira travessão em um toque. Nos outros, a IA só aponta; quem muda o texto é você. **Dispensar** tira o apontamento da lista.' },
-      { p: 'Os apontamentos aparecem conforme cada revisão termina, e você vê o andamento. **Parar** interrompe o resto. Cada revisão completa usa pelo menos 5 pedidos da cota do dia (a formatação não conta). O que estiver por salvar é salvo antes. A IA erra às vezes, principalmente em continuidade e furos: confira antes de mudar.' },
+      { p: 'Os apontamentos aparecem conforme cada revisão termina, e você vê o andamento. **Parar** interrompe o resto. A revisão com IA completa conta como 1 uso, por maior que seja o capítulo. Quando os 3 usos acabam, só as ações de IA ficam bloqueadas; a formatação continua. O que estiver por salvar é salvo antes. A IA erra às vezes, principalmente em continuidade e furos: confira antes de mudar.' },
     ],
   },
   {

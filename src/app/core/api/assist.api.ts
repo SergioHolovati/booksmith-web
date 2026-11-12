@@ -9,6 +9,7 @@ import {
   AssistStatus,
   ReviewRequest,
   ReviewResult,
+  ReviewStart,
   SuggestionRequest,
   SuggestionResult,
 } from '../models/api.models';
@@ -44,6 +45,13 @@ export class AssistApi {
   /** Revisa uma parte do capítulo; o app pede as seguintes com `nextBlock` até acabar. */
   ask(request: AskRequest): Observable<AskResult> {
     return this.http.post<AskResult>(`${this.base}/assist/ask`, request).pipe(
+      tap((result) => this.status.update((s) => (s ? { ...s, remaining: result.remaining } : s))),
+    );
+  }
+
+  /** Abre a revisão com IA do capítulo: gasta um uso da cota. */
+  startReview(bookId: string, chapterId: string): Observable<ReviewStart> {
+    return this.http.post<ReviewStart>(`${this.base}/assist/review/start`, { bookId, chapterId }).pipe(
       tap((result) => this.status.update((s) => (s ? { ...s, remaining: result.remaining } : s))),
     );
   }

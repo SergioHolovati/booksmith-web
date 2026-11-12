@@ -41,11 +41,10 @@
         }
       </button>
 
-      @if (aiEnabled()) {
-        <button type="button" class="icon-btn" (click)="reviewOpen.set(true)" aria-label="Revisão da IA">
-          <i class="pi pi-check-square"></i>
-        </button>
-      }
+      <!-- A revisão de formatação não usa IA: o botão aparece mesmo com a IA desligada -->
+      <button type="button" class="icon-btn" (click)="reviewOpen.set(true)" aria-label="Revisão do capítulo">
+        <i class="pi pi-check-square"></i>
+      </button>
 
       <button type="button" class="icon-btn" (click)="historyOpen.set(true)" aria-label="Histórico de versões">
         <i class="pi pi-history"></i>

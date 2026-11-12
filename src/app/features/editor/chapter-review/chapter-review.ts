@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, input, model, signal } from '@angular/core';
 import type { Editor } from '@tiptap/core';
 import { MessageService } from 'primeng/api';
@@ -17,14 +18,17 @@ import { findQuote } from './find-quote';
  * As revisões, na ordem em que rodam: a formatação primeiro (regras, sem IA, instantânea), depois ortografia e
  * frases, que se corrigem na hora, e por fim a história.
  */
-export const REVIEW_CHECKS: { value: ReviewCheck; label: string }[] = [
-  { value: 'format', label: 'Formatação' },
-  { value: 'spelling', label: 'Ortografia' },
-  { value: 'style', label: 'Frases e estilo' },
-  { value: 'holes', label: 'Furos de roteiro' },
-  { value: 'continuity', label: 'Continuidade' },
-  { value: 'improvements', label: 'Melhorias no enredo' },
+export const REVIEW_CHECKS: { value: ReviewCheck; label: string; ai: boolean }[] = [
+  { value: 'format', label: 'Formatação', ai: false },
+  { value: 'spelling', label: 'Ortografia', ai: true },
+  { value: 'style', label: 'Frases e estilo', ai: true },
+  { value: 'holes', label: 'Furos de roteiro', ai: true },
+  { value: 'continuity', label: 'Continuidade', ai: true },
+  { value: 'improvements', label: 'Melhorias no enredo', ai: true },
 ];
+
+/** As revisões com IA: rodam juntas e gastam um uso da cota. */
+export const AI_CHECKS = REVIEW_CHECKS.filter((c) => c.ai).map((c) => c.value);
 
 interface ReviewView extends ReviewItem {
   /** Identifica o apontamento na marcação para corrigir em lote. */
@@ -65,15 +69,19 @@ function stopsEverything(error: unknown): boolean {
 }
 
 /**
- * "Revisão da IA" no editor: um botão revisa tudo de uma vez — ortografia, furos de roteiro, continuidade e
- * melhorias no enredo, nessa ordem — e os apontamentos aparecem agrupados conforme cada revisão termina. A IA
- * aponta e o autor decide: tocar no trecho seleciona o lugar no texto; na ortografia, "Corrigir" troca só aquele
- * trecho (e dá para desfazer). Capítulos longos vão em partes; o que estiver por salvar é salvo antes, porque a
- * revisão lê o texto do servidor.
+ * "Revisão do capítulo" no editor, em duas ações separadas:
+ * <ul>
+ *   <li><b>Formatação</b> (regras, sem IA): livre e sem limite, funciona mesmo com a IA desligada;</li>
+ *   <li><b>Revisão com IA</b>: ortografia, frases, furos, continuidade e melhorias, de uma vez. Abrir a revisão
+ *   gasta um uso da cota (3 a cada 24 horas); as chamadas de dentro dela não gastam mais.</li>
+ * </ul>
+ * Os apontamentos aparecem agrupados conforme cada revisão termina. O autor decide: tocar no trecho leva ao lugar
+ * no texto; "Corrigir" troca só aquele trecho (e dá para desfazer). Capítulos longos vão em partes; o que estiver
+ * por salvar é salvo antes, porque a revisão lê o texto do servidor.
  */
 @Component({
   selector: 'app-chapter-review',
-  imports: [ButtonModule, DrawerModule, ProgressBarModule],
+  imports: [NgTemplateOutlet, ButtonModule, DrawerModule, ProgressBarModule],
   templateUrl: './chapter-review.html',
   styleUrl: './chapter-review.scss',
 })
@@ -90,7 +98,8 @@ export class ChapterReviewComponent {
 
   readonly checks = REVIEW_CHECKS;
   readonly running = signal(false);
-  readonly started = signal(false);
+  /** As revisões da rodada em andamento (só a formatação, ou as cinco com IA), para a barra de andamento. */
+  readonly runningChecks = signal<ReviewCheck[]>([]);
   readonly states = signal<Record<ReviewCheck, CheckState>>(this.allStates('waiting'));
   readonly errors = signal<Partial<Record<ReviewCheck, string>>>({});
   /** Revisão atual e parte dela, para a barra de andamento. */
@@ -103,6 +112,10 @@ export class ChapterReviewComponent {
   private nextId = 0;
 
   readonly status = this.api.status;
+  readonly aiEnabled = computed(() => this.status()?.enabled === true);
+  readonly remaining = computed(() => this.status()?.remaining ?? 0);
+  readonly formatStarted = computed(() => this.states().format !== 'waiting');
+  readonly aiStarted = computed(() => AI_CHECKS.some((c) => this.states()[c] !== 'waiting'));
   readonly pendingCount = computed(() => this.items().filter((i) => !i.done).length);
   readonly groups = computed(() =>
     REVIEW_CHECKS.filter((c) => this.states()[c.value] !== 'waiting').map((c) => ({
@@ -117,32 +130,50 @@ export class ChapterReviewComponent {
       return { ...g, fixable, marked };
     }),
   );
-  readonly currentLabel = computed(() => REVIEW_CHECKS[this.progress()?.step ?? 0]?.label ?? '');
+  readonly formatGroups = computed(() => this.groups().filter((g) => !g.ai));
+  readonly aiGroups = computed(() => this.groups().filter((g) => g.ai));
+  readonly currentLabel = computed(() => {
+    const check = this.runningChecks()[this.progress()?.step ?? 0];
+    return REVIEW_CHECKS.find((c) => c.value === check)?.label ?? '';
+  });
   readonly percent = computed(() => {
     const p = this.progress();
-    return p ? Math.round((100 * (p.step + (p.part - 1) / p.parts)) / REVIEW_CHECKS.length) : 0;
+    const total = Math.max(1, this.runningChecks().length);
+    return p ? Math.round((100 * (p.step + (p.part - 1) / p.parts)) / total) : 0;
   });
 
   constructor() {
     void this.api.ensureStatus();
   }
 
-  async run(): Promise<void> {
+  /** Formatação: regras, sem IA e sem gastar a cota. */
+  runFormat(): Promise<void> {
+    return this.runChecks(['format'], false);
+  }
+
+  /** Revisão com IA: abre a revisão (gasta um uso) e roda as cinco revisões com o id dela. */
+  runAi(): Promise<void> {
+    return this.runChecks(AI_CHECKS, true);
+  }
+
+  private async runChecks(checks: ReviewCheck[], ai: boolean): Promise<void> {
     const bookId = this.bookId();
     if (this.running() || !bookId) {
       return;
     }
     this.running.set(true);
-    this.started.set(true);
+    this.runningChecks.set(checks);
     this.cancelled = false;
     this.error.set(null);
-    this.errors.set({});
-    this.items.set([]);
-    this.selected.set(new Set());
-    this.states.set(this.allStates('waiting'));
+    this.errors.update((all) =>
+      Object.fromEntries(Object.entries(all).filter(([check]) => !checks.includes(check as ReviewCheck))),
+    );
+    this.items.update((list) => list.filter((i) => !checks.includes(i.check)));
+    this.states.update((all) => ({ ...all, ...Object.fromEntries(checks.map((c) => [c, 'waiting'])) }));
     try {
       await this.flush()();
-      for (const [step, { value: check }] of REVIEW_CHECKS.entries()) {
+      const runId = ai ? (await firstValueFrom(this.api.startReview(bookId, this.chapterId()))).runId : null;
+      for (const [step, check] of checks.entries()) {
         if (this.cancelled) {
           this.setState(check, 'stopped');
           continue;
@@ -150,7 +181,7 @@ export class ChapterReviewComponent {
         this.setState(check, 'running');
         this.progress.set({ step, part: 1, parts: 1 });
         try {
-          await this.review(bookId, check, step);
+          await this.review(bookId, check, step, runId);
           this.setState(check, this.cancelled ? 'stopped' : 'done');
         } catch (error) {
           this.setState(check, 'error');
@@ -161,7 +192,7 @@ export class ChapterReviewComponent {
         }
       }
     } catch (error) {
-      this.error.set(problemMessage(error, 'Não foi possível salvar o capítulo antes de revisar.'));
+      this.error.set(problemMessage(error, 'Não foi possível começar a revisão agora.'));
     } finally {
       this.running.set(false);
       this.progress.set(null);
@@ -242,11 +273,11 @@ export class ChapterReviewComponent {
   }
 
   /** Uma revisão, parte por parte, até o fim do capítulo (ou até o autor parar). */
-  private async review(bookId: string, check: ReviewCheck, step: number): Promise<void> {
+  private async review(bookId: string, check: ReviewCheck, step: number, runId: string | null): Promise<void> {
     let fromBlock: string | null = null;
     do {
       const result: ReviewResult = await firstValueFrom(
-        this.api.review({ bookId, chapterId: this.chapterId(), check, fromBlock }),
+        this.api.review({ bookId, chapterId: this.chapterId(), check, fromBlock, runId }),
       );
       const added = result.findings
         .filter((f) => !alreadyFixed(this.items(), f))
