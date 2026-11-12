@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, signal } from '@angular/core';
+import { Component, ElementRef, inject, input, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -15,11 +15,13 @@ import { ProfileApi } from '../../core/api/profile.api';
 import { problemMessage } from '../../core/api/problem';
 import { AuthService } from '../../core/auth/auth.service';
 import { Profile } from '../../core/models/api.models';
+import { GoogleAccountComponent } from './google-account/google-account';
 import { compressImage } from '../../core/util/image';
 
 @Component({
   selector: 'app-profile',
   imports: [
+    GoogleAccountComponent,
     ReactiveFormsModule,
     RouterLink,
     AutoCompleteModule,
@@ -38,6 +40,9 @@ export class ProfileComponent {
   private readonly auth = inject(AuthService);
   private readonly toast = inject(MessageService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+
+  /** ?google= da volta do Google (ligar a conta) */
+  readonly google = input<string>();
 
   readonly audiences = ['Infantil', 'Juvenil', 'Jovem adulto', 'Adulto'];
   readonly languages = ['Português', 'Inglês', 'Espanhol', 'Francês'];

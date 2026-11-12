@@ -460,6 +460,12 @@ export interface Profile {
     email: string;
     emailVerified: boolean;
     birthDate: string | null;
+    /** Entra também (ou só) pelo Google. */
+    googleLinked: boolean;
+    /** A conta Google ligada; null se não está ligada ou foi ligada antes de guardarmos o e-mail. */
+    googleEmail: string | null;
+    /** Sem senha, a conta só entra pelo Google e não dá para desligar. */
+    hasPassword: boolean;
   };
   author: AuthorProfile | null;
 }

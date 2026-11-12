@@ -10,6 +10,7 @@ export class ProfileApi {
   private readonly http = inject(HttpClient);
   private readonly base = `${environment.apiBaseUrl}/profile`;
   private readonly sessionsUrl = `${environment.apiBaseUrl}/me/sessions`;
+  private readonly googleUrl = `${environment.apiBaseUrl}/me/google`;
 
   get(): Observable<Profile> {
     return this.http.get<Profile>(this.base);
@@ -21,6 +22,16 @@ export class ProfileApi {
 
   updateAuthor(request: AuthorProfileRequest): Observable<AuthorProfile> {
     return this.http.put<AuthorProfile>(`${this.base}/author`, request);
+  }
+
+  /** Tíquete de uso único (5 minutos) para ligar o Google a esta conta. */
+  startGoogleLink(): Observable<{ ticket: string }> {
+    return this.http.post<{ ticket: string }>(`${this.googleUrl}/link`, {});
+  }
+
+  /** Desliga o Google (só para quem tem senha). */
+  unlinkGoogle(): Observable<void> {
+    return this.http.delete<void>(this.googleUrl);
   }
 
   sessions(): Observable<DeviceSession[]> {
