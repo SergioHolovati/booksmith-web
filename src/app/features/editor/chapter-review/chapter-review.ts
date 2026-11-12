@@ -10,6 +10,7 @@ import { firstValueFrom } from 'rxjs';
 import { AssistApi } from '../../../core/api/assist.api';
 import { problemMessage } from '../../../core/api/problem';
 import { ReviewCheck, ReviewItem, ReviewResult } from '../../../core/models/api.models';
+import { applyFix } from './apply-fix';
 import { findQuote } from './find-quote';
 
 /**
@@ -26,6 +27,8 @@ export const REVIEW_CHECKS: { value: ReviewCheck; label: string }[] = [
 ];
 
 interface ReviewView extends ReviewItem {
+  /** Identifica o apontamento na marcação para corrigir em lote. */
+  id: number;
   check: ReviewCheck;
   /** Ortografia corrigida ou apontamento dispensado: sai da lista. */
   done: boolean;
@@ -43,7 +46,9 @@ export function alreadyFixed(list: ReviewItem[], item: ReviewItem): boolean {
   return list.some((other) => {
     const known = other.fix && other.blockId === item.blockId && other.quote ? core(other.quote) : '';
     const shorter = Math.min(known.length, quote.length);
-    return shorter >= 3 && (known.includes(quote) || quote.includes(known));
+    // Um parágrafo inteiro (fala convertida para travessão) não esconde uma frase apontada dentro dele
+    const similar = Math.max(known.length, quote.length) <= shorter * 3;
+    return shorter >= 3 && similar && (known.includes(quote) || quote.includes(known));
   });
 }
 
@@ -92,7 +97,10 @@ export class ChapterReviewComponent {
   readonly progress = signal<{ step: number; part: number; parts: number } | null>(null);
   readonly error = signal<string | null>(null);
   readonly items = signal<ReviewView[]>([]);
+  /** Apontamentos marcados para "Corrigir marcados". A formatação (regras exatas) já vem marcada. */
+  readonly selected = signal<ReadonlySet<number>>(new Set());
   private cancelled = false;
+  private nextId = 0;
 
   readonly status = this.api.status;
   readonly pendingCount = computed(() => this.items().filter((i) => !i.done).length);
@@ -103,7 +111,11 @@ export class ChapterReviewComponent {
       error: this.errors()[c.value] ?? null,
       items: this.items().filter((i) => i.check === c.value && !i.done),
       found: this.items().some((i) => i.check === c.value),
-    })),
+    })).map((g) => {
+      const fixable = g.items.filter((i) => i.fix && i.quote);
+      const marked = fixable.filter((i) => this.selected().has(i.id));
+      return { ...g, fixable, marked };
+    }),
   );
   readonly currentLabel = computed(() => REVIEW_CHECKS[this.progress()?.step ?? 0]?.label ?? '');
   readonly percent = computed(() => {
@@ -126,6 +138,7 @@ export class ChapterReviewComponent {
     this.error.set(null);
     this.errors.set({});
     this.items.set([]);
+    this.selected.set(new Set());
     this.states.set(this.allStates('waiting'));
     try {
       await this.flush()();
@@ -171,21 +184,61 @@ export class ChapterReviewComponent {
     editor.chain().focus().setTextSelection(range).scrollIntoView().run();
   }
 
-  /** Troca só o trecho apontado pela sugestão (ortografia, frases, maiúsculas; dá para desfazer no editor). */
+  /** Troca só o trecho apontado pela sugestão (ortografia, frases, formatação; dá para desfazer no editor). */
   fix(item: ReviewView): void {
-    const editor = this.editor();
-    const range = editor && item.quote ? findQuote(editor.state.doc, item.quote, item.blockId) : null;
-    if (!editor || !range) {
+    if (!this.applyOne(item)) {
       this.toast.add({ severity: 'warn', summary: 'Esse trecho mudou ou já não está no texto.', life: 3000 });
-      this.dismiss(item);
-      return;
     }
-    editor.view.dispatch(editor.state.tr.insertText(item.suggestion, range.from, range.to));
     this.dismiss(item);
+  }
+
+  /** Corrige de uma vez todos os marcados do grupo, na ordem em que aparecem; um Ctrl+Z por correção. */
+  fixMarked(items: ReviewView[]): void {
+    const marked = items.filter((i) => i.fix && i.quote && this.selected().has(i.id));
+    let applied = 0;
+    for (const item of marked) {
+      applied += this.applyOne(item) ? 1 : 0;
+    }
+    this.items.update((list) => list.map((i) => (marked.includes(i) ? { ...i, done: true } : i)));
+    const missed = marked.length - applied;
+    const summary = applied === 1 ? '1 correção aplicada.' : `${applied} correções aplicadas.`;
+    this.toast.add({
+      severity: missed ? 'warn' : 'success',
+      summary: missed ? `${summary} ${missed} trecho(s) já tinham mudado.` : summary,
+      life: 4000,
+    });
+  }
+
+  toggle(item: ReviewView): void {
+    this.selected.update((set) => {
+      const next = new Set(set);
+      if (next.has(item.id)) {
+        next.delete(item.id);
+      } else {
+        next.add(item.id);
+      }
+      return next;
+    });
+  }
+
+  /** Marca todos os corrigíveis do grupo; se já estão todos marcados, desmarca. */
+  toggleAll(items: ReviewView[]): void {
+    const fixable = items.filter((i) => i.fix && i.quote).map((i) => i.id);
+    const all = fixable.every((id) => this.selected().has(id));
+    this.selected.update((set) => {
+      const next = new Set(set);
+      fixable.forEach((id) => (all ? next.delete(id) : next.add(id)));
+      return next;
+    });
   }
 
   dismiss(item: ReviewView): void {
     this.items.update((list) => list.map((i) => (i === item ? { ...i, done: true } : i)));
+  }
+
+  private applyOne(item: ReviewView): boolean {
+    const editor = this.editor();
+    return !!editor && !!item.quote && applyFix(editor, item.quote, item.suggestion, item.blockId);
   }
 
   /** Uma revisão, parte por parte, até o fim do capítulo (ou até o autor parar). */
@@ -195,10 +248,13 @@ export class ChapterReviewComponent {
       const result: ReviewResult = await firstValueFrom(
         this.api.review({ bookId, chapterId: this.chapterId(), check, fromBlock }),
       );
-      this.items.update((list) => [
-        ...list,
-        ...result.findings.filter((f) => !alreadyFixed(list, f)).map((f) => ({ ...f, check, done: false })),
-      ]);
+      const added = result.findings
+        .filter((f) => !alreadyFixed(this.items(), f))
+        .map((f) => ({ ...f, id: this.nextId++, check, done: false }));
+      this.items.update((list) => [...list, ...added]);
+      if (check === 'format') {
+        this.selected.update((set) => new Set([...set, ...added.filter((i) => i.fix).map((i) => i.id)]));
+      }
       fromBlock = result.nextBlock;
       this.progress.set({ step, part: result.part + 1, parts: result.parts });
     } while (fromBlock && !this.cancelled);

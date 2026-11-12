@@ -321,7 +321,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
           '**Melhorias no enredo:** ritmo, tensão, ganchos e conflitos que poderiam render mais.',
         ],
       },
-      { p: 'Toque no trecho destacado para ir até ele no texto. Quando há **Corrigir** (ortografia, frases, maiúsculas), ele troca só aquele trecho, e dá para desfazer. Nos outros, a IA só aponta; quem muda o texto é você. **Dispensar** tira o apontamento da lista.' },
+      { p: 'Toque no trecho destacado para ir até ele no texto. Quando há **Corrigir** (formatação, ortografia, frases), ele troca só aquele trecho, e dá para desfazer. Para corrigir vários de uma vez, marque as caixinhas (ou **Marcar todos**) e toque em **Corrigir marcados**. Na formatação, tudo já vem marcado: um capítulo inteiro com aspas vira travessão em um toque. Nos outros, a IA só aponta; quem muda o texto é você. **Dispensar** tira o apontamento da lista.' },
       { p: 'Os apontamentos aparecem conforme cada revisão termina, e você vê o andamento. **Parar** interrompe o resto. Cada revisão completa usa pelo menos 5 pedidos da cota do dia (a formatação não conta). O que estiver por salvar é salvo antes. A IA erra às vezes, principalmente em continuidade e furos: confira antes de mudar.' },
     ],
   },

@@ -1,11 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { Editor } from '@tiptap/core';
 import { MessageService } from 'primeng/api';
 import { Observable, of, throwError } from 'rxjs';
 
 import { AssistApi } from '../../../core/api/assist.api';
-import { ReviewCheck, ReviewRequest, ReviewResult } from '../../../core/models/api.models';
+import { ReviewCheck, ReviewItem, ReviewRequest, ReviewResult } from '../../../core/models/api.models';
+import { manuscriptExtensions } from '../schema/manuscript-extensions';
 import { alreadyFixed, ChapterReviewComponent } from './chapter-review';
 
 function result(check: ReviewCheck, nextBlock: string | null = null, part = 1, parts = 1): ReviewResult {
@@ -117,4 +119,64 @@ describe('ChapterReviewComponent', () => {
     expect(alreadyFixed([format], { ...spelling, quote: '"próxima pergunta', blockId: 'b2' })).toBe(false);
     expect(alreadyFixed([{ ...format, fix: false }], { ...spelling, quote: '"próxima pergunta' })).toBe(false);
   });
+
+  it('formatação vem marcada; corrigir marcados aplica todos no editor de uma vez', async () => {
+    const dialogue = (blockId: string, quote: string, suggestion: string): ReviewItem =>
+      ({ blockId, quote, problem: 'aspas', suggestion, fix: true, kind: 'dialogue' });
+    const { component, toasts } = setupWithEditor((r) => of({
+      ...result(r.check),
+      findings: r.check === 'format'
+        ? [
+            dialogue('b1', '"Oi" disse Ana.', '— Oi — disse Ana.'),
+            dialogue('b2', '"duvido" respondi.', '— Duvido — respondi.'),
+            { blockId: 'b2', quote: 'respondi', problem: 'tag', suggestion: 'corte', fix: false, kind: 'tag' },
+          ]
+        : r.check === 'spelling'
+          ? [{ blockId: 'b1', quote: 'Ana', problem: 'p', suggestion: 'Ana.', fix: true }]
+          : [],
+    }));
+
+    await component.run();
+    const format = component.groups().find((g) => g.value === 'format')!;
+    const spelling = component.groups().find((g) => g.value === 'spelling')!;
+    expect(format.fixable).toHaveLength(2);
+    expect(format.marked).toHaveLength(2);
+    // a IA não vem marcada: o autor escolhe
+    expect(spelling.marked).toHaveLength(0);
+
+    component.toggleAll(format.items);
+    expect(component.groups().find((g) => g.value === 'format')!.marked).toHaveLength(0);
+    component.toggleAll(format.items);
+    component.fixMarked(format.items);
+
+    expect(component.editor()!.state.doc.textContent).toBe('— Oi — disse Ana.— Duvido — respondi.');
+    // o aviso sem correção continua na lista; os corrigidos saem
+    expect(component.groups().find((g) => g.value === 'format')!.items.map((i) => i.kind)).toEqual(['tag']);
+    expect(toasts.at(-1)).toContain('2 correções aplicadas');
+  });
 });
+
+function setupWithEditor(answer: (request: ReviewRequest) => Observable<ReviewResult>) {
+  const toasts: string[] = [];
+  TestBed.configureTestingModule({
+    providers: [
+      { provide: AssistApi, useValue: { status: signal(null), ensureStatus: () => Promise.resolve(), review: answer } },
+      { provide: MessageService, useValue: { add: (m: { summary: string }) => toasts.push(m.summary) } },
+    ],
+  });
+  const editor = new Editor({
+    extensions: manuscriptExtensions(''),
+    content: {
+      type: 'doc',
+      content: [
+        { type: 'paragraph', attrs: { id: 'b1' }, content: [{ type: 'text', text: '"Oi" disse Ana.' }] },
+        { type: 'paragraph', attrs: { id: 'b2' }, content: [{ type: 'text', text: '"duvido" respondi.' }] },
+      ],
+    },
+  });
+  const fixture = TestBed.createComponent(ChapterReviewComponent);
+  fixture.componentRef.setInput('chapterId', 'c1');
+  fixture.componentRef.setInput('bookId', 'l1');
+  fixture.componentRef.setInput('editor', editor);
+  return { component: fixture.componentInstance, toasts };
+}

@@ -1017,6 +1017,8 @@ export interface ReviewItem {
   suggestion: string;
   /** A sugestão substitui o trecho direto: o app oferece "Corrigir". */
   fix: boolean;
+  /** A regra da formatação (dialogue, capital, honorific, tag); vazio nas revisões da IA. */
+  kind?: string | null;
 }
 
 export interface ReviewResult {

@@ -52,10 +52,30 @@
         <p class="muted small empty">{{ group.found ? 'Tudo visto.' : 'Nada para apontar.' }}</p>
       }
 
+      @if (group.fixable.length > 1) {
+        <div class="bulk">
+          <label class="mark-all">
+            <input type="checkbox" [checked]="group.marked.length === group.fixable.length"
+              [indeterminate]="group.marked.length > 0 && group.marked.length < group.fixable.length"
+              (change)="toggleAll(group.items)" />
+            Marcar todos ({{ group.fixable.length }})
+          </label>
+          <p-button [label]="'Corrigir marcados (' + group.marked.length + ')'" icon="pi pi-check-circle"
+            size="small" [disabled]="!group.marked.length" (onClick)="fixMarked(group.items)" />
+        </div>
+      }
+
       @if (group.items.length) {
         <ul class="items">
-          @for (item of group.items; track $index) {
-            <li class="item">
+          @for (item of group.items; track item.id) {
+            <li class="item" [class.marked]="selected().has(item.id)">
+              @if (item.fix && item.quote) {
+                <label class="mark">
+                  <input type="checkbox" [checked]="selected().has(item.id)" (change)="toggle(item)"
+                    [attr.aria-label]="'Marcar para corrigir: ' + item.quote" />
+                  <span class="muted small">Marcar</span>
+                </label>
+              }
               @if (item.quote) {
                 <button type="button" class="quote" (click)="goTo(item)" [attr.aria-label]="'Ir ao trecho: ' + item.quote">
                   {{ item.quote }}
