@@ -291,6 +291,23 @@ export const HELP_ARTICLES: HelpArticle[] = [
     ],
   },
   {
+    slug: 'revisar-textos-do-livro',
+    title: 'Revisar a sinopse, o "sobre o autor" e as fichas',
+    summary: 'Ortografia, formatação e nomes ou fatos que divergem da história.',
+    topic: 'texto',
+    keywords: ['sinopse', 'sobre o autor', 'biografia', 'ficha', 'nome', 'acento', 'divergência', 'revisão', 'ortografia'],
+    body: [
+      { p: 'Na página do livro, abra **Revisar textos do livro**. Ele olha a sinopse, o "Sobre o autor" e as fichas dos personagens e compara com o que está escrito nos capítulos.' },
+      {
+        list: [
+          '**Revisar sem IA** (livre): ortografia, formatação (espaço duplo, vírgula grudada) e nomes escritos de outro jeito, como "Sergio" na sinopse e "Sérgio" na história.',
+          '**Comparar com IA** (1 dos seus 3 usos a cada 24 horas): fatos que divergem, como a sinopse dizer 6 meses e a história dizer 5.',
+        ],
+      },
+      { p: 'Os apontamentos aparecem separados por texto. Toque em **Editar** para ir direto à sinopse, às páginas do livro ou à ficha do personagem.' },
+    ],
+  },
+  {
     slug: 'pergunte-ao-livro',
     title: 'Pergunte ao seu livro',
     summary: 'Pergunte sobre a sua história e veja a resposta com os trechos de onde ela veio.',

@@ -7,6 +7,7 @@ import {
   AskRequest,
   AskResult,
   AssistStatus,
+  BookTextsResult,
   ReviewRequest,
   ReviewResult,
   ReviewStart,
@@ -45,6 +46,18 @@ export class AssistApi {
   /** Revisa uma parte do capítulo; o app pede as seguintes com `nextBlock` até acabar. */
   ask(request: AskRequest): Observable<AskResult> {
     return this.http.post<AskResult>(`${this.base}/assist/ask`, request).pipe(
+      tap((result) => this.status.update((s) => (s ? { ...s, remaining: result.remaining } : s))),
+    );
+  }
+
+  /** Sinopse, "sobre o autor" e fichas sem IA: ortografia, formatação e nomes que divergem da história. */
+  checkBookTexts(bookId: string): Observable<BookTextsResult> {
+    return this.http.post<BookTextsResult>(`${this.base}/assist/book-texts/check`, { bookId });
+  }
+
+  /** Os mesmos textos contra a história, com IA (gasta um uso): fatos que divergem. */
+  compareBookTexts(bookId: string): Observable<BookTextsResult> {
+    return this.http.post<BookTextsResult>(`${this.base}/assist/book-texts/compare`, { bookId }).pipe(
       tap((result) => this.status.update((s) => (s ? { ...s, remaining: result.remaining } : s))),
     );
   }

@@ -1064,3 +1064,28 @@ export interface AskResult {
   local: boolean;
   remaining: number;
 }
+
+/** Revisão dos textos do livro (sinopse, "sobre o autor", fichas) contra a história. */
+export interface BookTextItem {
+  /** synopsis, about ou character. */
+  source: 'synopsis' | 'about' | 'character';
+  /** A ficha, quando é de personagem. */
+  id: string | null;
+  /** "Sinopse", "Ficha de Lia · Medos". */
+  label: string;
+  quote: string;
+  context: string;
+  problem: string;
+  suggestion: string;
+  /** spelling, grammar, format, name (sem IA) ou fact (IA). */
+  kind: string;
+}
+
+export interface BookTextsResult {
+  items: BookTextItem[];
+  texts: number;
+  provider: string;
+  model: string;
+  local: boolean;
+  remaining: number;
+}

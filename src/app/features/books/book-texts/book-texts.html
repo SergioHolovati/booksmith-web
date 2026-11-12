@@ -1,0 +1,80 @@
+<section class="glass-card book-texts" aria-labelledby="book-texts-title">
+  <button type="button" class="texts-head" [attr.aria-expanded]="open()" (click)="open.set(!open())">
+    <i class="pi pi-file-check" aria-hidden="true"></i>
+    <span class="texts-text">
+      <strong id="book-texts-title">Revisar textos do livro</strong>
+      <small class="muted">Sinopse, "sobre o autor" e fichas, comparados com a história</small>
+    </span>
+    <i class="pi muted" [class.pi-chevron-down]="!open()" [class.pi-chevron-up]="open()" aria-hidden="true"></i>
+  </button>
+
+  @if (open()) {
+    <div class="texts-body">
+      <div class="action">
+        <div class="action-head">
+          <strong>Sem IA</strong>
+          <span class="free-badge">livre</span>
+        </div>
+        <p class="muted small">
+          Ortografia, formatação e nomes escritos diferente da história (como "Sergio" na sinopse e "Sérgio" nos
+          capítulos).
+        </p>
+        <p-button label="Revisar sem IA" icon="pi pi-align-left" severity="secondary" size="small"
+          [loading]="loading() === 'free'" [disabled]="!!loading()" (onClick)="checkFree()" />
+      </div>
+
+      @if (aiEnabled()) {
+        <div class="action ai">
+          <div class="action-head">
+            <strong>Comparar com a história</strong>
+            <span class="ai-badge">IA</span>
+          </div>
+          <p class="muted small">
+            Fatos que divergem: idade, parentesco, aparência, datas, o que acontece. Usa 1 dos seus usos de IA:
+            restam {{ remaining() }} de {{ status()?.dailyLimit }} nas últimas 24 horas.
+          </p>
+          <p-button label="Comparar com IA" icon="pi pi-sparkles" size="small" [loading]="loading() === 'ai'"
+            [disabled]="!!loading() || remaining() === 0" (onClick)="compareAi()" />
+        </div>
+      }
+
+      @if (error(); as message) {
+        <p class="error small" role="alert">{{ message }}</p>
+      }
+
+      @if (checked()) {
+        @if (groups().length === 0) {
+          <p class="muted small" role="status">
+            Nada para apontar em {{ texts() }} {{ texts() === 1 ? 'texto' : 'textos' }}.
+          </p>
+        }
+        @for (group of groups(); track group.label) {
+          <section class="group">
+            <div class="group-head">
+              <h4>{{ group.label }} <span class="count">{{ group.items.length }}</span></h4>
+              <a class="edit" [routerLink]="group.link">Editar <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
+            </div>
+            <ul class="items">
+              @for (item of group.items; track $index) {
+                <li class="item" [attr.data-kind]="item.kind">
+                  <span class="kind small">{{ kindLabels[item.kind] ?? item.kind }}</span>
+                  <p class="context">{{ item.context }}</p>
+                  <p class="problem small">{{ item.problem }}</p>
+                  @if (item.suggestion) {
+                    <p class="suggestion small">
+                      @if (item.kind === 'fact') {
+                        {{ item.suggestion }}
+                      } @else {
+                        <span class="muted">Sugestão: </span><strong>{{ item.suggestion }}</strong>
+                      }
+                    </p>
+                  }
+                </li>
+              }
+            </ul>
+          </section>
+        }
+      }
+    </div>
+  }
+</section>

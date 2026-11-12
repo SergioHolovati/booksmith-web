@@ -1,0 +1,160 @@
+.book-texts {
+  padding: 0;
+  overflow: hidden;
+}
+
+.texts-head {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  width: 100%;
+  min-height: 64px;
+  padding: .85rem 1rem;
+  border: none;
+  background: none;
+  color: var(--bs-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  > .pi-file-check {
+    color: var(--bs-accent-light);
+    font-size: 1.1rem;
+  }
+}
+
+.texts-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: .15rem;
+  min-width: 0;
+}
+
+.texts-body {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  padding: 0 1rem 1rem;
+}
+
+.action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .4rem;
+  padding: .75rem;
+  border: 1px solid var(--bs-border);
+  border-radius: var(--bs-radius-sm);
+
+  &.ai {
+    border-color: var(--bs-sand-soft);
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.action-head {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.free-badge {
+  padding: .1rem .5rem;
+  border-radius: 999px;
+  background: rgba(46, 204, 113, 0.12);
+  color: var(--bs-success);
+  font-size: .72rem;
+  font-weight: 600;
+}
+
+.ai-badge {
+  padding: .05rem .4rem;
+  border-radius: 999px;
+  background: var(--bs-sand-soft);
+  color: var(--bs-sand);
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+
+.group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+
+  h4 {
+    margin: 0;
+    font-size: .95rem;
+  }
+}
+
+.count {
+  padding: .05rem .4rem;
+  border-radius: 999px;
+  background: var(--bs-sand-soft);
+  font-size: .75rem;
+}
+
+.edit {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  min-height: 40px;
+  color: var(--bs-accent-light);
+  font-size: .85rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  margin: .4rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+  padding: .6rem .7rem;
+  border-radius: var(--bs-radius-sm);
+  background: var(--bs-surface);
+  overflow-wrap: anywhere;
+
+  p {
+    margin: 0;
+  }
+}
+
+.kind {
+  color: var(--bs-accent-light);
+  font-weight: 600;
+}
+
+.context {
+  padding-left: .5rem;
+  border-left: 3px solid var(--bs-ember);
+  font-family: var(--bs-font-prose);
+  font-size: .9rem;
+}
+
+.problem {
+  color: var(--bs-text-soft);
+}
+
+.suggestion strong {
+  color: var(--bs-success);
+}
+
+.error {
+  margin: 0;
+  color: var(--bs-danger);
+}
