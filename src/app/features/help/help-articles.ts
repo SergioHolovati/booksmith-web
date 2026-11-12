@@ -293,21 +293,23 @@ export const HELP_ARTICLES: HelpArticle[] = [
   {
     slug: 'revisao-da-ia',
     title: 'Revisão da IA no capítulo',
-    summary: 'Ortografia, furos de roteiro, continuidade e melhorias no enredo. A IA aponta; você decide.',
+    summary: 'Formatação, ortografia, frases, furos de roteiro, continuidade e melhorias no enredo. A IA aponta; você decide.',
     topic: 'texto',
-    keywords: ['revisão', 'revisar', 'ortografia', 'gramática', 'erro', 'furo', 'roteiro', 'continuidade', 'enredo', 'melhorar', 'ia'],
+    keywords: ['revisão', 'revisar', 'ortografia', 'gramática', 'erro', 'furo', 'roteiro', 'continuidade', 'enredo', 'melhorar', 'ia', 'formatação', 'travessão', 'aspas', 'frase', 'estilo'],
     body: [
-      { p: 'No editor, toque em **Revisão da IA** (o quadradinho com o visto, no alto) e depois em **Revisar o capítulo**. Não precisa escolher nada: a IA faz as quatro revisões de uma vez, e os apontamentos aparecem separados por tipo:' },
+      { p: 'No editor, toque em **Revisão da IA** (o quadradinho com o visto, no alto) e depois em **Revisar o capítulo**. Não precisa escolher nada: são seis revisões de uma vez, e os apontamentos aparecem separados por tipo:' },
       {
         list: [
+          '**Formatação** (sem IA, não gasta a cota): falas com aspas onde o livro usa travessão, fala começando com minúscula, "dona Lurdes" num lugar e "Dona Lurdes" em outro, "perguntou Ana" repetido.',
           '**Ortografia:** acentos, concordância, crase, pontuação. Os nomes do seu universo não contam como erro.',
+          '**Frases e estilo:** redundância, ordem estranha das palavras, palavra que sobra. A sua voz e a fala dos personagens ficam como estão.',
           '**Furos de roteiro:** o que não se sustenta, comparando com os capítulos anteriores, as notas e as fichas.',
           '**Continuidade:** o que contradiz as fichas (olhos, idade, lugares, regras do mundo) ou o que já foi contado.',
           '**Melhorias no enredo:** ritmo, tensão, ganchos e conflitos que poderiam render mais.',
         ],
       },
-      { p: 'Toque no trecho destacado para ir até ele no texto. Na ortografia, **Corrigir** troca só aquele trecho, e dá para desfazer. Nos outros, a IA só aponta; quem muda o texto é você. **Dispensar** tira o apontamento da lista.' },
-      { p: 'Os apontamentos aparecem conforme cada revisão termina, e você vê o andamento. **Parar** interrompe o resto. Cada revisão completa usa pelo menos 4 pedidos da cota do dia. O que estiver por salvar é salvo antes. A IA erra às vezes, principalmente em continuidade e furos: confira antes de mudar.' },
+      { p: 'Toque no trecho destacado para ir até ele no texto. Quando há **Corrigir** (ortografia, frases, maiúsculas), ele troca só aquele trecho, e dá para desfazer. Nos outros, a IA só aponta; quem muda o texto é você. **Dispensar** tira o apontamento da lista.' },
+      { p: 'Os apontamentos aparecem conforme cada revisão termina, e você vê o andamento. **Parar** interrompe o resto. Cada revisão completa usa pelo menos 5 pedidos da cota do dia (a formatação não conta). O que estiver por salvar é salvo antes. A IA erra às vezes, principalmente em continuidade e furos: confira antes de mudar.' },
     ],
   },
   {

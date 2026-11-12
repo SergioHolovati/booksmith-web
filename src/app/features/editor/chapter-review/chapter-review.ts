@@ -12,9 +12,14 @@ import { problemMessage } from '../../../core/api/problem';
 import { ReviewCheck, ReviewItem, ReviewResult } from '../../../core/models/api.models';
 import { findQuote } from './find-quote';
 
-/** As revisões, na ordem em que rodam: a ortografia primeiro, porque é a mais rápida e a que se corrige na hora. */
+/**
+ * As revisões, na ordem em que rodam: a formatação primeiro (regras, sem IA, instantânea), depois ortografia e
+ * frases, que se corrigem na hora, e por fim a história.
+ */
 export const REVIEW_CHECKS: { value: ReviewCheck; label: string }[] = [
+  { value: 'format', label: 'Formatação' },
   { value: 'spelling', label: 'Ortografia' },
+  { value: 'style', label: 'Frases e estilo' },
   { value: 'holes', label: 'Furos de roteiro' },
   { value: 'continuity', label: 'Continuidade' },
   { value: 'improvements', label: 'Melhorias no enredo' },
@@ -24,6 +29,27 @@ interface ReviewView extends ReviewItem {
   check: ReviewCheck;
   /** Ortografia corrigida ou apontamento dispensado: sai da lista. */
   done: boolean;
+}
+
+/**
+ * Uma correção que outra revisão já ofereceu para o mesmo trecho (a formatação e a ortografia apontam a mesma fala
+ * em minúscula, por exemplo): fica só a primeira.
+ */
+export function alreadyFixed(list: ReviewItem[], item: ReviewItem): boolean {
+  if (!item.fix || !item.quote) {
+    return false;
+  }
+  const quote = core(item.quote);
+  return list.some((other) => {
+    const known = other.fix && other.blockId === item.blockId && other.quote ? core(other.quote) : '';
+    const shorter = Math.min(known.length, quote.length);
+    return shorter >= 3 && (known.includes(quote) || quote.includes(known));
+  });
+}
+
+/** O trecho sem maiúsculas e sem a pontuação das pontas ('"Próxima,' → 'próxima'). */
+function core(text: string): string {
+  return text.toLowerCase().replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '');
 }
 
 type CheckState = 'waiting' | 'running' | 'done' | 'error' | 'stopped';
@@ -145,7 +171,7 @@ export class ChapterReviewComponent {
     editor.chain().focus().setTextSelection(range).scrollIntoView().run();
   }
 
-  /** Ortografia: troca só o trecho apontado pela correção (dá para desfazer no editor). */
+  /** Troca só o trecho apontado pela sugestão (ortografia, frases, maiúsculas; dá para desfazer no editor). */
   fix(item: ReviewView): void {
     const editor = this.editor();
     const range = editor && item.quote ? findQuote(editor.state.doc, item.quote, item.blockId) : null;
@@ -169,7 +195,10 @@ export class ChapterReviewComponent {
       const result: ReviewResult = await firstValueFrom(
         this.api.review({ bookId, chapterId: this.chapterId(), check, fromBlock }),
       );
-      this.items.update((list) => [...list, ...result.findings.map((f) => ({ ...f, check, done: false }))]);
+      this.items.update((list) => [
+        ...list,
+        ...result.findings.filter((f) => !alreadyFixed(list, f)).map((f) => ({ ...f, check, done: false })),
+      ]);
       fromBlock = result.nextBlock;
       this.progress.set({ step, part: result.part + 1, parts: result.parts });
     } while (fromBlock && !this.cancelled);
@@ -180,6 +209,6 @@ export class ChapterReviewComponent {
   }
 
   private allStates(state: CheckState): Record<ReviewCheck, CheckState> {
-    return { spelling: state, holes: state, continuity: state, improvements: state };
+    return { format: state, spelling: state, style: state, holes: state, continuity: state, improvements: state };
   }
 }

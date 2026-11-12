@@ -999,7 +999,7 @@ export interface SuggestionResult {
 
 // ===== Revisão do capítulo pela IA (§4.11) =====
 
-export type ReviewCheck = 'spelling' | 'holes' | 'continuity' | 'improvements';
+export type ReviewCheck = 'format' | 'spelling' | 'style' | 'holes' | 'continuity' | 'improvements';
 
 export interface ReviewRequest {
   bookId: string;
@@ -1009,12 +1009,14 @@ export interface ReviewRequest {
   fromBlock?: string | null;
 }
 
-/** Um apontamento: o trecho (se houver), o problema e a sugestão. Na ortografia, a sugestão é a correção. */
+/** Um apontamento: o trecho (se houver), o problema e a sugestão. */
 export interface ReviewItem {
   blockId: string | null;
   quote: string | null;
   problem: string;
   suggestion: string;
+  /** A sugestão substitui o trecho direto: o app oferece "Corrigir". */
+  fix: boolean;
 }
 
 export interface ReviewResult {

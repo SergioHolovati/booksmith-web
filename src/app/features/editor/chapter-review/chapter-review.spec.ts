@@ -6,11 +6,11 @@ import { Observable, of, throwError } from 'rxjs';
 
 import { AssistApi } from '../../../core/api/assist.api';
 import { ReviewCheck, ReviewRequest, ReviewResult } from '../../../core/models/api.models';
-import { ChapterReviewComponent } from './chapter-review';
+import { alreadyFixed, ChapterReviewComponent } from './chapter-review';
 
 function result(check: ReviewCheck, nextBlock: string | null = null, part = 1, parts = 1): ReviewResult {
   return {
-    findings: [{ blockId: 'b1', quote: `trecho ${check} ${part}`, problem: 'p', suggestion: 's' }],
+    findings: [{ blockId: 'b1', quote: `trecho ${check} ${part}`, problem: 'p', suggestion: 's', fix: false }],
     nextBlock,
     part,
     parts,
@@ -44,7 +44,7 @@ function setup(answer: (request: ReviewRequest) => Observable<ReviewResult>) {
 }
 
 describe('ChapterReviewComponent', () => {
-  it('roda as quatro revisões em sequência, com todas as partes de cada uma', async () => {
+  it('roda as seis revisões em sequência, com todas as partes de cada uma', async () => {
     const { component, calls } = setup((r) =>
       of(r.check === 'spelling' && !r.fromBlock ? result('spelling', 'b9', 1, 2) : result(r.check, null, r.fromBlock ? 2 : 1, r.fromBlock ? 2 : 1)),
     );
@@ -52,14 +52,18 @@ describe('ChapterReviewComponent', () => {
     await component.run();
 
     expect(calls.map((c) => `${c.check}:${c.fromBlock ?? '-'}`)).toEqual([
+      'format:-',
       'spelling:-',
       'spelling:b9',
+      'style:-',
       'holes:-',
       'continuity:-',
       'improvements:-',
     ]);
     expect(component.groups().map((g) => [g.value, g.state, g.items.length])).toEqual([
+      ['format', 'done', 1],
       ['spelling', 'done', 2],
+      ['style', 'done', 1],
       ['holes', 'done', 1],
       ['continuity', 'done', 1],
       ['improvements', 'done', 1],
@@ -74,7 +78,7 @@ describe('ChapterReviewComponent', () => {
 
     await component.run();
 
-    expect(calls).toHaveLength(4);
+    expect(calls).toHaveLength(6);
     const holes = component.groups().find((g) => g.value === 'holes');
     expect(holes?.state).toBe('error');
     expect(holes?.error).toBeTruthy();
@@ -88,8 +92,8 @@ describe('ChapterReviewComponent', () => {
 
     await component.run();
 
-    expect(calls.map((c) => c.check)).toEqual(['spelling', 'holes']);
-    expect(component.groups().map((g) => g.state)).toEqual(['done', 'error', 'stopped', 'stopped']);
+    expect(calls.map((c) => c.check)).toEqual(['format', 'spelling', 'style', 'holes']);
+    expect(component.groups().map((g) => g.state)).toEqual(['done', 'done', 'done', 'error', 'stopped', 'stopped']);
   });
 
   it('dispensar tira o apontamento só do seu grupo', async () => {
@@ -101,6 +105,16 @@ describe('ChapterReviewComponent', () => {
 
     expect(component.groups()[0].items).toHaveLength(0);
     expect(component.groups()[1].items).toHaveLength(1);
-    expect(component.pendingCount()).toBe(3);
+    expect(component.pendingCount()).toBe(5);
+  });
+
+  it('não repete uma correção que outra revisão já ofereceu no mesmo trecho', () => {
+    const format = { blockId: 'b1', quote: '"próxima', problem: 'minúscula', suggestion: '"Próxima', fix: true };
+    const spelling = { blockId: 'b1', quote: 'próxima pergunta', problem: 'm', suggestion: 'Próxima pergunta', fix: true };
+    expect(alreadyFixed([format], spelling)).toBe(true);
+    expect(alreadyFixed([format], { ...spelling, quote: 'pergunta, como' })).toBe(false);
+    // outro parágrafo, ou um apontamento sem correção direta: fica
+    expect(alreadyFixed([format], { ...spelling, quote: '"próxima pergunta', blockId: 'b2' })).toBe(false);
+    expect(alreadyFixed([{ ...format, fix: false }], { ...spelling, quote: '"próxima pergunta' })).toBe(false);
   });
 });
