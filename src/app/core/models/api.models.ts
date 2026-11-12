@@ -996,3 +996,34 @@ export interface SuggestionResult {
   local: boolean;
   remaining: number;
 }
+
+// ===== Revisão do capítulo pela IA (§4.11) =====
+
+export type ReviewCheck = 'spelling' | 'holes' | 'continuity' | 'improvements';
+
+export interface ReviewRequest {
+  bookId: string;
+  chapterId: string;
+  check: ReviewCheck;
+  /** Onde começa a parte pedida (`nextBlock` da resposta anterior); vazio = a primeira. */
+  fromBlock?: string | null;
+}
+
+/** Um apontamento: o trecho (se houver), o problema e a sugestão. Na ortografia, a sugestão é a correção. */
+export interface ReviewItem {
+  blockId: string | null;
+  quote: string | null;
+  problem: string;
+  suggestion: string;
+}
+
+export interface ReviewResult {
+  findings: ReviewItem[];
+  nextBlock: string | null;
+  part: number;
+  parts: number;
+  remaining: number;
+  provider: string;
+  model: string;
+  local: boolean;
+}

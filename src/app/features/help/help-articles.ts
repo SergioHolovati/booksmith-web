@@ -291,6 +291,26 @@ export const HELP_ARTICLES: HelpArticle[] = [
     ],
   },
   {
+    slug: 'revisao-da-ia',
+    title: 'Revisão da IA no capítulo',
+    summary: 'Ortografia, furos de roteiro, continuidade e melhorias no enredo. A IA aponta; você decide.',
+    topic: 'texto',
+    keywords: ['revisão', 'revisar', 'ortografia', 'gramática', 'erro', 'furo', 'roteiro', 'continuidade', 'enredo', 'melhorar', 'ia'],
+    body: [
+      { p: 'No editor, toque em **Revisão da IA** (o quadradinho com o visto, no alto) e escolha o que revisar:' },
+      {
+        list: [
+          '**Ortografia:** acentos, concordância, crase, pontuação. Os nomes do seu universo não contam como erro.',
+          '**Furos de roteiro:** o que não se sustenta, comparando com os capítulos anteriores, as notas e as fichas.',
+          '**Continuidade:** o que contradiz as fichas (olhos, idade, lugares, regras do mundo) ou o que já foi contado.',
+          '**Melhorias no enredo:** ritmo, tensão, ganchos e conflitos que poderiam render mais.',
+        ],
+      },
+      { p: 'Toque no trecho destacado para ir até ele no texto. Na ortografia, **Corrigir** troca só aquele trecho, e dá para desfazer. Nos outros, a IA só aponta; quem muda o texto é você. **Dispensar** tira o apontamento da lista.' },
+      { p: 'Capítulos longos são revisados em partes, e você vê o andamento. O que estiver por salvar é salvo antes. A IA erra às vezes, principalmente em continuidade e furos: confira antes de mudar.' },
+    ],
+  },
+  {
     slug: 'imagens',
     title: 'Imagens e retratos',
     summary: 'Fotos de referência, desenhos e o retrato de cada personagem.',

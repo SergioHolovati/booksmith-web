@@ -41,6 +41,12 @@
         }
       </button>
 
+      @if (aiEnabled()) {
+        <button type="button" class="icon-btn" (click)="reviewOpen.set(true)" aria-label="Revisão da IA">
+          <i class="pi pi-check-square"></i>
+        </button>
+      }
+
       <button type="button" class="icon-btn" (click)="historyOpen.set(true)" aria-label="Histórico de versões">
         <i class="pi pi-history"></i>
       </button>
@@ -115,6 +121,8 @@
 @if (!loading() && !loadError()) {
   <app-chapter-history [chapterId]="chapterId()" [actions]="historyActions" [(visible)]="historyOpen" />
   <app-chapter-notes [chapterId]="chapterId()" [editor]="editorRef()" [(visible)]="notesOpen" />
+  <app-chapter-review [chapterId]="chapterId()" [bookId]="bookId()" [editor]="editorRef()" [flush]="flushSave"
+    [(visible)]="reviewOpen" />
   <app-illustration-picker [universeId]="universeId()" [(visible)]="pickerOpen" (picked)="insertIllustration($event)" />
   @if (selectedIllustration(); as selected) {
     <app-illustration-panel [caption]="selected.caption" (captionChange)="setIllustrationCaption($event)"

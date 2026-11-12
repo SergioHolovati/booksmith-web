@@ -1,0 +1,92 @@
+<p-drawer [visible]="visible()" (visibleChange)="visible.set($event)" position="right" header="Revisão da IA"
+  styleClass="review-drawer" [style]="{ width: 'min(440px, 100vw)' }">
+  <p class="review-note">
+    <span class="ai-badge">IA</span>
+    A IA aponta; você decide o que mudar. Nada muda no texto sem você tocar.
+  </p>
+
+  <div class="checks" role="group" aria-label="O que revisar">
+    @for (c of checks; track c.value) {
+      <button type="button" class="chip" [class.on]="check() === c.value" [attr.aria-pressed]="check() === c.value"
+        [disabled]="running()" (click)="choose(c.value)">{{ c.label }}</button>
+    }
+  </div>
+  <p class="muted small help">{{ helpText() }}</p>
+
+  @if (running()) {
+    <div class="running" role="status">
+      <p-progressbar [value]="percent()" [showValue]="false" styleClass="bar" />
+      <span class="muted small">
+        @if (progress(); as p) {
+          @if (p.parts > 1) {
+            Revisando a parte {{ p.part }} de {{ p.parts }}…
+          } @else {
+            Revisando… a primeira revisão do dia pode levar até um minuto.
+          }
+        }
+      </span>
+      <p-button label="Parar" severity="secondary" [text]="true" size="small" (onClick)="stop()" />
+    </div>
+  } @else {
+    <p-button label="Revisar o capítulo" icon="pi pi-check-square" (onClick)="run()" styleClass="run"
+      [disabled]="!bookId()" />
+  }
+
+  @if (error(); as message) {
+    <p class="error small" role="alert">{{ message }}</p>
+  }
+
+  @if (reviewed()) {
+    <ul class="items" [attr.data-check]="reviewed()">
+      @for (item of pending(); track $index) {
+        <li class="item">
+          @if (item.quote) {
+            <button type="button" class="quote" (click)="goTo(item)" [attr.aria-label]="'Ir ao trecho: ' + item.quote">
+              {{ item.quote }}
+            </button>
+          } @else {
+            <span class="muted small whole">O capítulo todo</span>
+          }
+          @if (item.problem) {
+            <p class="problem">{{ item.problem }}</p>
+          }
+          @if (item.suggestion) {
+            <p class="suggestion">
+              @if (reviewed() === 'spelling') {
+                <span class="muted small">Correção: </span><strong>{{ item.suggestion }}</strong>
+              } @else {
+                {{ item.suggestion }}
+              }
+            </p>
+          }
+          <div class="actions">
+            @if (reviewed() === 'spelling' && item.quote) {
+              <p-button label="Corrigir" icon="pi pi-check" size="small" (onClick)="fix(item)" />
+            }
+            <p-button label="Dispensar" severity="secondary" [text]="true" size="small" (onClick)="dismiss(item)" />
+          </div>
+        </li>
+      }
+    </ul>
+    @if (finished() && pending().length === 0) {
+      <p class="muted done" role="status">
+        @if (items().length === 0) {
+          Nada para apontar em {{ reviewedLabel().toLowerCase() }} neste capítulo.
+        } @else {
+          Tudo visto.
+        }
+      </p>
+    }
+  }
+
+  @if (status(); as s) {
+    <p class="muted small footer">
+      @if (s.local) {
+        IA deste computador: o seu texto não sai daqui.
+      } @else {
+        IA da Anthropic (Claude): o trecho revisado é enviado a ela.
+      }
+      Restam {{ s.remaining }} de {{ s.dailyLimit }} pedidos hoje (cada parte conta um).
+    </p>
+  }
+</p-drawer>

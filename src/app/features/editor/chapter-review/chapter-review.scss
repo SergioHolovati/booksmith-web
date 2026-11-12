@@ -1,0 +1,134 @@
+.review-note {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin: 0 0 .75rem;
+  color: var(--bs-text-soft);
+  font-size: .85rem;
+}
+
+.ai-badge {
+  flex: none;
+  padding: .1rem .45rem;
+  border-radius: 999px;
+  background: var(--bs-sand-soft);
+  color: var(--bs-sand);
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+
+.checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+
+.chip {
+  min-height: 40px;
+  padding: 0 .85rem;
+  border: 1px solid var(--bs-border);
+  border-radius: 999px;
+  background: var(--bs-surface);
+  color: var(--bs-text-soft);
+  font: inherit;
+  font-size: .85rem;
+  cursor: pointer;
+
+  &.on {
+    border-color: var(--bs-ember);
+    background: var(--bs-sand-soft);
+    color: var(--bs-text);
+  }
+
+  &:disabled {
+    opacity: .6;
+    cursor: default;
+  }
+}
+
+.help {
+  margin: .5rem 0 .75rem;
+}
+
+:host ::ng-deep .run {
+  width: 100%;
+}
+
+.running {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+
+  :host ::ng-deep .bar {
+    height: 6px;
+  }
+}
+
+.error {
+  color: var(--bs-danger);
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  padding: .75rem .8rem .35rem;
+  border-radius: var(--bs-radius-sm);
+  background: var(--bs-surface);
+  overflow-wrap: anywhere;
+}
+
+.quote {
+  align-self: flex-start;
+  padding: .15rem .45rem;
+  border: none;
+  border-left: 3px solid var(--bs-ember);
+  border-radius: 4px;
+  background: rgba(255, 122, 26, 0.08);
+  color: var(--bs-text);
+  font-family: var(--bs-font-prose);
+  font-size: .9rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.whole {
+  font-style: italic;
+}
+
+.problem,
+.suggestion {
+  margin: 0;
+  color: var(--bs-text-soft);
+  font-size: .9rem;
+  line-height: 1.45;
+}
+
+.suggestion strong {
+  color: var(--bs-success);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: .25rem;
+}
+
+.done {
+  margin-top: 1rem;
+}
+
+.footer {
+  margin-top: 1.25rem;
+}
