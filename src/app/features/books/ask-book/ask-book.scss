@@ -1,0 +1,176 @@
+.ask-book {
+  padding: 0;
+  overflow: hidden;
+}
+
+.ask-head {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  width: 100%;
+  min-height: 64px;
+  padding: .85rem 1rem;
+  border: none;
+  background: none;
+  color: var(--bs-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  > .pi-comments {
+    color: var(--bs-accent-light);
+    font-size: 1.1rem;
+  }
+}
+
+.ask-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: .15rem;
+  min-width: 0;
+}
+
+.ask-body {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  padding: 0 1rem 1rem;
+}
+
+.ask-form {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+
+  textarea {
+    width: 100%;
+    min-height: 3.2rem;
+    padding: .65rem .75rem;
+    border: 1px solid var(--bs-border);
+    border-radius: var(--bs-radius-sm);
+    background: var(--bs-surface);
+    color: var(--bs-text);
+    font: inherit;
+    font-size: 1rem; // 16px: o iPhone não dá zoom ao tocar
+    resize: vertical;
+  }
+
+  .ask-send {
+    align-self: flex-end;
+  }
+}
+
+.examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+
+.chip {
+  min-height: 40px;
+  padding: .35rem .85rem;
+  border: 1px solid var(--bs-border);
+  border-radius: 999px;
+  background: var(--bs-surface);
+  color: var(--bs-text-soft);
+  font: inherit;
+  font-size: .85rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.answers {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.answer {
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+  padding: .75rem .8rem;
+  border-radius: var(--bs-radius-sm);
+  background: var(--bs-surface);
+  overflow-wrap: anywhere;
+}
+
+.q {
+  margin: 0;
+  font-weight: 600;
+}
+
+.a {
+  margin: 0;
+  color: var(--bs-text-soft);
+  line-height: 1.5;
+}
+
+.ai-badge {
+  display: inline-block;
+  margin-right: .3rem;
+  padding: .05rem .4rem;
+  border-radius: 999px;
+  background: var(--bs-sand-soft);
+  color: var(--bs-sand);
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  vertical-align: .1em;
+}
+
+.sources {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.source {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+  min-height: 44px;
+  padding: .45rem .6rem;
+  border-left: 3px solid var(--bs-ember);
+  border-radius: 4px;
+  background: rgba(255, 122, 26, 0.08);
+  color: var(--bs-text);
+  text-decoration: none;
+}
+
+.quote {
+  font-family: var(--bs-font-prose);
+  font-size: .9rem;
+}
+
+.where {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+}
+
+.error {
+  margin: 0;
+  color: var(--bs-danger);
+}
+
+.footer {
+  margin: 0;
+}
+
+// Rótulo só para leitor de tela
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

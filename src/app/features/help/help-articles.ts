@@ -291,6 +291,19 @@ export const HELP_ARTICLES: HelpArticle[] = [
     ],
   },
   {
+    slug: 'pergunte-ao-livro',
+    title: 'Pergunte ao seu livro',
+    summary: 'Pergunte sobre a sua história e veja a resposta com os trechos de onde ela veio.',
+    topic: 'texto',
+    keywords: ['pergunta', 'perguntar', 'pergunte', 'resposta', 'trecho', 'capítulo', 'lembrar', 'continuidade', 'ia'],
+    body: [
+      { p: 'Na página do livro, abra **Pergunte ao seu livro** e escreva o que quer saber: "Quem já sabe do segredo?", "Quantos anos o Ben tem?", "Onde a Lia estava no capítulo 3?".' },
+      { p: 'A IA lê o texto e as fichas do universo e responde em poucas frases. Embaixo vêm os **trechos de origem**: toque num deles para abrir o editor naquele parágrafo.' },
+      { p: 'Se o livro não responde, ela diz que não encontrou, em vez de inventar. Se o texto e as fichas discordam (a ficha diz 5 meses e a sinopse diz 6, por exemplo), ela avisa.' },
+      { p: 'As perguntas ficam só na tela; nada é guardado. Cada pergunta usa um pedido da cota do dia. O texto vai para a Anthropic (Claude), que não o usa para treinar modelos.' },
+    ],
+  },
+  {
     slug: 'revisao-da-ia',
     title: 'Revisão da IA no capítulo',
     summary: 'Formatação, ortografia, frases, furos de roteiro, continuidade e melhorias no enredo. A IA aponta; você decide.',

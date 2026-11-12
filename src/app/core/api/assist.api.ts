@@ -4,6 +4,8 @@ import { Observable, firstValueFrom, tap } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import {
+  AskRequest,
+  AskResult,
   AssistStatus,
   ReviewRequest,
   ReviewResult,
@@ -40,6 +42,12 @@ export class AssistApi {
   }
 
   /** Revisa uma parte do capítulo; o app pede as seguintes com `nextBlock` até acabar. */
+  ask(request: AskRequest): Observable<AskResult> {
+    return this.http.post<AskResult>(`${this.base}/assist/ask`, request).pipe(
+      tap((result) => this.status.update((s) => (s ? { ...s, remaining: result.remaining } : s))),
+    );
+  }
+
   review(request: ReviewRequest): Observable<ReviewResult> {
     return this.http.post<ReviewResult>(`${this.base}/assist/review`, request).pipe(
       tap((result) => this.status.update((s) => (s ? { ...s, remaining: result.remaining } : s))),

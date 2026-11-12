@@ -1029,3 +1029,27 @@ export interface ReviewResult {
   model: string;
   local: boolean;
 }
+
+/** "Pergunte ao seu livro" (§4.5). */
+export interface AskRequest {
+  bookId: string;
+  question: string;
+}
+
+/** Um trecho do livro que sustenta a resposta, já conferido no texto: abre o editor no parágrafo. */
+export interface AskCitation {
+  chapterId: string;
+  chapter: number;
+  chapterTitle: string | null;
+  blockId: string;
+  quote: string;
+}
+
+export interface AskResult {
+  answer: string;
+  citations: AskCitation[];
+  provider: string;
+  model: string;
+  local: boolean;
+  remaining: number;
+}

@@ -1,0 +1,74 @@
+@if (enabled()) {
+  <section class="glass-card ask-book" aria-labelledby="ask-book-title">
+    <button type="button" class="ask-head" [attr.aria-expanded]="open()" (click)="open.set(!open())">
+      <i class="pi pi-comments" aria-hidden="true"></i>
+      <span class="ask-text">
+        <strong id="ask-book-title">Pergunte ao seu livro</strong>
+        <small class="muted">Respostas tiradas do texto e das fichas, com os trechos de origem</small>
+      </span>
+      <i class="pi muted" [class.pi-chevron-down]="!open()" [class.pi-chevron-up]="open()" aria-hidden="true"></i>
+    </button>
+
+    @if (open()) {
+      <div class="ask-body">
+        <form class="ask-form" (ngSubmit)="ask()">
+          <label class="sr-only" for="ask-question">Sua pergunta</label>
+          <textarea id="ask-question" name="question" rows="2" [maxlength]="maxQuestion" [ngModel]="question()"
+            (ngModelChange)="question.set($event)" (keydown)="onKey($event)" [disabled]="loading()"
+            placeholder="Ex.: Quem sabe o que dizia a carta?"></textarea>
+          <p-button class="ask-send" type="submit" label="Perguntar" icon="pi pi-send" [loading]="loading()"
+            [disabled]="!canAsk()" />
+        </form>
+
+        @if (loading()) {
+          <p class="muted small" role="status">Lendo o livro…</p>
+        }
+
+        @if (history().length === 0 && !loading()) {
+          <div class="examples" role="group" aria-label="Exemplos de pergunta">
+            @for (example of examples; track example) {
+              <button type="button" class="chip" (click)="useExample(example)">{{ example }}</button>
+            }
+          </div>
+        }
+
+        <ol class="answers">
+          @for (entry of history(); track $index) {
+            <li class="answer">
+              <p class="q">{{ entry.question }}</p>
+              @if (entry.error) {
+                <p class="error small" role="alert">{{ entry.error }}</p>
+              } @else if (entry.result; as r) {
+                <p class="a">
+                  <span class="ai-badge">IA</span>
+                  {{ r.answer }}
+                </p>
+                @if (r.citations.length) {
+                  <ul class="sources" aria-label="Trechos de origem">
+                    @for (c of r.citations; track c.blockId + c.quote) {
+                      <li>
+                        <a class="source" [routerLink]="['/write', c.chapterId]" [queryParams]="{ block: c.blockId }">
+                          <span class="quote">“{{ c.quote }}”</span>
+                          <span class="where muted small">{{ chapterLabel(c.chapter, c.chapterTitle) }}
+                            <i class="pi pi-arrow-right" aria-hidden="true"></i></span>
+                        </a>
+                      </li>
+                    }
+                  </ul>
+                }
+              }
+            </li>
+          }
+        </ol>
+
+        @if (status(); as s) {
+          <p class="muted small footer">
+            A IA confere o livro, mas pode errar: os trechos mostram de onde ela tirou cada coisa. O texto vai para a
+            Anthropic (Claude), que não o usa para treinar modelos. Restam {{ s.remaining }} de {{ s.dailyLimit }}
+            pedidos hoje.
+          </p>
+        }
+      </div>
+    }
+  </section>
+}
