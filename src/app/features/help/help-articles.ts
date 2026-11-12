@@ -304,7 +304,8 @@ export const HELP_ARTICLES: HelpArticle[] = [
           '**Comparar com IA** (1 dos seus 3 usos a cada 24 horas): fatos que divergem, como a sinopse dizer 6 meses e a história dizer 5.',
         ],
       },
-      { p: 'Os apontamentos aparecem separados por texto. Toque em **Editar** para ir direto à sinopse, às páginas do livro ou à ficha do personagem.' },
+      { p: 'Os apontamentos aparecem separados por texto. Para corrigir, marque as caixinhas (ou **Marcar todos**) e toque em **Corrigir marcados**, ou use **Corrigir** em um só. Nomes e formatação já vêm marcados. Um nome trocado vale para o texto inteiro: "Sergio" vira "Sérgio" em toda a sinopse. Se você já tinha mudado aquele ponto, a correção é pulada.' },
+      { p: 'Os fatos que a IA aponta não se corrigem sozinhos: toque em **Editar** para ir à sinopse, às páginas do livro ou à ficha do personagem e decidir.' },
     ],
   },
   {

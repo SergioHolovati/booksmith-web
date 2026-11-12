@@ -158,3 +158,50 @@
   margin: 0;
   color: var(--bs-danger);
 }
+
+// Corrigir em lote
+.bulk {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  padding: .5rem .6rem;
+  border-radius: var(--bs-radius-sm);
+  background: var(--bs-sand-soft);
+}
+
+.mark-all,
+.mark {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  min-height: 40px;
+  cursor: pointer;
+
+  input {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--bs-ember);
+    cursor: pointer;
+  }
+}
+
+.item-head {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.item.marked {
+  outline: 1px solid var(--bs-ember);
+}
+
+.fix-one {
+  align-self: flex-end;
+}
+
+.applied {
+  margin: 0;
+  color: var(--bs-success);
+}

@@ -42,6 +42,22 @@
         <p class="error small" role="alert">{{ message }}</p>
       }
 
+      @if (applied(); as message) {
+        <p class="applied small" role="status"><i class="pi pi-check" aria-hidden="true"></i> {{ message }}</p>
+      }
+
+      @if (fixable().length > 0) {
+        <div class="bulk">
+          <label class="mark-all">
+            <input type="checkbox" [checked]="marked().length === fixable().length"
+              [indeterminate]="marked().length > 0 && marked().length < fixable().length" (change)="toggleAll()" />
+            Marcar todos ({{ fixable().length }})
+          </label>
+          <p-button [label]="'Corrigir marcados (' + marked().length + ')'" icon="pi pi-check-circle" size="small"
+            [loading]="loading() === 'apply'" [disabled]="!marked().length || !!loading()" (onClick)="fixMarked()" />
+        </div>
+      }
+
       @if (checked()) {
         @if (groups().length === 0) {
           <p class="muted small" role="status">
@@ -56,8 +72,16 @@
             </div>
             <ul class="items">
               @for (item of group.items; track $index) {
-                <li class="item" [attr.data-kind]="item.kind">
-                  <span class="kind small">{{ kindLabels[item.kind] ?? item.kind }}</span>
+                <li class="item" [attr.data-kind]="item.kind" [class.marked]="selected().has(item)">
+                  <div class="item-head">
+                    @if (item.fix) {
+                      <label class="mark">
+                        <input type="checkbox" [checked]="selected().has(item)" (change)="toggle(item)"
+                          [attr.aria-label]="'Marcar para corrigir: ' + item.quote" />
+                      </label>
+                    }
+                    <span class="kind small">{{ kindLabels[item.kind] ?? item.kind }}</span>
+                  </div>
                   <p class="context">{{ item.context }}</p>
                   <p class="problem small">{{ item.problem }}</p>
                   @if (item.suggestion) {
@@ -66,8 +90,15 @@
                         {{ item.suggestion }}
                       } @else {
                         <span class="muted">Sugestão: </span><strong>{{ item.suggestion }}</strong>
+                        @if (item.all) {
+                          <span class="muted"> (em todo o texto)</span>
+                        }
                       }
                     </p>
+                  }
+                  @if (item.fix) {
+                    <p-button class="fix-one" label="Corrigir" icon="pi pi-check" size="small" [text]="true"
+                      [disabled]="!!loading()" (onClick)="fixOne(item)" />
                   }
                 </li>
               }

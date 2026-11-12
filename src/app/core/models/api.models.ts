@@ -1079,6 +1079,29 @@ export interface BookTextItem {
   suggestion: string;
   /** spelling, grammar, format, name (sem IA) ou fact (IA). */
   kind: string;
+  /** O texto onde está (synopsis, about, c:<ficha>:<campo>), para corrigir. */
+  key: string;
+  /** Onde o trecho começa no texto. */
+  offset: number;
+  /** A sugestão pode substituir o trecho ("Corrigir"); os fatos da IA só apontam. */
+  fix: boolean;
+  /** Vale para todas as ocorrências no texto (nomes). */
+  all: boolean;
+}
+
+/** Uma correção marcada: o servidor confere o trecho no texto atual antes de trocar. */
+export interface BookTextFix {
+  key: string;
+  offset: number;
+  quote: string;
+  suggestion: string;
+  all: boolean;
+}
+
+export interface BookTextsApplied {
+  applied: number;
+  /** Trechos que já tinham mudado. */
+  skipped: number;
 }
 
 export interface BookTextsResult {

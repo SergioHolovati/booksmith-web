@@ -42,7 +42,11 @@ export class BookTextsComponent {
 
   readonly kindLabels = KIND_LABELS;
   readonly open = signal(false);
-  readonly loading = signal<'free' | 'ai' | null>(null);
+  readonly loading = signal<'free' | 'ai' | 'apply' | null>(null);
+  /** Correções marcadas. Nomes e formatação (regras exatas) já vêm marcados; a ortografia, não. */
+  readonly selected = signal<ReadonlySet<BookTextItem>>(new Set());
+  /** O resumo da última correção em lote. */
+  readonly applied = signal<string | null>(null);
   readonly error = signal<string | null>(null);
   readonly freeItems = signal<BookTextItem[] | null>(null);
   readonly aiItems = signal<BookTextItem[] | null>(null);
@@ -52,6 +56,8 @@ export class BookTextsComponent {
   readonly remaining = computed(() => this.status()?.remaining ?? 0);
   readonly groups = computed(() => groupItems([...(this.freeItems() ?? []), ...(this.aiItems() ?? [])], this.bookId()));
   readonly checked = computed(() => this.freeItems() !== null || this.aiItems() !== null);
+  readonly fixable = computed(() => [...(this.freeItems() ?? []), ...(this.aiItems() ?? [])].filter((i) => i.fix));
+  readonly marked = computed(() => this.fixable().filter((i) => this.selected().has(i)));
 
   constructor() {
     void this.api.ensureStatus();
@@ -62,6 +68,58 @@ export class BookTextsComponent {
       const result = await firstValueFrom(this.api.checkBookTexts(this.bookId()));
       this.texts.set(result.texts);
       this.freeItems.set(result.items);
+      this.preselect(result.items);
+    });
+  }
+
+  toggle(item: BookTextItem): void {
+    this.selected.update((set) => {
+      const next = new Set(set);
+      if (next.has(item)) {
+        next.delete(item);
+      } else {
+        next.add(item);
+      }
+      return next;
+    });
+  }
+
+  /** Marca todas as correções; se já estão todas marcadas, desmarca. */
+  toggleAll(): void {
+    const all = this.fixable().every((i) => this.selected().has(i));
+    this.selected.set(all ? new Set() : new Set(this.fixable()));
+  }
+
+  /** Corrige uma só. */
+  fixOne(item: BookTextItem): Promise<void> {
+    return this.applyFixes([item]);
+  }
+
+  /** Corrige todas as marcadas, de uma vez, e revisa de novo para a lista refletir o texto salvo. */
+  fixMarked(): Promise<void> {
+    return this.applyFixes(this.marked());
+  }
+
+  private async applyFixes(items: BookTextItem[]): Promise<void> {
+    if (!items.length) {
+      return;
+    }
+    this.applied.set(null);
+    await this.run('apply', async () => {
+      const fixes = items.map((i) => ({
+        key: i.key,
+        offset: i.offset,
+        quote: i.quote,
+        suggestion: i.suggestion,
+        all: i.all,
+      }));
+      const result = await firstValueFrom(this.api.applyBookTexts(this.bookId(), fixes));
+      const done = result.applied === 1 ? '1 correção aplicada.' : `${result.applied} correções aplicadas.`;
+      this.applied.set(result.skipped ? `${done} ${result.skipped} trecho(s) já tinham mudado.` : done);
+      // Os fatos da IA continuam na lista (só apontam); o resto é revisado de novo no texto salvo
+      const fresh = await firstValueFrom(this.api.checkBookTexts(this.bookId()));
+      this.freeItems.set(fresh.items);
+      this.preselect(fresh.items);
     });
   }
 
@@ -73,7 +131,12 @@ export class BookTextsComponent {
     });
   }
 
-  private async run(kind: 'free' | 'ai', call: () => Promise<void>): Promise<void> {
+  /** Nomes e formatação são regras exatas: já vêm marcados. A ortografia do corretor, não. */
+  private preselect(items: BookTextItem[]): void {
+    this.selected.set(new Set(items.filter((i) => i.fix && (i.kind === 'name' || i.kind === 'format'))));
+  }
+
+  private async run(kind: 'free' | 'ai' | 'apply', call: () => Promise<void>): Promise<void> {
     if (this.loading()) {
       return;
     }

@@ -7,6 +7,8 @@ import {
   AskRequest,
   AskResult,
   AssistStatus,
+  BookTextFix,
+  BookTextsApplied,
   BookTextsResult,
   ReviewRequest,
   ReviewResult,
@@ -60,6 +62,11 @@ export class AssistApi {
     return this.http.post<BookTextsResult>(`${this.base}/assist/book-texts/compare`, { bookId }).pipe(
       tap((result) => this.status.update((s) => (s ? { ...s, remaining: result.remaining } : s))),
     );
+  }
+
+  /** Aplica as correções marcadas na sinopse, no "sobre o autor" e nas fichas. */
+  applyBookTexts(bookId: string, fixes: BookTextFix[]): Observable<BookTextsApplied> {
+    return this.http.post<BookTextsApplied>(`${this.base}/assist/book-texts/apply`, { bookId, fixes });
   }
 
   /** Abre a revisão com IA do capítulo: gasta um uso da cota. */
