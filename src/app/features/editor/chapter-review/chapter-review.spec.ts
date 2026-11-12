@@ -1,0 +1,106 @@
+import { HttpErrorResponse } from '@angular/common/http';
+import { signal } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { MessageService } from 'primeng/api';
+import { Observable, of, throwError } from 'rxjs';
+
+import { AssistApi } from '../../../core/api/assist.api';
+import { ReviewCheck, ReviewRequest, ReviewResult } from '../../../core/models/api.models';
+import { ChapterReviewComponent } from './chapter-review';
+
+function result(check: ReviewCheck, nextBlock: string | null = null, part = 1, parts = 1): ReviewResult {
+  return {
+    findings: [{ blockId: 'b1', quote: `trecho ${check} ${part}`, problem: 'p', suggestion: 's' }],
+    nextBlock,
+    part,
+    parts,
+    remaining: 100,
+    provider: 'ollama',
+    model: 'qwen3:8b',
+    local: true,
+  };
+}
+
+function setup(answer: (request: ReviewRequest) => Observable<ReviewResult>) {
+  const calls: ReviewRequest[] = [];
+  const api = {
+    status: signal(null),
+    ensureStatus: () => Promise.resolve(),
+    review: (request: ReviewRequest) => {
+      calls.push(request);
+      return answer(request);
+    },
+  };
+  TestBed.configureTestingModule({
+    providers: [
+      { provide: AssistApi, useValue: api },
+      { provide: MessageService, useValue: { add: () => undefined } },
+    ],
+  });
+  const fixture = TestBed.createComponent(ChapterReviewComponent);
+  fixture.componentRef.setInput('chapterId', 'c1');
+  fixture.componentRef.setInput('bookId', 'l1');
+  return { component: fixture.componentInstance, calls };
+}
+
+describe('ChapterReviewComponent', () => {
+  it('roda as quatro revisões em sequência, com todas as partes de cada uma', async () => {
+    const { component, calls } = setup((r) =>
+      of(r.check === 'spelling' && !r.fromBlock ? result('spelling', 'b9', 1, 2) : result(r.check, null, r.fromBlock ? 2 : 1, r.fromBlock ? 2 : 1)),
+    );
+
+    await component.run();
+
+    expect(calls.map((c) => `${c.check}:${c.fromBlock ?? '-'}`)).toEqual([
+      'spelling:-',
+      'spelling:b9',
+      'holes:-',
+      'continuity:-',
+      'improvements:-',
+    ]);
+    expect(component.groups().map((g) => [g.value, g.state, g.items.length])).toEqual([
+      ['spelling', 'done', 2],
+      ['holes', 'done', 1],
+      ['continuity', 'done', 1],
+      ['improvements', 'done', 1],
+    ]);
+    expect(component.running()).toBe(false);
+  });
+
+  it('uma revisão que falha não impede as outras', async () => {
+    const { component, calls } = setup((r) =>
+      r.check === 'holes' ? throwError(() => new HttpErrorResponse({ status: 502 })) : of(result(r.check)),
+    );
+
+    await component.run();
+
+    expect(calls).toHaveLength(4);
+    const holes = component.groups().find((g) => g.value === 'holes');
+    expect(holes?.state).toBe('error');
+    expect(holes?.error).toBeTruthy();
+    expect(component.groups().find((g) => g.value === 'improvements')?.state).toBe('done');
+  });
+
+  it('cota esgotada para tudo: não adianta tentar as próximas', async () => {
+    const { component, calls } = setup((r) =>
+      r.check === 'holes' ? throwError(() => new HttpErrorResponse({ status: 429 })) : of(result(r.check)),
+    );
+
+    await component.run();
+
+    expect(calls.map((c) => c.check)).toEqual(['spelling', 'holes']);
+    expect(component.groups().map((g) => g.state)).toEqual(['done', 'error', 'stopped', 'stopped']);
+  });
+
+  it('dispensar tira o apontamento só do seu grupo', async () => {
+    const { component } = setup((r) => of(result(r.check)));
+    await component.run();
+
+    const first = component.groups()[0].items[0];
+    component.dismiss(first);
+
+    expect(component.groups()[0].items).toHaveLength(0);
+    expect(component.groups()[1].items).toHaveLength(1);
+    expect(component.pendingCount()).toBe(3);
+  });
+});

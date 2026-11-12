@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, input, model, signal } from '@angular/core';
 import type { Editor } from '@tiptap/core';
 import { MessageService } from 'primeng/api';
@@ -11,24 +12,33 @@ import { problemMessage } from '../../../core/api/problem';
 import { ReviewCheck, ReviewItem, ReviewResult } from '../../../core/models/api.models';
 import { findQuote } from './find-quote';
 
-/** As revisões, na ordem da tela. */
-export const REVIEW_CHECKS: { value: ReviewCheck; label: string; help: string }[] = [
-  { value: 'spelling', label: 'Ortografia', help: 'Erros de ortografia, acentuação, concordância, crase e pontuação.' },
-  { value: 'holes', label: 'Furos de roteiro', help: 'O que não se sustenta: causas que faltam, quem sabe o que não devia.' },
-  { value: 'continuity', label: 'Continuidade', help: 'O que contradiz as fichas ou os capítulos anteriores.' },
-  { value: 'improvements', label: 'Melhorias no enredo', help: 'Ritmo, tensão, ganchos e conflitos que poderiam render mais.' },
+/** As revisões, na ordem em que rodam: a ortografia primeiro, porque é a mais rápida e a que se corrige na hora. */
+export const REVIEW_CHECKS: { value: ReviewCheck; label: string }[] = [
+  { value: 'spelling', label: 'Ortografia' },
+  { value: 'holes', label: 'Furos de roteiro' },
+  { value: 'continuity', label: 'Continuidade' },
+  { value: 'improvements', label: 'Melhorias no enredo' },
 ];
 
 interface ReviewView extends ReviewItem {
+  check: ReviewCheck;
   /** Ortografia corrigida ou apontamento dispensado: sai da lista. */
   done: boolean;
 }
 
+type CheckState = 'waiting' | 'running' | 'done' | 'error' | 'stopped';
+
+/** Erros que valem para todas as revisões (cota, IA desligada, sem conexão): não adianta tentar a próxima. */
+function stopsEverything(error: unknown): boolean {
+  return error instanceof HttpErrorResponse && [0, 401, 403, 429, 503].includes(error.status);
+}
+
 /**
- * "Revisão da IA" no editor: ortografia, furos de roteiro, continuidade e melhorias no enredo. A IA aponta e o
- * autor decide: "Ir ao trecho" seleciona o lugar no texto; na ortografia, "Corrigir" troca só aquele trecho (e
- * dá para desfazer). Capítulos longos vão em partes, com o andamento na tela; o que estiver por salvar é salvo
- * antes, porque a revisão lê o texto do servidor.
+ * "Revisão da IA" no editor: um botão revisa tudo de uma vez — ortografia, furos de roteiro, continuidade e
+ * melhorias no enredo, nessa ordem — e os apontamentos aparecem agrupados conforme cada revisão termina. A IA
+ * aponta e o autor decide: tocar no trecho seleciona o lugar no texto; na ortografia, "Corrigir" troca só aquele
+ * trecho (e dá para desfazer). Capítulos longos vão em partes; o que estiver por salvar é salvo antes, porque a
+ * revisão lê o texto do servidor.
  */
 @Component({
   selector: 'app-chapter-review',
@@ -48,33 +58,35 @@ export class ChapterReviewComponent {
   readonly visible = model(false);
 
   readonly checks = REVIEW_CHECKS;
-  readonly check = signal<ReviewCheck>('spelling');
   readonly running = signal(false);
-  readonly progress = signal<{ part: number; parts: number } | null>(null);
+  readonly started = signal(false);
+  readonly states = signal<Record<ReviewCheck, CheckState>>(this.allStates('waiting'));
+  readonly errors = signal<Partial<Record<ReviewCheck, string>>>({});
+  /** Revisão atual e parte dela, para a barra de andamento. */
+  readonly progress = signal<{ step: number; part: number; parts: number } | null>(null);
   readonly error = signal<string | null>(null);
   readonly items = signal<ReviewView[]>([]);
-  /** Qual revisão gerou a lista atual (a escolha pode mudar depois). */
-  readonly reviewed = signal<ReviewCheck | null>(null);
-  readonly finished = signal(false);
   private cancelled = false;
 
   readonly status = this.api.status;
-  readonly pending = computed(() => this.items().filter((i) => !i.done));
-  readonly helpText = computed(() => REVIEW_CHECKS.find((c) => c.value === this.check())?.help ?? '');
-  readonly reviewedLabel = computed(() => REVIEW_CHECKS.find((c) => c.value === this.reviewed())?.label ?? '');
+  readonly pendingCount = computed(() => this.items().filter((i) => !i.done).length);
+  readonly groups = computed(() =>
+    REVIEW_CHECKS.filter((c) => this.states()[c.value] !== 'waiting').map((c) => ({
+      ...c,
+      state: this.states()[c.value],
+      error: this.errors()[c.value] ?? null,
+      items: this.items().filter((i) => i.check === c.value && !i.done),
+      found: this.items().some((i) => i.check === c.value),
+    })),
+  );
+  readonly currentLabel = computed(() => REVIEW_CHECKS[this.progress()?.step ?? 0]?.label ?? '');
   readonly percent = computed(() => {
     const p = this.progress();
-    return p ? Math.round((100 * (p.part - 1)) / p.parts) : 0;
+    return p ? Math.round((100 * (p.step + (p.part - 1) / p.parts)) / REVIEW_CHECKS.length) : 0;
   });
 
   constructor() {
     void this.api.ensureStatus();
-  }
-
-  choose(check: ReviewCheck): void {
-    if (!this.running()) {
-      this.check.set(check);
-    }
   }
 
   async run(): Promise<void> {
@@ -82,28 +94,35 @@ export class ChapterReviewComponent {
     if (this.running() || !bookId) {
       return;
     }
-    const check = this.check();
     this.running.set(true);
+    this.started.set(true);
     this.cancelled = false;
     this.error.set(null);
+    this.errors.set({});
     this.items.set([]);
-    this.reviewed.set(check);
-    this.finished.set(false);
-    this.progress.set({ part: 1, parts: 1 });
+    this.states.set(this.allStates('waiting'));
     try {
       await this.flush()();
-      let fromBlock: string | null = null;
-      do {
-        const result: ReviewResult = await firstValueFrom(
-          this.api.review({ bookId, chapterId: this.chapterId(), check, fromBlock }),
-        );
-        this.items.update((list) => [...list, ...result.findings.map((f) => ({ ...f, done: false }))]);
-        fromBlock = result.nextBlock;
-        this.progress.set({ part: result.part + 1, parts: result.parts });
-      } while (fromBlock && !this.cancelled);
-      this.finished.set(!this.cancelled);
+      for (const [step, { value: check }] of REVIEW_CHECKS.entries()) {
+        if (this.cancelled) {
+          this.setState(check, 'stopped');
+          continue;
+        }
+        this.setState(check, 'running');
+        this.progress.set({ step, part: 1, parts: 1 });
+        try {
+          await this.review(bookId, check, step);
+          this.setState(check, this.cancelled ? 'stopped' : 'done');
+        } catch (error) {
+          this.setState(check, 'error');
+          this.errors.update((all) => ({ ...all, [check]: problemMessage(error, 'Não foi possível revisar agora.') }));
+          if (stopsEverything(error)) {
+            this.cancelled = true;
+          }
+        }
+      }
     } catch (error) {
-      this.error.set(problemMessage(error, 'Não foi possível revisar agora.'));
+      this.error.set(problemMessage(error, 'Não foi possível salvar o capítulo antes de revisar.'));
     } finally {
       this.running.set(false);
       this.progress.set(null);
@@ -141,5 +160,26 @@ export class ChapterReviewComponent {
 
   dismiss(item: ReviewView): void {
     this.items.update((list) => list.map((i) => (i === item ? { ...i, done: true } : i)));
+  }
+
+  /** Uma revisão, parte por parte, até o fim do capítulo (ou até o autor parar). */
+  private async review(bookId: string, check: ReviewCheck, step: number): Promise<void> {
+    let fromBlock: string | null = null;
+    do {
+      const result: ReviewResult = await firstValueFrom(
+        this.api.review({ bookId, chapterId: this.chapterId(), check, fromBlock }),
+      );
+      this.items.update((list) => [...list, ...result.findings.map((f) => ({ ...f, check, done: false }))]);
+      fromBlock = result.nextBlock;
+      this.progress.set({ step, part: result.part + 1, parts: result.parts });
+    } while (fromBlock && !this.cancelled);
+  }
+
+  private setState(check: ReviewCheck, state: CheckState): void {
+    this.states.update((all) => ({ ...all, [check]: state }));
+  }
+
+  private allStates(state: CheckState): Record<ReviewCheck, CheckState> {
+    return { spelling: state, holes: state, continuity: state, improvements: state };
   }
 }

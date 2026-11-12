@@ -297,7 +297,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     topic: 'texto',
     keywords: ['revisão', 'revisar', 'ortografia', 'gramática', 'erro', 'furo', 'roteiro', 'continuidade', 'enredo', 'melhorar', 'ia'],
     body: [
-      { p: 'No editor, toque em **Revisão da IA** (o quadradinho com o visto, no alto) e escolha o que revisar:' },
+      { p: 'No editor, toque em **Revisão da IA** (o quadradinho com o visto, no alto) e depois em **Revisar o capítulo**. Não precisa escolher nada: a IA faz as quatro revisões de uma vez, e os apontamentos aparecem separados por tipo:' },
       {
         list: [
           '**Ortografia:** acentos, concordância, crase, pontuação. Os nomes do seu universo não contam como erro.',
@@ -307,7 +307,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
         ],
       },
       { p: 'Toque no trecho destacado para ir até ele no texto. Na ortografia, **Corrigir** troca só aquele trecho, e dá para desfazer. Nos outros, a IA só aponta; quem muda o texto é você. **Dispensar** tira o apontamento da lista.' },
-      { p: 'Capítulos longos são revisados em partes, e você vê o andamento. O que estiver por salvar é salvo antes. A IA erra às vezes, principalmente em continuidade e furos: confira antes de mudar.' },
+      { p: 'Os apontamentos aparecem conforme cada revisão termina, e você vê o andamento. **Parar** interrompe o resto. Cada revisão completa usa pelo menos 4 pedidos da cota do dia. O que estiver por salvar é salvo antes. A IA erra às vezes, principalmente em continuidade e furos: confira antes de mudar.' },
     ],
   },
   {
