@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-import { authGuard, guestGuard } from './core/auth/auth.guards';
+import { authGuard, guestGuard, pendingProfileGuard } from './core/auth/auth.guards';
 import { unsavedChangesGuard } from './core/util/unsaved-changes.guard';
 
 export const routes: Routes = [
@@ -24,6 +24,17 @@ export const routes: Routes = [
     path: 'reset-password',
     loadComponent: () =>
       import('./features/auth/reset-password/reset-password').then((c) => c.ResetPasswordComponent),
+  },
+  {
+    path: 'verificar-email',
+    canActivate: [guestGuard],
+    loadComponent: () => import('./features/auth/verify-email/verify-email').then((c) => c.VerifyEmailComponent),
+  },
+  {
+    path: 'completar-cadastro',
+    canActivate: [pendingProfileGuard],
+    loadComponent: () =>
+      import('./features/auth/complete-profile/complete-profile').then((c) => c.CompleteProfileComponent),
   },
   {
     path: 'auth/callback',

@@ -14,6 +14,8 @@ export interface SessionUser {
   id: string;
   username: string;
   displayName: string;
+  /** Conta nova do Google: falta a data de nascimento; o app só abre a tela de completar o cadastro. */
+  profilePending: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -53,13 +55,37 @@ export class AuthService {
     );
   }
 
-  loginWithGoogle(): void {
-    window.location.href = `${environment.authBaseUrl}/oauth2/authorization/google`;
+  /** Novo código para confirmar o e-mail (o servidor responde igual, exista ou não a conta). */
+  resendVerification(email: string): Promise<void> {
+    return firstValueFrom(
+      this.http.post<void>(`${this.base}/resend-verification`, { email }, { context: this.noRefresh() }),
+    );
   }
 
-  /** Token recebido do fluxo OAuth2 (fragmento da URL de callback). */
-  acceptToken(token: string): void {
-    this.setToken(token);
+  verifyEmail(email: string, code: string): Promise<void> {
+    return firstValueFrom(
+      this.http.post<void>(`${this.base}/verify-email`, { email, code }, { context: this.noRefresh() }),
+    );
+  }
+
+  /** Troca o código de uso único do login com Google pela sessão. */
+  async exchangeGoogleCode(code: string): Promise<void> {
+    const session = await firstValueFrom(
+      this.http.post<SessionResponse>(`${this.base}/google/exchange`, { code }, { context: this.noRefresh() }),
+    );
+    this.setToken(session.accessToken);
+  }
+
+  /** Data de nascimento (idade mínima) e nome de usuário de quem entrou pelo Google; o token novo já libera o app. */
+  async completeProfile(birthDate: string, username: string | null): Promise<void> {
+    const session = await firstValueFrom(
+      this.http.post<SessionResponse>(`${environment.apiBaseUrl}/profile/complete`, { birthDate, username }),
+    );
+    this.setToken(session.accessToken);
+  }
+
+  loginWithGoogle(): void {
+    window.location.href = `${environment.authBaseUrl}/oauth2/authorization/google`;
   }
 
   /**
@@ -110,11 +136,12 @@ function decodeUser(token: string | null): SessionUser | null {
   try {
     const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
     const json = new TextDecoder().decode(Uint8Array.from(atob(payload), (c) => c.charCodeAt(0)));
-    const claims = JSON.parse(json) as { sub: string; username?: string; name?: string };
+    const claims = JSON.parse(json) as { sub: string; username?: string; name?: string; pending?: string | null };
     return {
       id: claims.sub,
       username: claims.username ?? '',
       displayName: claims.name || claims.username || 'Escritor',
+      profilePending: claims.pending === 'profile',
     };
   } catch {
     return null;

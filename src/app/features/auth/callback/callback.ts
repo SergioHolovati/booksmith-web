@@ -4,7 +4,10 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 import { AuthService } from '../../../core/auth/auth.service';
 
-/** Recebe o token do login com Google no fragmento (#token=...), que não vai para servidores nem logs. */
+/**
+ * Recebe o código de uso único do login com Google no fragmento (#code=...), que não vai para servidores nem logs,
+ * e troca pela sessão. O código vale 60 segundos e uma vez só: o que sobra no histórico não abre a conta.
+ */
 @Component({
   selector: 'app-callback',
   imports: [ProgressSpinnerModule],
@@ -30,15 +33,23 @@ export class CallbackComponent implements OnInit {
   private readonly router = inject(Router);
 
   ngOnInit(): void {
-    const token = new URLSearchParams(window.location.hash.slice(1)).get('token');
-    // Remove o token da barra de endereço e do histórico
+    const code = new URLSearchParams(window.location.hash.slice(1)).get('code');
+    // Tira o código da barra de endereço e do histórico
     history.replaceState(null, '', window.location.pathname);
+    void this.finish(code);
+  }
 
-    if (token) {
-      this.auth.acceptToken(token);
-      void this.router.navigate(['/home'], { replaceUrl: true });
-    } else {
-      void this.router.navigate(['/login'], { queryParams: { error: 'google' }, replaceUrl: true });
+  private async finish(code: string | null): Promise<void> {
+    if (!code) {
+      await this.router.navigate(['/login'], { queryParams: { error: 'google' }, replaceUrl: true });
+      return;
+    }
+    try {
+      await this.auth.exchangeGoogleCode(code);
+      const target = this.auth.user()?.profilePending ? '/completar-cadastro' : '/home';
+      await this.router.navigate([target], { replaceUrl: true });
+    } catch {
+      await this.router.navigate(['/login'], { queryParams: { error: 'google' }, replaceUrl: true });
     }
   }
 }

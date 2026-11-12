@@ -73,8 +73,8 @@ export class RegisterComponent {
         birthDate,
         password,
       });
-      this.toast.add({ severity: 'success', summary: 'Conta criada', detail: 'Entre para começar a escrever.' });
-      await this.router.navigate(['/login']);
+      this.toast.add({ severity: 'success', summary: 'Conta criada', detail: 'Falta confirmar o e-mail.' });
+      await this.router.navigate(['/verificar-email'], { queryParams: { email: email.trim() } });
     } catch (error) {
       this.message.set(problemMessage(error, 'Não foi possível criar a conta.'));
     } finally {

@@ -5,7 +5,7 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 
-import { problemMessage } from '../../../core/api/problem';
+import { problemMessage, problemOf } from '../../../core/api/problem';
 import { AuthService } from '../../../core/auth/auth.service';
 
 const GOOGLE_ERRORS: Record<string, string> = {
@@ -25,11 +25,19 @@ export class LoginComponent {
 
   /** ?error= vindo do fluxo do Google */
   readonly error = input<string>();
+  /** ?email= vindo da confirmação do e-mail */
+  readonly email = input<string>();
 
-  email = '';
+  address = '';
   password = '';
   readonly loading = signal(false);
   readonly message = signal<string | null>(null);
+
+  constructor() {
+    queueMicrotask(() => {
+      this.address = this.email() ?? '';
+    });
+  }
 
   googleError(): string | null {
     const code = this.error();
@@ -40,9 +48,14 @@ export class LoginComponent {
     this.message.set(null);
     this.loading.set(true);
     try {
-      await this.auth.login(this.email.trim(), this.password);
+      await this.auth.login(this.address.trim(), this.password);
       await this.router.navigate(['/home']);
     } catch (error) {
+      if (problemOf(error)?.code === 'email_not_verified') {
+        // Senha certa, e-mail sem confirmar: leva para a tela do código e pede um novo
+        await this.router.navigate(['/verificar-email'], { queryParams: { email: this.address.trim(), sent: '0' } });
+        return;
+      }
       this.message.set(problemMessage(error, 'Não foi possível entrar.'));
     } finally {
       this.loading.set(false);

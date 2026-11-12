@@ -393,6 +393,19 @@ export const HELP_ARTICLES: HelpArticle[] = [
     ],
   },
   {
+    slug: 'seguranca-da-conta',
+    title: 'Entrar com segurança',
+    summary: 'Confirmar o e-mail, senha errada, avisos por e-mail e o login com Google.',
+    topic: 'conta',
+    keywords: ['entrar', 'login', 'código', 'confirmar e-mail', 'bloqueado', 'senha errada', 'google', 'segurança', 'novo acesso', 'data de nascimento'],
+    body: [
+      { p: '**Confirmar o e-mail:** depois de criar a conta, digite o código de 6 caracteres que chegou por e-mail. Sem isso, o login não entra. Não chegou? Confira o spam e toque em **Enviar outro código** (dá para pedir um por minuto).' },
+      { p: '**Senha errada:** depois de 5 tentativas erradas seguidas, o login da conta fica bloqueado por 15 minutos, e o dono recebe um e-mail. Esqueceu a senha? Use **Esqueceu a senha?** na tela de entrar.' },
+      { p: '**Avisos por e-mail:** quando sua conta é acessada de um aparelho que ela nunca usou, ou quando é ligada ao Google, você recebe um e-mail. Se não foi você, troque a senha e desconecte os aparelhos que não reconhece em Perfil → **Aparelhos conectados**.' },
+      { p: '**Entrar com Google:** na primeira vez, o Booksmith pede sua data de nascimento (para proteger contas de menores de idade) e confirma o seu nome de usuário.' },
+    ],
+  },
+  {
     slug: 'aparelhos',
     title: 'Sair de um aparelho perdido ou emprestado',
     summary: 'Veja onde sua conta está aberta e desconecte.',

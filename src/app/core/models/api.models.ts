@@ -414,6 +414,8 @@ export interface UserSummary {
   username: string;
   displayName: string;
   emailVerified: boolean;
+  /** Conta nova do Google que ainda precisa completar o cadastro. */
+  profilePending: boolean;
 }
 
 export interface SessionResponse {
