@@ -31,6 +31,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/verify-email/verify-email').then((c) => c.VerifyEmailComponent),
   },
   {
+    path: 'verificacao',
+    canActivate: [guestGuard],
+    loadComponent: () => import('./features/auth/mfa-challenge/mfa-challenge').then((c) => c.MfaChallengeComponent),
+  },
+  {
     path: 'completar-cadastro',
     canActivate: [pendingProfileGuard],
     loadComponent: () =>

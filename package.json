@@ -30,6 +30,7 @@
     "@tiptap/suggestion": "^3.33.0",
     "primeicons": "^7.0.0",
     "primeng": "^21.1.8",
+    "qrcode-generator": "2.0.4",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },

@@ -407,6 +407,19 @@ export const HELP_ARTICLES: HelpArticle[] = [
     ],
   },
   {
+    slug: 'verificacao-em-duas-etapas',
+    title: 'Verificação em duas etapas',
+    summary: 'Além da senha, um código do celular ou do e-mail para entrar.',
+    topic: 'conta',
+    keywords: ['verificação em duas etapas', 'dois fatores', '2fa', 'mfa', 'autenticador', 'google authenticator', 'código', 'recuperação', 'segurança'],
+    body: [
+      { p: 'Com ela ligada, quem descobrir sua senha ainda não entra: depois da senha (ou do Google), o Booksmith pede um código.' },
+      { steps: ['Abra Perfil → **Verificação em duas etapas**.', 'Toque em **Usar app autenticador** e leia o QR code com o Google Authenticator, o Microsoft Authenticator ou o 1Password (no celular, toque em **Abrir no app autenticador**). Ou escolha **Usar código por e-mail**.', 'Digite o código que aparece e toque em **Ativar**.', 'Guarde os **10 códigos de recuperação** (copie ou baixe o .txt) num lugar seguro, fora do celular.'] },
+      { p: '**Perdeu o celular?** Na tela do código, toque em **Usar um código de recuperação**. Cada um vale uma vez; em Perfil dá para gerar novos.' },
+      { p: 'Para desligar, toque em **Desativar** e confirme com a senha e um código. Você recebe um e-mail sempre que a verificação é ativada, desativada ou um código de recuperação é usado.' },
+    ],
+  },
+  {
     slug: 'aparelhos',
     title: 'Sair de um aparelho perdido ou emprestado',
     summary: 'Veja onde sua conta está aberta e desconecte.',

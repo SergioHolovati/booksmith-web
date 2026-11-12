@@ -1,0 +1,138 @@
+<section class="glass-card mfa" data-mfa>
+  <div class="head">
+    <i class="pi pi-shield" aria-hidden="true"></i>
+    <div>
+      <h3>Verificação em duas etapas</h3>
+      @if (status(); as s) {
+        @if (s.enabled) {
+          <p class="muted small" data-mfa-status>Ativada: além da senha, pedimos um código para entrar.</p>
+        } @else {
+          <p class="muted small" data-mfa-status>Desativada. Com ela, quem descobrir sua senha ainda não entra.</p>
+        }
+      }
+    </div>
+  </div>
+
+  @if (error(); as text) {
+    <p-message severity="error" [text]="text" styleClass="block-message" />
+  }
+
+  @switch (step()) {
+    @case ('totp') {
+      <ol class="steps">
+        <li>Instale um app autenticador (Google Authenticator, Microsoft Authenticator ou 1Password).</li>
+        <li>No computador, leia o QR code com o app. No celular, toque em <strong>Abrir no app autenticador</strong>
+          ou digite a chave.</li>
+      </ol>
+      @if (qr(); as image) {
+        <img class="qr" [src]="image" alt="QR code para o app autenticador" width="180" height="180" />
+      }
+      @if (uri(); as link) {
+        <a class="open-app" [href]="link"><i class="pi pi-external-link" aria-hidden="true"></i> Abrir no app autenticador</a>
+      }
+      <p class="secret">Chave: <code data-mfa-secret>{{ secret() }}</code></p>
+      <div class="field">
+        <label for="mfa-setup-code" class="field-label">Código de 6 números que o app mostra</label>
+        <input id="mfa-setup-code" pInputText inputmode="numeric" autocomplete="one-time-code" maxlength="7"
+          [(ngModel)]="code" />
+      </div>
+      <div class="actions">
+        <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="go('idle')" />
+        <p-button label="Ativar" icon="pi pi-check" [loading]="busy()" [disabled]="!code.trim()" (onClick)="confirm('totp')" />
+      </div>
+    }
+    @case ('email') {
+      <p>Enviamos um código de 6 números para <strong>{{ email() }}</strong>.</p>
+      <div class="field">
+        <label for="mfa-email-code" class="field-label">Código</label>
+        <input id="mfa-email-code" pInputText inputmode="numeric" autocomplete="one-time-code" maxlength="7"
+          [(ngModel)]="code" />
+      </div>
+      <div class="actions">
+        <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="go('idle')" />
+        <p-button label="Ativar" icon="pi pi-check" [loading]="busy()" [disabled]="!code.trim()" (onClick)="confirm('email')" />
+      </div>
+    }
+    @case ('codes') {
+      <p><strong>Guarde estes códigos de recuperação.</strong> Se perder o celular (ou o acesso ao e-mail), cada um
+        vale uma entrada. Eles não aparecem de novo.</p>
+      <ul class="codes" data-recovery-codes>
+        @for (c of codes(); track c) {
+          <li><code>{{ c }}</code></li>
+        }
+      </ul>
+      <div class="actions wrap">
+        <p-button label="Copiar" icon="pi pi-copy" severity="secondary" [outlined]="true" (onClick)="copyCodes()" />
+        <p-button label="Baixar .txt" icon="pi pi-download" severity="secondary" [outlined]="true" (onClick)="downloadCodes()" />
+      </div>
+      <label class="check">
+        <input type="checkbox" [checked]="saved()" (change)="saved.set($any($event.target).checked)" />
+        Guardei os códigos num lugar seguro
+      </label>
+      <p-button label="Concluir" [disabled]="!saved()" (onClick)="finish()" />
+    }
+    @case ('regenerate') {
+      <p>Os códigos de recuperação antigos deixam de valer. Para confirmar, digite um código
+        {{ has('totp') ? 'do app autenticador' : 'enviado por e-mail' }}.</p>
+      @if (has('email')) {
+        <p-button label="Enviar código por e-mail" icon="pi pi-envelope" [text]="true" (onClick)="sendCode()" />
+      }
+      <div class="field">
+        <label for="mfa-regen-code" class="field-label">Código</label>
+        <input id="mfa-regen-code" pInputText inputmode="numeric" autocomplete="one-time-code" maxlength="7"
+          [(ngModel)]="code" />
+      </div>
+      <div class="actions">
+        <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="go('idle')" />
+        <p-button label="Gerar novos" [loading]="busy()" [disabled]="!code.trim()" (onClick)="regenerate()" />
+      </div>
+    }
+    @case ('disable') {
+      <p>Sem a verificação em duas etapas, a conta volta a entrar só com a senha{{ hasPassword() ? '' : ' (ou o Google)' }}.</p>
+      @if (hasPassword()) {
+        <div class="field">
+          <label for="mfa-disable-password" class="field-label">Senha</label>
+          <input id="mfa-disable-password" type="password" pInputText autocomplete="current-password" [(ngModel)]="password" />
+        </div>
+      }
+      @if (has('email')) {
+        <p-button label="Enviar código por e-mail" icon="pi pi-envelope" [text]="true" (onClick)="sendCode()" />
+      }
+      <div class="field">
+        <label for="mfa-disable-code" class="field-label">Código (do app, do e-mail ou de recuperação)</label>
+        <input id="mfa-disable-code" pInputText autocomplete="one-time-code" maxlength="12" [(ngModel)]="code" />
+      </div>
+      <div class="actions">
+        <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="go('idle')" />
+        <p-button label="Desativar" severity="danger" [loading]="busy()"
+          [disabled]="!code.trim() || (hasPassword() && !password)" (onClick)="disable()" />
+      </div>
+    }
+    @default {
+      @if (status(); as s) {
+        @if (s.enabled) {
+          <ul class="methods">
+            @for (m of s.methods; track m) {
+              <li><i class="pi pi-check-circle" aria-hidden="true"></i> {{ labels[m] }}</li>
+            }
+          </ul>
+          <p class="muted small" data-recovery-left>{{ s.recoveryCodesLeft }} códigos de recuperação restantes</p>
+        }
+        <div class="actions wrap start">
+          @if (!has('totp')) {
+            <p-button [label]="s.enabled ? 'Adicionar app autenticador' : 'Usar app autenticador'" icon="pi pi-mobile"
+              [loading]="busy()" (onClick)="startTotp()" />
+          }
+          @if (!has('email')) {
+            <p-button [label]="s.enabled ? 'Adicionar código por e-mail' : 'Usar código por e-mail'" icon="pi pi-envelope"
+              severity="secondary" [outlined]="true" [loading]="busy()" (onClick)="startEmail()" />
+          }
+          @if (s.enabled) {
+            <p-button label="Novos códigos de recuperação" severity="secondary" [outlined]="true" (onClick)="go('regenerate')" />
+            <p-button label="Desativar" severity="danger" [text]="true" (onClick)="go('disable')" />
+          }
+        </div>
+      }
+    }
+  }
+</section>

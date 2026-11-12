@@ -7,6 +7,7 @@ import { MessageModule } from 'primeng/message';
 
 import { problemMessage, problemOf } from '../../../core/api/problem';
 import { AuthService } from '../../../core/auth/auth.service';
+import { mfaState } from '../mfa-challenge/mfa-challenge';
 
 const GOOGLE_ERRORS: Record<string, string> = {
   google: 'Não foi possível entrar com o Google. Tente novamente.',
@@ -53,7 +54,13 @@ export class LoginComponent {
       await this.auth.login(this.address.trim(), this.password);
       await this.router.navigate(['/home']);
     } catch (error) {
-      if (problemOf(error)?.code === 'email_not_verified') {
+      const problem = problemOf(error);
+      if (problem?.code === 'mfa_required') {
+        // Senha certa e verificação em duas etapas ligada: a tela do código
+        await this.router.navigate(['/verificacao'], { state: mfaState(problem) });
+        return;
+      }
+      if (problem?.code === 'email_not_verified') {
         // Senha certa, e-mail sem confirmar: leva para a tela do código e pede um novo
         await this.router.navigate(['/verificar-email'], { queryParams: { email: this.address.trim(), sent: '0' } });
         return;

@@ -16,12 +16,14 @@ import { problemMessage } from '../../core/api/problem';
 import { AuthService } from '../../core/auth/auth.service';
 import { Profile } from '../../core/models/api.models';
 import { GoogleAccountComponent } from './google-account/google-account';
+import { MfaSettingsComponent } from './mfa-settings/mfa-settings';
 import { compressImage } from '../../core/util/image';
 
 @Component({
   selector: 'app-profile',
   imports: [
     GoogleAccountComponent,
+    MfaSettingsComponent,
     ReactiveFormsModule,
     RouterLink,
     AutoCompleteModule,

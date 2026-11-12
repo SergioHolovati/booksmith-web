@@ -2,7 +2,9 @@ import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
+import { problemOf } from '../../../core/api/problem';
 import { AuthService } from '../../../core/auth/auth.service';
+import { mfaState } from '../mfa-challenge/mfa-challenge';
 
 /**
  * Recebe o código de uso único do login com Google no fragmento (#code=...), que não vai para servidores nem logs,
@@ -48,7 +50,12 @@ export class CallbackComponent implements OnInit {
       await this.auth.exchangeGoogleCode(code);
       const target = this.auth.user()?.profilePending ? '/completar-cadastro' : '/home';
       await this.router.navigate([target], { replaceUrl: true });
-    } catch {
+    } catch (error) {
+      const problem = problemOf(error);
+      if (problem?.code === 'mfa_required') {
+        await this.router.navigate(['/verificacao'], { state: mfaState(problem), replaceUrl: true });
+        return;
+      }
       await this.router.navigate(['/login'], { queryParams: { error: 'google' }, replaceUrl: true });
     }
   }

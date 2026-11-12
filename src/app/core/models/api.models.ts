@@ -470,6 +470,27 @@ export interface Profile {
   author: AuthorProfile | null;
 }
 
+export type MfaMethod = 'totp' | 'email';
+
+/** Verificação em duas etapas da conta. */
+export interface MfaStatus {
+  enabled: boolean;
+  methods: MfaMethod[];
+  recoveryCodesLeft: number;
+}
+
+/** App autenticador: o segredo para digitar e o link otpauth:// (QR code). */
+export interface TotpSetup {
+  secret: string;
+  uri: string;
+}
+
+/** O desafio da segunda etapa do login (erro 403 mfa_required). */
+export interface MfaChallenge {
+  challenge: string;
+  methods: MfaMethod[];
+}
+
 /** Erro RFC 9457 devolvido pela API. */
 export interface ProblemDetail {
   status: number;
@@ -478,6 +499,9 @@ export interface ProblemDetail {
   code?: string;
   errors?: { field: string; message: string }[];
   currentVersion?: number;
+  /** mfa_required: o desafio da segunda etapa e os métodos da conta. */
+  challenge?: string;
+  methods?: MfaMethod[];
 }
 
 // ===== Bíblia do Universo =====

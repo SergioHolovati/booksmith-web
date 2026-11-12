@@ -68,6 +68,21 @@ export class AuthService {
     );
   }
 
+  /** Segunda etapa do login: o código (app, e-mail ou recuperação) do desafio abre a sessão. */
+  async verifyMfa(challenge: string, code: string): Promise<void> {
+    const session = await firstValueFrom(
+      this.http.post<SessionResponse>(`${this.base}/mfa/verify`, { challenge, code }, { context: this.noRefresh() }),
+    );
+    this.setToken(session.accessToken);
+  }
+
+  /** Segunda etapa por e-mail: manda o código. */
+  sendMfaEmail(challenge: string): Promise<void> {
+    return firstValueFrom(
+      this.http.post<void>(`${this.base}/mfa/email`, { challenge }, { context: this.noRefresh() }),
+    );
+  }
+
   /** Troca o código de uso único do login com Google pela sessão. */
   async exchangeGoogleCode(code: string): Promise<void> {
     const session = await firstValueFrom(

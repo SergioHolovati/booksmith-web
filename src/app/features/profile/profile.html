@@ -130,6 +130,7 @@
         </form>
       }
 
+      <app-mfa-settings [email]="profile.user.email" [hasPassword]="profile.user.hasPassword" />
       <app-google-account [user]="profile.user" [outcome]="google()" (changed)="load()" />
 
       <a routerLink="/sessions" class="trash-link"><i class="pi pi-mobile"></i> Aparelhos conectados</a>
