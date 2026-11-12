@@ -999,7 +999,8 @@ export interface SuggestionResult {
 
 // ===== Revisão do capítulo pela IA (§4.11) =====
 
-export type ReviewCheck = 'format' | 'spelling' | 'style' | 'holes' | 'continuity' | 'improvements';
+/** `proofread` é do app: o corretor sem IA do editor (LanguageTool), sem passar pela revisão do servidor. */
+export type ReviewCheck = 'format' | 'proofread' | 'spelling' | 'style' | 'holes' | 'continuity' | 'improvements';
 
 export interface ReviewRequest {
   bookId: string;

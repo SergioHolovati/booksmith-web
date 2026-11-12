@@ -310,11 +310,12 @@ export const HELP_ARTICLES: HelpArticle[] = [
     topic: 'texto',
     keywords: ['revisão', 'revisar', 'ortografia', 'gramática', 'erro', 'furo', 'roteiro', 'continuidade', 'enredo', 'melhorar', 'ia', 'formatação', 'travessão', 'aspas', 'frase', 'estilo'],
     body: [
-      { p: 'No editor, toque em **Revisão do capítulo** (o quadradinho com o visto, no alto). São duas ações separadas: **Revisar formatação**, sem IA e sem limite, e **Revisão com IA**, que faz cinco revisões de uma vez e usa 1 dos seus 3 usos de IA a cada 24 horas. Os apontamentos aparecem separados por tipo:' },
+      { p: 'No editor, toque em **Revisão do capítulo** (o quadradinho com o visto, no alto). São duas ações separadas: **Revisar sem IA** (formatação e ortografia pelo corretor do Booksmith, sem limite) e, como bônus, **Revisão com IA**, que faz cinco revisões de uma vez e usa 1 dos seus 3 usos de IA a cada 24 horas. Os apontamentos aparecem separados por tipo:' },
       {
         list: [
           '**Formatação** (sem IA, livre): falas com aspas onde o livro usa travessão, fala começando com minúscula, "dona Lurdes" num lugar e "Dona Lurdes" em outro, "perguntou Ana" repetido.',
-          '**Ortografia:** acentos, concordância, crase, pontuação. Os nomes do seu universo não contam como erro.',
+          '**Ortografia** (sem IA, livre): o corretor do Booksmith, o mesmo que sublinha no editor. Os nomes do seu universo e as palavras do dicionário do livro não contam como erro.',
+          '**Ortografia e gramática (revisão da IA):** o que o corretor deixa passar, como concordância e a vírgula antes de "respondeu".',
           '**Frases e estilo:** redundância, ordem estranha das palavras, palavra que sobra. A sua voz e a fala dos personagens ficam como estão.',
           '**Furos de roteiro:** o que não se sustenta, comparando com os capítulos anteriores, as notas e as fichas.',
           '**Continuidade:** o que contradiz as fichas (olhos, idade, lugares, regras do mundo) ou o que já foi contado.',

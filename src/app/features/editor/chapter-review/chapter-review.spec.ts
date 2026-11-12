@@ -6,6 +6,7 @@ import { MessageService } from 'primeng/api';
 import { Observable, of, throwError } from 'rxjs';
 
 import { AssistApi } from '../../../core/api/assist.api';
+import { ManuscriptApi } from '../../../core/api/manuscript.api';
 import { ReviewCheck, ReviewItem, ReviewRequest, ReviewResult } from '../../../core/models/api.models';
 import { manuscriptExtensions } from '../schema/manuscript-extensions';
 import { alreadyFixed, ChapterReviewComponent } from './chapter-review';
@@ -41,18 +42,35 @@ function setup(answer: (request: ReviewRequest) => Observable<ReviewResult>) {
   TestBed.configureTestingModule({
     providers: [
       { provide: AssistApi, useValue: api },
+      { provide: ManuscriptApi, useValue: noIssues },
       { provide: MessageService, useValue: { add: () => undefined } },
     ],
   });
   const fixture = TestBed.createComponent(ChapterReviewComponent);
   fixture.componentRef.setInput('chapterId', 'c1');
   fixture.componentRef.setInput('bookId', 'l1');
+  fixture.componentRef.setInput('editor', editorWith('Texto do capítulo.'));
   return { component: fixture.componentInstance, calls, starts };
+}
+
+/** O corretor sem IA (LanguageTool) devolve sem erros, a não ser que o teste diga outra coisa. */
+const noIssues = {
+  proofread: (_chapterId: string, blocks: { id: string }[]) => of({ blocks: blocks.map((b) => ({ id: b.id, issues: [] })) }),
+};
+
+function editorWith(...texts: string[]): Editor {
+  return new Editor({
+    extensions: manuscriptExtensions(''),
+    content: {
+      type: 'doc',
+      content: texts.map((text, i) => ({ type: 'paragraph', attrs: { id: `b${i + 1}` }, content: [{ type: 'text', text }] })),
+    },
+  });
 }
 
 /** As duas ações, na ordem em que o autor costuma usar. */
 async function runBoth(component: ChapterReviewComponent): Promise<void> {
-  await component.runFormat();
+  await component.runFree();
   await component.runAi();
 }
 
@@ -62,7 +80,7 @@ describe('ChapterReviewComponent', () => {
       of(r.check === 'spelling' && !r.fromBlock ? result('spelling', 'b9', 1, 2) : result(r.check, null, r.fromBlock ? 2 : 1, r.fromBlock ? 2 : 1)),
     );
 
-    await component.runFormat();
+    await component.runFree();
     expect(starts).toHaveLength(0);
     expect(calls[0].runId).toBeNull();
     expect(component.aiGroups()).toHaveLength(0);
@@ -82,6 +100,7 @@ describe('ChapterReviewComponent', () => {
     ]);
     expect(component.groups().map((g) => [g.value, g.state, g.items.length])).toEqual([
       ['format', 'done', 1],
+      ['proofread', 'done', 0],
       ['spelling', 'done', 2],
       ['style', 'done', 1],
       ['holes', 'done', 1],
@@ -113,7 +132,7 @@ describe('ChapterReviewComponent', () => {
     await runBoth(component);
 
     expect(calls.map((c) => c.check)).toEqual(['format', 'spelling', 'style', 'holes']);
-    expect(component.groups().map((g) => g.state)).toEqual(['done', 'done', 'done', 'error', 'stopped', 'stopped']);
+    expect(component.groups().map((g) => g.state)).toEqual(['done', 'done', 'done', 'done', 'error', 'stopped', 'stopped']);
   });
 
   it('dispensar tira o apontamento só do seu grupo', async () => {
@@ -124,7 +143,7 @@ describe('ChapterReviewComponent', () => {
     component.dismiss(first);
 
     expect(component.groups()[0].items).toHaveLength(0);
-    expect(component.groups()[1].items).toHaveLength(1);
+    expect(component.groups()[2].items).toHaveLength(1);
     expect(component.pendingCount()).toBe(5);
   });
 
@@ -154,7 +173,7 @@ describe('ChapterReviewComponent', () => {
           : [],
     }));
 
-    await component.runFormat();
+    await component.runFree();
     await component.runAi();
     const format = component.groups().find((g) => g.value === 'format')!;
     const spelling = component.groups().find((g) => g.value === 'spelling')!;
@@ -188,19 +207,11 @@ function setupWithEditor(answer: (request: ReviewRequest) => Observable<ReviewRe
           review: answer,
         },
       },
+      { provide: ManuscriptApi, useValue: noIssues },
       { provide: MessageService, useValue: { add: (m: { summary: string }) => toasts.push(m.summary) } },
     ],
   });
-  const editor = new Editor({
-    extensions: manuscriptExtensions(''),
-    content: {
-      type: 'doc',
-      content: [
-        { type: 'paragraph', attrs: { id: 'b1' }, content: [{ type: 'text', text: '"Oi" disse Ana.' }] },
-        { type: 'paragraph', attrs: { id: 'b2' }, content: [{ type: 'text', text: '"duvido" respondi.' }] },
-      ],
-    },
-  });
+  const editor = editorWith('"Oi" disse Ana.', '"duvido" respondi.');
   const fixture = TestBed.createComponent(ChapterReviewComponent);
   fixture.componentRef.setInput('chapterId', 'c1');
   fixture.componentRef.setInput('bookId', 'l1');

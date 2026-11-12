@@ -2,16 +2,16 @@
   styleClass="review-drawer" [style]="{ width: 'min(440px, 100vw)' }">
   <section class="action" aria-labelledby="format-title">
     <div class="action-head">
-      <h3 id="format-title">Formatação</h3>
+      <h3 id="format-title">Formatação e ortografia</h3>
       <span class="free-badge">sem IA · livre</span>
     </div>
     <p class="muted small help">
-      Aspas ou travessão, fala em minúscula, nome escrito de dois jeitos, marcação de fala repetida. Comparada com o
-      resto do livro, na hora e sem limite.
+      Formatação comparada com o resto do livro (aspas ou travessão, maiúsculas, nomes, marcação de fala repetida) e
+      ortografia pelo corretor do Booksmith, que conhece os nomes do seu universo. Na hora e sem limite.
     </p>
-    <p-button [label]="formatStarted() ? 'Revisar formatação de novo' : 'Revisar formatação'" icon="pi pi-align-left"
-      severity="secondary" (onClick)="runFormat()" styleClass="run" [disabled]="!bookId() || running()" />
-    <ng-container *ngTemplateOutlet="groupList; context: { $implicit: formatGroups() }" />
+    <p-button [label]="freeStarted() ? 'Revisar sem IA de novo' : 'Revisar sem IA'" icon="pi pi-align-left"
+      severity="secondary" (onClick)="runFree()" styleClass="run" [disabled]="!bookId() || running()" />
+    <ng-container *ngTemplateOutlet="groupList; context: { $implicit: freeGroups() }" />
   </section>
 
   <section class="action ai" aria-labelledby="ai-title">
@@ -20,8 +20,8 @@
       <span class="ai-badge">IA</span>
     </div>
     <p class="muted small help">
-      Ortografia, frases e estilo, furos de roteiro, continuidade e melhorias no enredo, de uma vez. A IA aponta; você
-      decide o que mudar.
+      Um bônus depois da revisão sem IA: ortografia e gramática mais finas (concordância, vírgula da fala), frases e
+      estilo, furos de roteiro, continuidade e melhorias no enredo, de uma vez. A IA aponta; você decide.
     </p>
     @if (!aiEnabled()) {
       <p class="muted small">A IA está desligada neste servidor. A formatação continua funcionando.</p>
@@ -72,7 +72,7 @@
   @for (group of groups; track group.value) {
     <section class="group" [attr.data-check]="group.value" [attr.data-state]="group.state">
       <h4 class="group-title">
-        {{ group.ai ? group.label : 'Pontos encontrados' }}
+        {{ group.label }}
         @if (group.items.length) {
           <span class="count">{{ group.items.length }}</span>
         }

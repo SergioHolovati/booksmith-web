@@ -11,7 +11,11 @@ import { firstValueFrom } from 'rxjs';
 import { AssistApi } from '../../../core/api/assist.api';
 import { problemMessage } from '../../../core/api/problem';
 import { ReviewCheck, ReviewItem, ReviewResult } from '../../../core/models/api.models';
+import { ManuscriptApi } from '../../../core/api/manuscript.api';
+import { blockTexts } from '../proofread/proofread';
+import { chunks } from '../proofread/proofreader';
 import { applyFix } from './apply-fix';
+import { proofreadItems } from './proofread-items';
 import { findQuote } from './find-quote';
 
 /**
@@ -20,7 +24,8 @@ import { findQuote } from './find-quote';
  */
 export const REVIEW_CHECKS: { value: ReviewCheck; label: string; ai: boolean }[] = [
   { value: 'format', label: 'Formatação', ai: false },
-  { value: 'spelling', label: 'Ortografia', ai: true },
+  { value: 'proofread', label: 'Ortografia', ai: false },
+  { value: 'spelling', label: 'Ortografia e gramática (revisão da IA)', ai: true },
   { value: 'style', label: 'Frases e estilo', ai: true },
   { value: 'holes', label: 'Furos de roteiro', ai: true },
   { value: 'continuity', label: 'Continuidade', ai: true },
@@ -29,6 +34,8 @@ export const REVIEW_CHECKS: { value: ReviewCheck; label: string; ai: boolean }[]
 
 /** As revisões com IA: rodam juntas e gastam um uso da cota. */
 export const AI_CHECKS = REVIEW_CHECKS.filter((c) => c.ai).map((c) => c.value);
+/** As revisões sem IA (regras e o corretor do editor): livres e sem limite. */
+export const FREE_CHECKS = REVIEW_CHECKS.filter((c) => !c.ai).map((c) => c.value);
 
 interface ReviewView extends ReviewItem {
   /** Identifica o apontamento na marcação para corrigir em lote. */
@@ -87,6 +94,7 @@ function stopsEverything(error: unknown): boolean {
 })
 export class ChapterReviewComponent {
   private readonly api = inject(AssistApi);
+  private readonly manuscripts = inject(ManuscriptApi);
   private readonly toast = inject(MessageService);
 
   readonly chapterId = input.required<string>();
@@ -114,7 +122,7 @@ export class ChapterReviewComponent {
   readonly status = this.api.status;
   readonly aiEnabled = computed(() => this.status()?.enabled === true);
   readonly remaining = computed(() => this.status()?.remaining ?? 0);
-  readonly formatStarted = computed(() => this.states().format !== 'waiting');
+  readonly freeStarted = computed(() => FREE_CHECKS.some((c) => this.states()[c] !== 'waiting'));
   readonly aiStarted = computed(() => AI_CHECKS.some((c) => this.states()[c] !== 'waiting'));
   readonly pendingCount = computed(() => this.items().filter((i) => !i.done).length);
   readonly groups = computed(() =>
@@ -130,7 +138,7 @@ export class ChapterReviewComponent {
       return { ...g, fixable, marked };
     }),
   );
-  readonly formatGroups = computed(() => this.groups().filter((g) => !g.ai));
+  readonly freeGroups = computed(() => this.groups().filter((g) => !g.ai));
   readonly aiGroups = computed(() => this.groups().filter((g) => g.ai));
   readonly currentLabel = computed(() => {
     const check = this.runningChecks()[this.progress()?.step ?? 0];
@@ -146,9 +154,9 @@ export class ChapterReviewComponent {
     void this.api.ensureStatus();
   }
 
-  /** Formatação: regras, sem IA e sem gastar a cota. */
-  runFormat(): Promise<void> {
-    return this.runChecks(['format'], false);
+  /** Sem IA: formatação (regras) e ortografia (o corretor do editor). Livre e sem limite. */
+  runFree(): Promise<void> {
+    return this.runChecks(FREE_CHECKS, false);
   }
 
   /** Revisão com IA: abre a revisão (gasta um uso) e roda as cinco revisões com o id dela. */
@@ -181,7 +189,7 @@ export class ChapterReviewComponent {
         this.setState(check, 'running');
         this.progress.set({ step, part: 1, parts: 1 });
         try {
-          await this.review(bookId, check, step, runId);
+          await (check === 'proofread' ? this.proofread() : this.review(bookId, check, step, runId));
           this.setState(check, this.cancelled ? 'stopped' : 'done');
         } catch (error) {
           this.setState(check, 'error');
@@ -272,6 +280,24 @@ export class ChapterReviewComponent {
     return !!editor && !!item.quote && applyFix(editor, item.quote, item.suggestion, item.blockId);
   }
 
+  /** Ortografia sem IA: o corretor do editor (LanguageTool) no capítulo inteiro, em lotes. */
+  private async proofread(): Promise<void> {
+    const editor = this.editor();
+    if (!editor) {
+      throw new Error('O editor ainda não abriu.');
+    }
+    const blocks = blockTexts(editor.state.doc).filter((b) => b.text.trim());
+    for (const batch of chunks(blocks)) {
+      const result = await firstValueFrom(
+        this.manuscripts.proofread(this.chapterId(), batch.map((b) => ({ id: b.id, text: b.text }))),
+      );
+      const added = proofreadItems(batch, result.blocks)
+        .filter((f) => !alreadyFixed(this.items(), f))
+        .map((f) => ({ ...f, id: this.nextId++, check: 'proofread' as ReviewCheck, done: false }));
+      this.items.update((list) => [...list, ...added]);
+    }
+  }
+
   /** Uma revisão, parte por parte, até o fim do capítulo (ou até o autor parar). */
   private async review(bookId: string, check: ReviewCheck, step: number, runId: string | null): Promise<void> {
     let fromBlock: string | null = null;
@@ -296,6 +322,14 @@ export class ChapterReviewComponent {
   }
 
   private allStates(state: CheckState): Record<ReviewCheck, CheckState> {
-    return { format: state, spelling: state, style: state, holes: state, continuity: state, improvements: state };
+    return {
+      format: state,
+      proofread: state,
+      spelling: state,
+      style: state,
+      holes: state,
+      continuity: state,
+      improvements: state,
+    };
   }
 }
