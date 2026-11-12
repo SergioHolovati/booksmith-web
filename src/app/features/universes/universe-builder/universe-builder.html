@@ -157,6 +157,11 @@
 
         @for (field of step.fields; track field.key) {
           <app-builder-field [field]="field" [value]="value(field)" (valueChange)="setValue(field, $event)" />
+          @if (field.type === 'longtext') {
+            <app-ai-suggest class="field-ai" kind="universe" [field]="field.key" [fieldLabel]="field.label"
+              [universeId]="universe.id" [current]="textOf(field)" [context]="universeContext"
+              (use)="appendText(field, $event)" />
+          }
         }
 
         @if (collection(); as collection) {

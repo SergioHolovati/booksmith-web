@@ -272,6 +272,25 @@ export const HELP_ARTICLES: HelpArticle[] = [
     ],
   },
   {
+    slug: 'ideias-da-ia',
+    title: 'Ideias da IA: ajuda sem escrever por você',
+    summary: 'Sugestões e perguntas para o universo, os personagens e o enredo. Quem decide e escreve é você.',
+    topic: 'universo',
+    keywords: ['ia', 'inteligência artificial', 'ideia', 'sugestão', 'bloqueio', 'enredo', 'trama', 'reviravolta', 'pergunta', 'inspiração'],
+    body: [
+      { p: 'A IA do Booksmith **não escreve a história**. Ela oferece possibilidades curtas ou faz perguntas, e você escolhe o que usar e escreve do seu jeito.' },
+      {
+        list: [
+          '**Universo e personagens:** embaixo de cada campo de texto longo (perigos, costumes, medos, segredos…), toque em **Ideias da IA**.',
+          '**Enredo:** na página do livro, abra **Ideias para o enredo** e escolha o assunto: o que pode vir depois, conflitos, reviravoltas, tramas paralelas ou caminhos para o final.',
+        ],
+      },
+      { p: 'Escolha **Ideias** (4 possibilidades) ou **Perguntas para mim** (4 perguntas para você pensar). Se quiser, peça algo específico, como "algo ligado ao mar".' },
+      { p: '**Usar no campo** acrescenta a ideia no fim do campo, num parágrafo novo, para você reescrever. Nada é salvo sozinho: só quando você toca em **Salvar**. No enredo, a ideia só pode ser copiada; nada entra no texto do livro.' },
+      { p: 'A IA lê o que está na tela e o resumo do seu universo (e, no enredo, a sinopse e o fim do último capítulo). Hoje ela roda **no próprio computador do Booksmith**, então o seu texto não vai para outra empresa. O rodapé do painel mostra onde a IA roda e quantos pedidos ainda restam hoje. A primeira sugestão do dia pode levar até um minuto.' },
+    ],
+  },
+  {
     slug: 'imagens',
     title: 'Imagens e retratos',
     summary: 'Fotos de referência, desenhos e o retrato de cada personagem.',

@@ -1,0 +1,73 @@
+@if (enabled()) {
+  @if (!startOpen()) {
+    <button type="button" class="ai-toggle" [attr.aria-expanded]="open()" (click)="toggle()">
+      <i class="pi pi-lightbulb" aria-hidden="true"></i> {{ label() }}
+    </button>
+  }
+
+  @if (open()) {
+    <section class="ai-panel" [attr.aria-label]="'Sugestões da IA' + (fieldLabel() ? ' para ' + fieldLabel() : '')">
+      <p class="ai-note">
+        <span class="ai-badge">IA</span>
+        A IA só sugere. Você escolhe o que usar e escreve do seu jeito.
+      </p>
+
+      <div class="ai-modes" role="group" aria-label="O que pedir">
+        <button type="button" class="chip" [class.on]="mode() === 'ideas'" [attr.aria-pressed]="mode() === 'ideas'"
+          (click)="setMode('ideas')">Ideias</button>
+        <button type="button" class="chip" [class.on]="mode() === 'questions'"
+          [attr.aria-pressed]="mode() === 'questions'" (click)="setMode('questions')">Perguntas para mim</button>
+      </div>
+
+      <input pInputText class="ai-hint" [ngModel]="hint()" (ngModelChange)="hint.set($event)" maxlength="300"
+        placeholder="Quer algo específico? (opcional)" [attr.aria-label]="'Pedido específico' + (fieldLabel() ? ' para ' + fieldLabel() : '')"
+        (keydown.enter)="ask()" />
+
+      <p-button [label]="mode() === 'ideas' ? 'Pedir ideias' : 'Pedir perguntas'" icon="pi pi-lightbulb"
+        severity="secondary" [outlined]="true" size="small" [loading]="loading()" (onClick)="ask()"
+        styleClass="ai-ask" />
+
+      @if (loading()) {
+        <p class="muted small ai-wait" role="status">
+          Pensando… a primeira sugestão do dia pode levar até um minuto.
+        </p>
+      }
+      @if (error(); as message) {
+        <p class="ai-error small" role="alert">{{ message }}</p>
+      }
+
+      @if (suggestions().length > 0 && !loading()) {
+        <ul class="ai-list" [attr.data-mode]="askedMode()">
+          @for (idea of suggestions(); track $index; let i = $index) {
+            <li class="ai-item">
+              @if (idea.title) {
+                <strong class="ai-title">{{ idea.title }}</strong>
+              }
+              <span class="ai-text">{{ idea.text }}</span>
+              <div class="ai-actions">
+                @if (appendable() && askedMode() === 'ideas') {
+                  <p-button [label]="used().has(i) ? 'Usada' : 'Usar no campo'"
+                    [icon]="used().has(i) ? 'pi pi-check' : 'pi pi-plus'" size="small" [text]="true"
+                    [disabled]="used().has(i)" (onClick)="useIdea(i, idea)" />
+                }
+                <p-button label="Copiar" icon="pi pi-copy" size="small" [text]="true" severity="secondary"
+                  (onClick)="copy(idea)" />
+              </div>
+            </li>
+          }
+        </ul>
+      }
+
+      @if (status(); as s) {
+        <p class="muted small ai-footer">
+          @if (s.local) {
+            IA deste computador: o seu texto não sai daqui.
+          } @else {
+            IA da Anthropic (Claude): o trecho usado no pedido é enviado a ela.
+          }
+          Restam {{ s.remaining }} de {{ s.dailyLimit }} hoje.
+        </p>
+      }
+    </section>
+  }
+}

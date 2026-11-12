@@ -1,0 +1,127 @@
+:host {
+  display: block;
+}
+
+.ai-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  min-height: var(--bs-touch);
+  padding: 0 .25rem;
+  border: none;
+  background: none;
+  color: var(--bs-accent-light);
+  font: inherit;
+  font-size: .85rem;
+  cursor: pointer;
+}
+
+.ai-panel {
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+  margin-top: .25rem;
+  padding: .85rem;
+  border: 1px dashed rgba(255, 171, 82, 0.35);
+  border-radius: var(--bs-radius);
+  background: rgba(255, 122, 26, 0.04);
+}
+
+.ai-note {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin: 0;
+  color: var(--bs-text-soft);
+  font-size: .85rem;
+}
+
+.ai-badge {
+  flex: none;
+  padding: .1rem .45rem;
+  border-radius: 999px;
+  background: var(--bs-sand-soft);
+  color: var(--bs-sand);
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+
+.ai-modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+
+.chip {
+  min-height: 40px;
+  padding: 0 .85rem;
+  border: 1px solid var(--bs-border);
+  border-radius: 999px;
+  background: var(--bs-surface);
+  color: var(--bs-text-soft);
+  font: inherit;
+  font-size: .85rem;
+  cursor: pointer;
+}
+
+.chip.on {
+  border-color: var(--bs-ember);
+  background: var(--bs-sand-soft);
+  color: var(--bs-text);
+}
+
+.ai-hint {
+  width: 100%;
+}
+
+:host ::ng-deep .ai-ask {
+  align-self: flex-start;
+}
+
+.ai-wait,
+.ai-footer {
+  margin: 0;
+}
+
+.ai-error {
+  margin: 0;
+  color: var(--bs-danger);
+}
+
+.ai-list {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ai-item {
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+  padding: .65rem .75rem .25rem;
+  border-radius: var(--bs-radius-sm);
+  background: var(--bs-surface);
+  overflow-wrap: anywhere;
+}
+
+.ai-title {
+  color: var(--bs-text);
+  font-size: .9rem;
+}
+
+.ai-text {
+  color: var(--bs-text-soft);
+  font-size: .9rem;
+  line-height: 1.45;
+}
+
+.ai-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: .25rem;
+}

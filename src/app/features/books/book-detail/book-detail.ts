@@ -22,10 +22,11 @@ import {
 import { formatCount } from '../../../core/util/word-count';
 import { BookCoverComponent } from '../book-cover';
 import { KIND_LABEL, LANGUAGE_LABEL, STATUS_LABEL } from '../book-labels';
+import { PlotIdeasComponent } from '../plot-ideas/plot-ideas';
 
 @Component({
   selector: 'app-book-detail',
-  imports: [RouterLink, ButtonModule, ConfirmDialogModule, DialogModule, ProgressSpinnerModule, BookCoverComponent],
+  imports: [RouterLink, ButtonModule, ConfirmDialogModule, DialogModule, ProgressSpinnerModule, BookCoverComponent, PlotIdeasComponent],
   providers: [ConfirmationService],
   templateUrl: './book-detail.html',
   styleUrl: './book-detail.scss',

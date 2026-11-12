@@ -945,3 +945,50 @@ export interface ProofreadBlock {
   id: string;
   issues: ProofreadIssue[];
 }
+
+// ===== Sugestões de IA (§4.11) =====
+
+export type SuggestionKind = 'universe' | 'character' | 'plot';
+export type SuggestionMode = 'ideas' | 'questions';
+export type PlotField = 'next' | 'conflict' | 'twist' | 'subplot' | 'ending';
+
+/** Se a IA está ligada, qual e quanto ainda dá para pedir hoje. `local`: o texto não sai do computador. */
+export interface AssistStatus {
+  enabled: boolean;
+  provider: string;
+  model: string;
+  local: boolean;
+  dailyLimit: number;
+  remaining: number;
+}
+
+/** Uma linha do que está na tela, mandada como contexto ("Personalidade: curiosa"). */
+export interface ContextLine {
+  label: string;
+  text: string;
+}
+
+export interface SuggestionRequest {
+  kind: SuggestionKind;
+  mode?: SuggestionMode;
+  universeId?: string | null;
+  bookId?: string | null;
+  field: string;
+  fieldLabel?: string;
+  current?: string;
+  context?: ContextLine[];
+  hint?: string;
+}
+
+export interface Suggestion {
+  title: string;
+  text: string;
+}
+
+export interface SuggestionResult {
+  suggestions: Suggestion[];
+  provider: string;
+  model: string;
+  local: boolean;
+  remaining: number;
+}

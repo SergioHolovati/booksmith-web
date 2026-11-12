@@ -23,6 +23,7 @@ import {
   Character,
   CharacterRole,
   CharacterSheet,
+  ContextLine,
   CustomFieldDefinition,
   Portrait,
 } from '../../../core/models/api.models';
@@ -31,9 +32,11 @@ import { BuilderFieldComponent } from '../../../shared/builder/builder-field';
 import { ImageGalleryComponent } from '../../../shared/gallery/image-gallery';
 import { RelationsCardComponent } from '../relations-card/relations-card';
 import { describe, progress, rollEmpty, stableJson, tabsOf, withValue } from '../appearance-values';
-import { ROLE_OPTIONS, SHEET_FIELDS } from '../character-labels';
+import { ROLE_LABEL, ROLE_OPTIONS, SHEET_FIELDS } from '../character-labels';
 import { MentionedInComponent } from '../../../shared/mentions/mentioned-in';
 import { CustomFieldsComponent, CustomValueChange } from '../../../shared/custom-fields/custom-fields';
+import { AiSuggestComponent } from '../../../shared/assist/ai-suggest';
+import { appendIdea } from '../../../shared/assist/ideas';
 
 type Section = 'sheet' | 'appearance' | 'personality';
 
@@ -68,6 +71,7 @@ interface Draft {
     ImageGalleryComponent,
     MentionedInComponent,
     CustomFieldsComponent,
+    AiSuggestComponent,
   ],
   providers: [ConfirmationService],
   templateUrl: './character-editor.html',
@@ -215,6 +219,43 @@ export class CharacterEditorComponent implements HasUnsavedChanges {
       return { ...d, sheet: sheet as CharacterSheet };
     });
   }
+
+  /** Ideia da IA escolhida: entra no fim do campo, num parágrafo novo, para o autor reescrever. */
+  appendSheet(key: keyof CharacterSheet, text: string): void {
+    const next = appendIdea(this.draft().sheet[key] ?? '', text, 4000);
+    if (next === null) {
+      this.toast.add({ severity: 'warn', summary: 'O campo ficaria longo demais. Copie a ideia e resuma.', life: 4000 });
+      return;
+    }
+    this.setSheet(key, next);
+  }
+
+  /** A ficha como está na tela (mesmo sem salvar), para dar contexto às sugestões da IA. */
+  readonly sheetContext = (): ContextLine[] => {
+    const draft = this.draft();
+    const lines: ContextLine[] = [{ label: 'Nome', text: draft.name }];
+    if (draft.sheet.role) {
+      lines.push({ label: 'Papel na história', text: ROLE_LABEL[draft.sheet.role] });
+    }
+    if (draft.aliases.length) {
+      lines.push({ label: 'Apelidos', text: draft.aliases.join(', ') });
+    }
+    for (const field of SHEET_FIELDS) {
+      const text = draft.sheet[field.key];
+      if (text) {
+        lines.push({ label: field.label, text: text.slice(0, 2000) });
+      }
+    }
+    const form = this.form();
+    if (form) {
+      for (const group of ['appearance', 'personality'] as const) {
+        for (const line of describe(tabsOf(form, group), draft.appearance)) {
+          lines.push({ label: line.tab, text: line.text.slice(0, 2000) });
+        }
+      }
+    }
+    return lines.slice(0, 40);
+  };
 
   setCustom(change: CustomValueChange): void {
     this.draft.update((d) => ({ ...d, custom: withValue(d.custom, change.key, change.value) }));

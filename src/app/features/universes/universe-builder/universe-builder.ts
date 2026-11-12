@@ -14,6 +14,7 @@ import {
   AppearanceField,
   PlaceSummary,
   AppearanceValue,
+  ContextLine,
   UniverseBuilderDefinition,
   UniverseCollection,
   UniverseDetail,
@@ -38,6 +39,11 @@ import {
 } from '../universe-builder-values';
 import { MapPlacesCardComponent } from '../map-places-card/map-places-card';
 import { GENERATOR_VERSION } from '../map-generator/world';
+import { AiSuggestComponent } from '../../../shared/assist/ai-suggest';
+import { appendIdea } from '../../../shared/assist/ideas';
+
+/** Tamanho máximo de um campo de texto longo do construtor (o mesmo da API). */
+const LONG_TEXT_MAX = 2000;
 
 interface Draft {
   name: string;
@@ -60,6 +66,7 @@ interface Draft {
     ProgressSpinnerModule,
     BuilderFieldComponent,
     MapPlacesCardComponent,
+    AiSuggestComponent,
   ],
   providers: [ConfirmationService],
   templateUrl: './universe-builder.html',
@@ -210,6 +217,34 @@ export class UniverseBuilderComponent implements HasUnsavedChanges {
   setValue(field: AppearanceField, value: AppearanceValue | null): void {
     this.draft.update((d) => ({ ...d, details: withDetail(d.details, field.key, value) }));
   }
+
+  /** Texto atual de um campo de texto (mesmo sem salvar). */
+  textOf(field: AppearanceField): string {
+    const value = this.value(field);
+    return typeof value === 'string' ? value : '';
+  }
+
+  /** Ideia da IA escolhida: entra no fim do campo, num parágrafo novo, para o autor reescrever. */
+  appendText(field: AppearanceField, text: string): void {
+    const next = appendIdea(this.textOf(field), text, LONG_TEXT_MAX);
+    if (next === null) {
+      this.toast.add({ severity: 'warn', summary: 'O campo ficaria longo demais. Copie a ideia e resuma.', life: 4000 });
+      return;
+    }
+    this.setValue(field, next);
+  }
+
+  /** O universo como está na tela (mesmo sem salvar), para dar contexto às sugestões da IA. */
+  readonly universeContext = (): ContextLine[] => {
+    const form = this.form();
+    const lines: ContextLine[] = [{ label: 'Nome do universo', text: this.draft().name }];
+    if (form) {
+      for (const line of universePortrait(form, this.draft().details, this.universe()?.mapUrl ?? null)) {
+        lines.push({ label: line.tab, text: line.text.slice(0, 2000) });
+      }
+    }
+    return lines.slice(0, 40);
+  };
 
   /** Dado: sorteia só o que está vazio no passo. */
   roll(step: UniverseStep): void {
