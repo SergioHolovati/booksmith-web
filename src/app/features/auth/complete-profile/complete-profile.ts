@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
@@ -17,7 +17,7 @@ export const USERNAME_PATTERN = /^[a-zA-Z0-9._-]{2,40}$/;
  */
 @Component({
   selector: 'app-complete-profile',
-  imports: [FormsModule, ButtonModule, InputTextModule, MessageModule],
+  imports: [FormsModule, RouterLink, ButtonModule, InputTextModule, MessageModule],
   template: `
     <div class="auth-page">
       <div class="forge-glow"></div>
@@ -47,8 +47,13 @@ export const USERNAME_PATTERN = /^[a-zA-Z0-9._-]{2,40}$/;
               <small class="error-text">De 2 a 40 caracteres: letras, números, ponto, hífen ou _.</small>
             }
           </div>
+          <label class="consent">
+            <input id="acceptTerms" name="acceptTerms" type="checkbox" [(ngModel)]="acceptTerms" />
+            <span>Li e aceito os <a routerLink="/termos" target="_blank">Termos de uso e o Termo de responsabilidade</a>
+              e a <a routerLink="/privacidade" target="_blank">Política de privacidade</a>.</span>
+          </label>
           <p-button label="Continuar" type="submit" styleClass="full-width" [loading]="loading()"
-            [disabled]="!birthDate || !validUsername()" />
+            [disabled]="!birthDate || !validUsername() || !acceptTerms" />
         </form>
 
         <div class="footer-link"><button type="button" class="link-button" (click)="leave()">Sair</button></div>
@@ -69,6 +74,7 @@ export class CompleteProfileComponent {
   readonly firstName = (this.auth.user()?.displayName ?? '').split(' ')[0] || 'autor';
   birthDate = '';
   username = this.auth.user()?.username ?? '';
+  acceptTerms = false;
   readonly loading = signal(false);
   readonly message = signal<string | null>(null);
 
@@ -80,7 +86,7 @@ export class CompleteProfileComponent {
     this.loading.set(true);
     this.message.set(null);
     try {
-      await this.auth.completeProfile(this.birthDate, this.username.trim());
+      await this.auth.completeProfile(this.birthDate, this.username.trim(), this.acceptTerms);
       await this.router.navigate(['/home'], { replaceUrl: true });
     } catch (error) {
       if (problemOf(error)?.code === 'age_below_minimum') {

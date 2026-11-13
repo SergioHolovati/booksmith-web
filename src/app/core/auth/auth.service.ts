@@ -16,6 +16,8 @@ export interface SessionUser {
   displayName: string;
   /** Conta nova do Google: falta a data de nascimento; o app só abre a tela de completar o cadastro. */
   profilePending: boolean;
+  /** Versão nova dos termos: o app só abre a tela de aceitar. */
+  termsPending: boolean;
   /** A verificação em duas etapas é obrigatória e a conta ainda não ativou: o app só abre a tela de ativar. */
   mfaPending: boolean;
 }
@@ -114,10 +116,21 @@ export class AuthService {
     this.setToken(session.accessToken);
   }
 
-  /** Data de nascimento (idade mínima) e nome de usuário de quem entrou pelo Google; o token novo já libera o app. */
-  async completeProfile(birthDate: string, username: string | null): Promise<void> {
+  /**
+   * Data de nascimento (idade mínima), nome de usuário e aceite dos termos de quem entrou pelo Google; o token novo
+   * já libera o app.
+   */
+  async completeProfile(birthDate: string, username: string | null, acceptTerms: boolean): Promise<void> {
     const session = await firstValueFrom(
-      this.http.post<SessionResponse>(`${environment.apiBaseUrl}/profile/complete`, { birthDate, username }),
+      this.http.post<SessionResponse>(`${environment.apiBaseUrl}/profile/complete`, { birthDate, username, acceptTerms }),
+    );
+    this.setToken(session.accessToken);
+  }
+
+  /** Versão nova dos termos: o aceite devolve o token novo, já liberado. */
+  async acceptTerms(): Promise<void> {
+    const session = await firstValueFrom(
+      this.http.post<SessionResponse>(`${environment.apiBaseUrl}/profile/accept-terms`, {}),
     );
     this.setToken(session.accessToken);
   }
@@ -128,10 +141,10 @@ export class AuthService {
     window.location.href = `${environment.authBaseUrl}/oauth2/authorization/google${query}`;
   }
 
-  /** Se o beta está fechado (cadastro só com convite). */
-  config(): Promise<{ inviteRequired: boolean }> {
+  /** Se o beta está fechado (cadastro só com convite) e a versão em vigor dos termos. */
+  config(): Promise<{ inviteRequired: boolean; termsVersion: string }> {
     return firstValueFrom(
-      this.http.get<{ inviteRequired: boolean }>(`${this.base}/config`, { context: this.noRefresh() }),
+      this.http.get<{ inviteRequired: boolean; termsVersion: string }>(`${this.base}/config`, { context: this.noRefresh() }),
     );
   }
 
@@ -196,6 +209,7 @@ function decodeUser(token: string | null): SessionUser | null {
       username: claims.username ?? '',
       displayName: claims.name || claims.username || 'Escritor',
       profilePending: claims.pending === 'profile',
+      termsPending: claims.pending === 'terms',
       mfaPending: claims.pending === 'mfa',
     };
   } catch {

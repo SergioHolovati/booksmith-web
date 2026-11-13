@@ -12,8 +12,24 @@ export const authGuard: CanActivateFn = () => {
   if (auth.user()?.profilePending) {
     return inject(Router).createUrlTree(['/completar-cadastro']);
   }
+  // Versão nova dos termos
+  if (auth.user()?.termsPending) {
+    return inject(Router).createUrlTree(['/aceitar-termos']);
+  }
   // Verificação em duas etapas obrigatória e ainda não ativada
   return auth.user()?.mfaPending ? inject(Router).createUrlTree(['/ativar-verificacao']) : true;
+};
+
+/** A tela de aceitar a versão nova dos termos: só para quem entrou e está com o aceite pendente. */
+export const pendingTermsGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  if (!auth.isAuthenticated()) {
+    return inject(Router).createUrlTree(['/login']);
+  }
+  if (auth.user()?.profilePending) {
+    return inject(Router).createUrlTree(['/completar-cadastro']);
+  }
+  return auth.user()?.termsPending ? true : inject(Router).createUrlTree(['/home']);
 };
 
 /** A tela de ativar a verificação em duas etapas: só para quem entrou e ainda não ativou. */
@@ -24,6 +40,9 @@ export const pendingMfaGuard: CanActivateFn = () => {
   }
   if (auth.user()?.profilePending) {
     return inject(Router).createUrlTree(['/completar-cadastro']);
+  }
+  if (auth.user()?.termsPending) {
+    return inject(Router).createUrlTree(['/aceitar-termos']);
   }
   return auth.user()?.mfaPending ? true : inject(Router).createUrlTree(['/home']);
 };

@@ -469,6 +469,18 @@ export const HELP_ARTICLES: HelpArticle[] = [
     ],
   },
   {
+    slug: 'termos-e-privacidade',
+    title: 'Termos de uso e política de privacidade',
+    summary: 'O que você aceita ao criar a conta, e o que acontece quando o texto muda.',
+    topic: 'conta',
+    keywords: ['termos', 'termos de uso', 'termo de responsabilidade', 'privacidade', 'lgpd', 'aceite', 'aceitar', 'política'],
+    body: [
+      { p: 'Ao criar a conta (por e-mail ou pelo Google), você aceita os **Termos de uso**, o **Termo de responsabilidade** do autor e a **Política de privacidade**. Eles ficam sempre abertos em /termos e /privacidade, sem precisar entrar.' },
+      { p: 'Guardamos a versão que você aceitou e a data. Quando o texto mudar, o Booksmith mostra a nova versão ao entrar e pede o aceite de novo antes de abrir o app. Se não concordar, dá para exportar tudo em **Baixar tudo** e encerrar a conta.' },
+      { p: 'Em resumo: seu texto é seu; você responde pelo que envia e publica; fanfic é obra de fã, sem venda; a IA só vê o trecho que você mandou revisar.' },
+    ],
+  },
+  {
     slug: 'privacidade',
     title: 'Quem pode ver o meu livro',
     summary: 'Seu texto é só seu. Nem o suporte lê sem a sua autorização.',

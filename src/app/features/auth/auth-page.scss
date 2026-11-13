@@ -126,3 +126,29 @@
     font-size: 2rem;
   }
 }
+
+// Caixa "Li e aceito os termos" (cadastro, completar cadastro, aceite de versão nova)
+.consent {
+  display: flex;
+  gap: .6rem;
+  align-items: flex-start;
+  min-height: var(--bs-touch);
+  font-size: .9rem;
+  line-height: 1.4;
+
+  input {
+    flex: none;
+    width: 1.2rem;
+    height: 1.2rem;
+    margin-top: .15rem;
+    accent-color: var(--bs-ember);
+  }
+
+  a {
+    color: var(--bs-ember);
+  }
+
+  &.invalid {
+    color: var(--p-red-400, #f87171);
+  }
+}

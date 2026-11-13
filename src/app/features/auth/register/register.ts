@@ -47,6 +47,7 @@ export class RegisterComponent {
       password: ['', [Validators.required, Validators.pattern(PASSWORD_PATTERN)]],
       confirmPassword: ['', Validators.required],
       inviteCode: [''],
+      acceptTerms: [false, Validators.requiredTrue],
     },
     { validators: passwordsMatch },
   );
@@ -113,7 +114,7 @@ export class RegisterComponent {
       return;
     }
 
-    const { firstName, lastName, email, birthDate, password, inviteCode } = this.form.getRawValue();
+    const { firstName, lastName, email, birthDate, password, inviteCode, acceptTerms } = this.form.getRawValue();
     this.loading.set(true);
     this.message.set(null);
     try {
@@ -124,6 +125,7 @@ export class RegisterComponent {
         birthDate,
         password,
         inviteCode: inviteCode.trim() || null,
+        acceptTerms,
       });
       this.toast.add({ severity: 'success', summary: 'Conta criada', detail: 'Falta confirmar o e-mail.' });
       await this.router.navigate(['/verificar-email'], { queryParams: { email: email.trim() } });

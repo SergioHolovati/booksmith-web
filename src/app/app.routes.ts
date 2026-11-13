@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-import { authGuard, guestGuard, pendingMfaGuard, pendingProfileGuard } from './core/auth/auth.guards';
+import { authGuard, guestGuard, pendingMfaGuard, pendingProfileGuard, pendingTermsGuard } from './core/auth/auth.guards';
 import { unsavedChangesGuard } from './core/util/unsaved-changes.guard';
 
 export const routes: Routes = [
@@ -40,6 +40,21 @@ export const routes: Routes = [
     canActivate: [pendingProfileGuard],
     loadComponent: () =>
       import('./features/auth/complete-profile/complete-profile').then((c) => c.CompleteProfileComponent),
+  },
+  {
+    path: 'termos',
+    data: { document: 'terms' },
+    loadComponent: () => import('./features/legal/legal-page').then((c) => c.LegalPageComponent),
+  },
+  {
+    path: 'privacidade',
+    data: { document: 'privacy' },
+    loadComponent: () => import('./features/legal/legal-page').then((c) => c.LegalPageComponent),
+  },
+  {
+    path: 'aceitar-termos',
+    canActivate: [pendingTermsGuard],
+    loadComponent: () => import('./features/legal/accept-terms').then((c) => c.AcceptTermsComponent),
   },
   {
     path: 'ativar-verificacao',

@@ -416,6 +416,8 @@ export interface UserSummary {
   emailVerified: boolean;
   /** Conta nova do Google que ainda precisa completar o cadastro. */
   profilePending: boolean;
+  /** Há uma versão nova dos termos para aceitar. */
+  termsPending: boolean;
   /** A verificação em duas etapas é obrigatória e a conta ainda não ativou. */
   mfaPending: boolean;
 }
@@ -428,6 +430,8 @@ export interface SessionResponse {
 }
 
 export interface RegisterRequest {
+  /** Precisa ser true: aceite dos termos de uso, do termo de responsabilidade e da política de privacidade. */
+  acceptTerms: boolean;
   firstName: string;
   lastName: string | null;
   email: string;

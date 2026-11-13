@@ -74,6 +74,15 @@
         }
       </div>
 
+      <label class="consent" [class.invalid]="showError('acceptTerms')">
+        <input id="acceptTerms" type="checkbox" formControlName="acceptTerms" />
+        <span>Li e aceito os <a routerLink="/termos" target="_blank">Termos de uso e o Termo de responsabilidade</a>
+          e a <a routerLink="/privacidade" target="_blank">Política de privacidade</a>.</span>
+      </label>
+      @if (showError('acceptTerms')) {
+        <small class="error-text">Para criar a conta, é preciso aceitar os termos.</small>
+      }
+
       <p-button label="Criar conta" type="submit" icon="pi pi-user-plus" styleClass="full-width" [loading]="loading()" />
     </form>
 
