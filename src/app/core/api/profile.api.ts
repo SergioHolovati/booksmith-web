@@ -25,8 +25,9 @@ export class ProfileApi {
   }
 
   /** Tíquete de uso único (5 minutos) para ligar o Google a esta conta. */
-  startGoogleLink(): Observable<{ ticket: string }> {
-    return this.http.post<{ ticket: string }>(`${this.googleUrl}/link`, {});
+  /** Com a verificação em duas etapas ativa, pede um código do app ou do e-mail. */
+  startGoogleLink(code: string | null): Observable<{ ticket: string }> {
+    return this.http.post<{ ticket: string }>(`${this.googleUrl}/link`, { code });
   }
 
   /** Desliga o Google (só para quem tem senha). */

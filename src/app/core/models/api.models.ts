@@ -416,6 +416,8 @@ export interface UserSummary {
   emailVerified: boolean;
   /** Conta nova do Google que ainda precisa completar o cadastro. */
   profilePending: boolean;
+  /** A verificação em duas etapas é obrigatória e a conta ainda não ativou. */
+  mfaPending: boolean;
 }
 
 export interface SessionResponse {
@@ -493,6 +495,8 @@ export interface MfaStatus {
   enabled: boolean;
   methods: MfaMethod[];
   recoveryCodesLeft: number;
+  /** Obrigatória para todas as contas: não dá para desligar (só trocar adicionando o outro método). */
+  required: boolean;
 }
 
 /** App autenticador: o segredo para digitar e o link otpauth:// (QR code). */

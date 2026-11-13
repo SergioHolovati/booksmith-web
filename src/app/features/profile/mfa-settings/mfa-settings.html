@@ -5,9 +5,16 @@
       <h3>Verificação em duas etapas</h3>
       @if (status(); as s) {
         @if (s.enabled) {
-          <p class="muted small" data-mfa-status>Ativada: além da senha, pedimos um código para entrar.</p>
+          <p class="muted small" data-mfa-status>Ativada: além da senha, pedimos um código para entrar.
+            @if (s.required) {
+              Ela é obrigatória; para trocar de método, adicione o outro.
+            }
+          </p>
         } @else {
-          <p class="muted small" data-mfa-status>Desativada. Com ela, quem descobrir sua senha ainda não entra.</p>
+          <p class="muted small" data-mfa-status>
+            {{ s.required ? 'Obrigatória: escolha um método para continuar.' : 'Desativada.' }}
+            Com ela, quem descobrir sua senha ainda não entra.
+          </p>
         }
       }
     </div>
@@ -129,7 +136,9 @@
           }
           @if (s.enabled) {
             <p-button label="Novos códigos de recuperação" severity="secondary" [outlined]="true" (onClick)="go('regenerate')" />
-            <p-button label="Desativar" severity="danger" [text]="true" (onClick)="go('disable')" />
+            @if (!s.required) {
+              <p-button label="Desativar" severity="danger" [text]="true" (onClick)="go('disable')" />
+            }
           }
         </div>
       }

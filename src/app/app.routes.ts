@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-import { authGuard, guestGuard, pendingProfileGuard } from './core/auth/auth.guards';
+import { authGuard, guestGuard, pendingMfaGuard, pendingProfileGuard } from './core/auth/auth.guards';
 import { unsavedChangesGuard } from './core/util/unsaved-changes.guard';
 
 export const routes: Routes = [
@@ -40,6 +40,11 @@ export const routes: Routes = [
     canActivate: [pendingProfileGuard],
     loadComponent: () =>
       import('./features/auth/complete-profile/complete-profile').then((c) => c.CompleteProfileComponent),
+  },
+  {
+    path: 'ativar-verificacao',
+    canActivate: [pendingMfaGuard],
+    loadComponent: () => import('./features/auth/mfa-setup/mfa-setup').then((c) => c.MfaSetupComponent),
   },
   {
     path: 'auth/callback',

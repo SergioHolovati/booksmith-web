@@ -1,4 +1,4 @@
-import { Component, inject, input, signal } from '@angular/core';
+import { Component, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -38,8 +38,9 @@ export function recoveryText(codes: string[], email: string): string {
 }
 
 /**
- * Cartão "Verificação em duas etapas" no perfil (opcional): ligar o app autenticador (QR code) ou o código por
- * e-mail, guardar os códigos de recuperação, gerar novos e desligar (com a senha e um código).
+ * Cartão "Verificação em duas etapas" (no perfil e na tela de ativar, obrigatória): ligar o app autenticador (QR code) ou o código por
+ * e-mail, guardar os códigos de recuperação, gerar novos e desligar (com a senha e um código; só quando não é
+ * obrigatória).
  */
 @Component({
   selector: 'app-mfa-settings',
@@ -53,6 +54,8 @@ export class MfaSettingsComponent {
 
   readonly email = input.required<string>();
   readonly hasPassword = input.required<boolean>();
+  /** Um método acabou de ser ativado (e os códigos de recuperação, se vieram, foram guardados). */
+  readonly activated = output<void>();
 
   readonly labels = METHOD_LABEL;
   readonly status = signal<MfaStatus | null>(null);
@@ -110,6 +113,7 @@ export class MfaSettingsComponent {
         this.showCodes(recoveryCodes);
       } else {
         this.go('idle');
+        this.activated.emit();
       }
     });
   }
@@ -157,6 +161,7 @@ export class MfaSettingsComponent {
   finish(): void {
     this.codes.set([]);
     this.go('idle');
+    this.activated.emit();
   }
 
   go(step: Step): void {

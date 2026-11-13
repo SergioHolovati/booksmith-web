@@ -403,7 +403,8 @@ export const HELP_ARTICLES: HelpArticle[] = [
       { p: '**Senha errada:** depois de 5 tentativas erradas seguidas, o login da conta fica bloqueado por 15 minutos, e o dono recebe um e-mail. Esqueceu a senha? Use **Esqueceu a senha?** na tela de entrar.' },
       { p: '**Avisos por e-mail:** quando sua conta é acessada de um aparelho que ela nunca usou, ou quando é ligada ao Google, você recebe um e-mail. Se não foi você, troque a senha e desconecte os aparelhos que não reconhece em Perfil → **Aparelhos conectados**.' },
       { p: '**Entrar com Google:** na primeira vez, o Booksmith pede sua data de nascimento (para proteger contas de menores de idade) e confirma o seu nome de usuário.' },
-      { p: '**Criou a conta com e-mail e senha?** Entre com a senha e, em Perfil → **Entrar com Google**, toque em **Ligar ao Google**. Vale até uma conta Google de outro e-mail. Depois, dá para entrar pelos dois jeitos, e desligar quando quiser.' },
+      { p: '**Criou a conta com e-mail e senha?** Entre com a senha e, em Perfil → **Entrar com Google**, toque em **Ligar ao Google**. Vale até uma conta Google de outro e-mail. Como isso cria outro jeito de entrar na sua conta, o Booksmith pede antes um código da verificação em duas etapas. Depois, dá para entrar pelos dois jeitos, e desligar quando quiser.' },
+      { p: '**Criou a conta pelo Google e quer uma senha também?** Em Perfil → **Entrar com Google**, toque em **Criar senha**: mandamos um link para o seu e-mail. Com senha, dá para desligar o Google quando quiser.' },
     ],
   },
   {
@@ -423,12 +424,13 @@ export const HELP_ARTICLES: HelpArticle[] = [
     title: 'Verificação em duas etapas',
     summary: 'Além da senha, um código do celular ou do e-mail para entrar.',
     topic: 'conta',
-    keywords: ['verificação em duas etapas', 'dois fatores', '2fa', 'mfa', 'autenticador', 'google authenticator', 'código', 'recuperação', 'segurança'],
+    keywords: ['verificação em duas etapas', 'dois fatores', '2fa', 'mfa', 'autenticador', 'google authenticator', 'código', 'recuperação', 'segurança', 'obrigatória', 'proteja sua conta'],
     body: [
-      { p: 'Com ela ligada, quem descobrir sua senha ainda não entra: depois da senha (ou do Google), o Booksmith pede um código.' },
-      { steps: ['Abra Perfil → **Verificação em duas etapas**.', 'Toque em **Usar app autenticador** e leia o QR code com o Google Authenticator, o Microsoft Authenticator ou o 1Password (no celular, toque em **Abrir no app autenticador**). Ou escolha **Usar código por e-mail**.', 'Digite o código que aparece e toque em **Ativar**.', 'Guarde os **10 códigos de recuperação** (copie ou baixe o .txt) num lugar seguro, fora do celular.'] },
+      { p: 'No Booksmith ela é **obrigatória**: quem descobrir sua senha ainda não entra, porque depois da senha (ou do Google) o Booksmith pede um código. No primeiro acesso, a tela **Proteja sua conta** aparece antes de tudo.' },
+      { steps: ['Na tela **Proteja sua conta** (ou, depois, em Perfil → **Verificação em duas etapas**), escolha o método.', 'Toque em **Usar app autenticador** e leia o QR code com o Google Authenticator, o Microsoft Authenticator ou o 1Password (no celular, toque em **Abrir no app autenticador**). Ou escolha **Usar código por e-mail**.', 'Digite o código que aparece e toque em **Ativar**.', 'Guarde os **10 códigos de recuperação** (copie ou baixe o .txt) num lugar seguro, fora do celular.'] },
       { p: '**Perdeu o celular?** Na tela do código, toque em **Usar um código de recuperação**. Cada um vale uma vez; em Perfil dá para gerar novos.' },
-      { p: 'Para desligar, toque em **Desativar** e confirme com a senha e um código. Você recebe um e-mail sempre que a verificação é ativada, desativada ou um código de recuperação é usado.' },
+      { p: 'Não dá para desligar. Para trocar de método, adicione o outro em Perfil (dá para ter os dois). Você recebe um e-mail sempre que um método é ativado ou um código de recuperação é usado.' },
+      { p: '**Sua sessão fica protegida:** o Booksmith não guarda mais a chave da sessão no aparelho; ela fica num cookie que nenhum script consegue ler. Fechar e abrir o app continua sem pedir a senha de novo.' },
     ],
   },
   {

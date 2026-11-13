@@ -10,6 +10,7 @@ import Aura from '@primeuix/themes/aura';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
+import { AuthService } from './core/auth/auth.service';
 import { ErrorTrail, errorTrailInterceptor } from './core/support/error-trail';
 import { timeZoneInterceptor } from './core/api/writing.api';
 
@@ -46,6 +47,8 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([authInterceptor, timeZoneInterceptor, errorTrailInterceptor])),
     // Desde o início, para o pedido de suporte saber a tela de onde a pessoa veio
     provideAppInitializer(() => void inject(ErrorTrail)),
+    // Antes da primeira tela: retoma a sessão pelo cookie HttpOnly (o token de acesso não fica salvo no aparelho)
+    provideAppInitializer(() => inject(AuthService).restore()),
     MessageService,
     // PWA: instalável e com o app disponível offline (o texto offline fica no IndexedDB, ver DraftStore)
     provideServiceWorker('ngsw-worker.js', {

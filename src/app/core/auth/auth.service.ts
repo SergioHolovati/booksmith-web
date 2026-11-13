@@ -5,7 +5,7 @@ import { Observable, finalize, firstValueFrom, map, shareReplay, tap } from 'rxj
 
 import { environment } from '../../../environments/environment';
 import { RegisterRequest, SessionResponse } from '../models/api.models';
-import { tokenStorage } from './token-storage';
+import { sessionHint } from './session-hint';
 
 /** Marca requisições que não devem disparar a renovação automática do token. */
 export const SKIP_AUTH_REFRESH = new HttpContextToken<boolean>(() => false);
@@ -16,6 +16,8 @@ export interface SessionUser {
   displayName: string;
   /** Conta nova do Google: falta a data de nascimento; o app só abre a tela de completar o cadastro. */
   profilePending: boolean;
+  /** A verificação em duas etapas é obrigatória e a conta ainda não ativou: o app só abre a tela de ativar. */
+  mfaPending: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -25,12 +27,33 @@ export class AuthService {
   private readonly base = `${environment.apiBaseUrl}/auth`;
   private readonly noRefresh = () => new HttpContext().set(SKIP_AUTH_REFRESH, true);
 
-  private readonly token = signal<string | null>(tokenStorage.read());
+  /** Só na memória: uma falha de XSS não acha o token salvo no aparelho. A sessão continua pelo cookie HttpOnly. */
+  private readonly token = signal<string | null>(null);
   private refreshInFlight: Observable<string> | null = null;
 
   readonly accessToken = this.token.asReadonly();
   readonly isAuthenticated = computed(() => this.token() !== null);
   readonly user = computed<SessionUser | null>(() => decodeUser(this.token()));
+
+  /**
+   * Ao abrir o app: retoma a sessão pelo cookie HttpOnly (renovando o token de acesso). Sem sessão, segue como
+   * visitante.
+   */
+  async restore(): Promise<void> {
+    if (!sessionHint.present()) {
+      return;
+    }
+    try {
+      await firstValueFrom(this.refresh());
+    } catch {
+      this.setToken(null);
+    }
+  }
+
+  /** Token novo com os dados de agora (ex.: depois de ativar a verificação em duas etapas). */
+  async reloadSession(): Promise<void> {
+    await firstValueFrom(this.refresh());
+  }
 
   async login(email: string, password: string): Promise<void> {
     const session = await firstValueFrom(
@@ -140,9 +163,8 @@ export class AuthService {
 
   async logout(): Promise<void> {
     try {
-      if (this.token()) {
-        await firstValueFrom(this.http.post<void>(`${this.base}/logout`, {}, { context: this.noRefresh() }));
-      }
+      // O cookie vai junto: o servidor encerra a sessão e apaga o cookie
+      await firstValueFrom(this.http.post<void>(`${this.base}/logout`, {}, { context: this.noRefresh() }));
     } catch {
       // sessão já inválida no servidor: basta limpar localmente
     } finally {
@@ -156,7 +178,7 @@ export class AuthService {
   }
 
   private setToken(token: string | null): void {
-    tokenStorage.write(token);
+    sessionHint.write(token !== null);
     this.token.set(token);
   }
 }
@@ -174,6 +196,7 @@ function decodeUser(token: string | null): SessionUser | null {
       username: claims.username ?? '',
       displayName: claims.name || claims.username || 'Escritor',
       profilePending: claims.pending === 'profile',
+      mfaPending: claims.pending === 'mfa',
     };
   } catch {
     return null;
