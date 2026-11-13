@@ -75,7 +75,8 @@
           },
           "defaultConfiguration": "development",
           "options": {
-            "proxyConfig": "proxy.conf.mjs"
+            "proxyConfig": "proxy.conf.mjs",
+            "host": "0.0.0.0"
           }
         },
         "test": {
