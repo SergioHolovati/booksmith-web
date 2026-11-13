@@ -17,6 +17,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { Profile } from '../../core/models/api.models';
 import { GoogleAccountComponent } from './google-account/google-account';
 import { MfaSettingsComponent } from './mfa-settings/mfa-settings';
+import { DriveBackupComponent } from './drive-backup/drive-backup';
 import { compressImage } from '../../core/util/image';
 
 @Component({
@@ -24,6 +25,7 @@ import { compressImage } from '../../core/util/image';
   imports: [
     GoogleAccountComponent,
     MfaSettingsComponent,
+    DriveBackupComponent,
     ReactiveFormsModule,
     RouterLink,
     AutoCompleteModule,
@@ -45,6 +47,8 @@ export class ProfileComponent {
 
   /** ?google= da volta do Google (ligar a conta) */
   readonly google = input<string>();
+  /** ?drive= da volta do Google (ligar o backup no Drive) */
+  readonly drive = input<string>();
 
   readonly audiences = ['Infantil', 'Juvenil', 'Jovem adulto', 'Adulto'];
   readonly languages = ['Português', 'Inglês', 'Espanhol', 'Francês'];

@@ -431,6 +431,18 @@ export const HELP_ARTICLES: HelpArticle[] = [
     ],
   },
   {
+    slug: 'backup-google-drive',
+    title: 'Backup no Google Drive',
+    summary: 'Uma cópia de cada livro no seu Drive, todo dia, sem você lembrar.',
+    topic: 'conta',
+    keywords: ['backup', 'google drive', 'drive', 'cópia', 'nuvem', 'segurança', 'word'],
+    body: [
+      { steps: ['Abra Perfil → **Backup no Google Drive**.', 'Toque em **Ligar o Google Drive** e autorize na tela do Google.', 'De volta ao Booksmith, toque em **Fazer backup agora** para a primeira cópia.'] },
+      { p: 'Cada livro vai como arquivo Word na pasta **Booksmith** do seu Drive, e é atualizado toda madrugada. O Drive guarda as versões anteriores de cada arquivo. Para voltar um livro ao Booksmith, use **Importar** com o arquivo do Drive.' },
+      { p: 'O Booksmith só vê os arquivos que ele mesmo cria no seu Drive, nunca o resto. Para parar, toque em **Desligar**: os arquivos que já estão no Drive continuam com você.' },
+    ],
+  },
+  {
     slug: 'baixar-tudo',
     title: 'Fazer uma cópia de tudo',
     summary: 'Um arquivo .zip com seus livros em Word, universos, imagens e dados da conta.',

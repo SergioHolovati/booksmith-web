@@ -132,6 +132,7 @@
 
       <app-mfa-settings [email]="profile.user.email" [hasPassword]="profile.user.hasPassword" />
       <app-google-account [user]="profile.user" [outcome]="google()" (changed)="load()" />
+      <app-drive-backup [outcome]="drive()" />
 
       <a routerLink="/sessions" class="trash-link"><i class="pi pi-mobile"></i> Aparelhos conectados</a>
       <a routerLink="/trash" class="trash-link"><i class="pi pi-trash"></i> Lixeira (itens excluídos nos últimos 30 dias)</a>

@@ -491,6 +491,22 @@ export interface MfaChallenge {
   methods: MfaMethod[];
 }
 
+/** Backup no Google Drive. {@code books}: quantos livros já estão no Drive. */
+export interface DriveStatus {
+  connected: boolean;
+  googleEmail: string | null;
+  lastBackupAt: string | null;
+  lastError: string | null;
+  books: number;
+}
+
+export interface DriveBackupResult {
+  books: number;
+  /** Livros sem capítulos (ainda não há o que guardar). */
+  skipped: number;
+  at: string;
+}
+
 /** Erro RFC 9457 devolvido pela API. */
 export interface ProblemDetail {
   status: number;
