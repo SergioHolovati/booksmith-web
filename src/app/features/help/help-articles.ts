@@ -178,7 +178,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
       {
         list: [
           '**ePub:** para leitores digitais e apps de leitura.',
-          '**PDF:** para ler ou imprimir, em tamanho de livro (A5).',
+          '**PDF:** para ler ou imprimir, em tamanho de livro (A5). Gerar o PDF é pesado para o servidor, por isso cada pessoa gera até **2 PDFs do livro por dia** (ePub e Word não têm limite).',
           '**Word:** no formato de manuscrito, para revisão. Volta igual se você importar de novo.',
         ],
       },
