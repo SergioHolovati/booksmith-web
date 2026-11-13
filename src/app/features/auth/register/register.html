@@ -13,6 +13,15 @@
     }
 
     <form class="form" [formGroup]="form" (ngSubmit)="register()">
+      @if (inviteRequired()) {
+        <div class="field invite">
+          <label for="inviteCode">Código de convite</label>
+          <input id="inviteCode" pInputText formControlName="inviteCode" autocapitalize="characters"
+            autocomplete="off" placeholder="BETA-XXXX-XXXX" />
+          <small class="field-hint">O Booksmith está em beta fechado: só cria conta quem recebeu um convite.</small>
+        </div>
+      }
+
       <div class="field">
         <label for="firstName">Nome</label>
         <input id="firstName" pInputText formControlName="firstName" autocomplete="given-name" />
@@ -67,6 +76,13 @@
 
       <p-button label="Criar conta" type="submit" icon="pi pi-user-plus" styleClass="full-width" [loading]="loading()" />
     </form>
+
+    <div class="divider"><span>OU</span></div>
+
+    <div class="google-btn">
+      <p-button label="Criar conta com Google" icon="pi pi-google" styleClass="full-width" [loading]="googleLoading()"
+        (onClick)="registerWithGoogle()" />
+    </div>
 
     <div class="footer-link">
       <span>Já tem conta? </span>

@@ -1,0 +1,64 @@
+<div class="page narrow">
+  <a routerLink="/profile" class="back-link"><i class="pi pi-arrow-left"></i> Perfil</a>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Convites do beta</h1>
+      <p class="page-subtitle">Só cria conta quem tem um código. Mande o link para cada testador.</p>
+    </div>
+  </div>
+
+  @if (error(); as text) {
+    <p-message severity="error" [text]="text" styleClass="block-message" />
+  }
+
+  <form class="glass-card create" (ngSubmit)="create()" data-invite-form>
+    <div class="row">
+      <div class="field">
+        <label for="invite-count" class="field-label">Quantos códigos</label>
+        <input id="invite-count" name="count" pInputText type="number" min="1" max="50" inputmode="numeric" [(ngModel)]="count" />
+      </div>
+      <div class="field">
+        <label for="invite-uses" class="field-label">Contas por código</label>
+        <input id="invite-uses" name="maxUses" pInputText type="number" min="1" max="1000" inputmode="numeric" [(ngModel)]="maxUses" />
+      </div>
+      <div class="field">
+        <label for="invite-days" class="field-label">Vale por (dias)</label>
+        <input id="invite-days" name="expiresInDays" pInputText type="number" min="1" max="365" inputmode="numeric"
+          [(ngModel)]="expiresInDays" />
+      </div>
+    </div>
+    <div class="field">
+      <label for="invite-note" class="field-label">Para quem <span class="muted small">(opcional)</span></label>
+      <input id="invite-note" name="note" pInputText maxlength="80" placeholder="Ex.: Discord de fantasia, Ana" [(ngModel)]="note" />
+    </div>
+    <p-button type="submit" label="Criar convites" icon="pi pi-plus" [loading]="saving()" />
+  </form>
+
+  @if (invites(); as list) {
+    <p class="muted small summary" data-invite-summary>
+      {{ activeCount() }} {{ activeCount() === 1 ? 'convite valendo' : 'convites valendo' }} ·
+      {{ joined() }} {{ joined() === 1 ? 'conta criada' : 'contas criadas' }} com convite
+    </p>
+    <ul class="list">
+      @for (invite of list; track invite.id) {
+        <li class="glass-card invite" [class.off]="!invite.active" [attr.data-invite]="invite.code">
+          <div class="info">
+            <code class="code">{{ invite.code }}</code>
+            <span class="muted small">{{ state(invite) }}{{ invite.note ? ' · ' + invite.note : '' }}</span>
+          </div>
+          @if (invite.active) {
+            <div class="actions">
+              <p-button icon="pi pi-share-alt" label="Enviar" severity="secondary" [outlined]="true" size="small"
+                (onClick)="copy(invite)" />
+              <p-button icon="pi pi-times" severity="danger" [text]="true" size="small" ariaLabel="Cancelar convite"
+                (onClick)="revoke(invite)" />
+            </div>
+          }
+        </li>
+      } @empty {
+        <li class="muted center-text empty">Nenhum convite ainda.</li>
+      }
+    </ul>
+  }
+</div>

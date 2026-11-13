@@ -12,6 +12,8 @@ import { mfaState } from '../mfa-challenge/mfa-challenge';
 const GOOGLE_ERRORS: Record<string, string> = {
   google: 'Não foi possível entrar com o Google. Tente novamente.',
   google_email_not_verified: 'Seu e-mail do Google não está verificado.',
+  google_invite_required:
+    'Não há conta do Booksmith com este Google. Para criar uma, toque em "Criar conta" e use seu código de convite.',
   google_account_exists:
     'Já existe uma conta com este e-mail. Entre com sua senha e, no Perfil, toque em "Ligar ao Google" para entrar com o Google das próximas vezes.',
 };

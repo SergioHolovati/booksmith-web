@@ -431,6 +431,20 @@ export interface RegisterRequest {
   email: string;
   password: string;
   birthDate: string;
+  /** Beta fechado: código de convite. */
+  inviteCode?: string | null;
+}
+
+/** Convite do beta fechado (tela do administrador). */
+export interface InviteView {
+  id: string;
+  code: string;
+  maxUses: number;
+  usedCount: number;
+  note: string | null;
+  expiresAt: string | null;
+  createdAt: string;
+  active: boolean;
 }
 
 export interface AuthorProfile {
@@ -466,6 +480,8 @@ export interface Profile {
     googleEmail: string | null;
     /** Sem senha, a conta só entra pelo Google e não dá para desligar. */
     hasPassword: boolean;
+    /** Administrador do Booksmith (cria convites do beta). */
+    admin: boolean;
   };
   author: AuthorProfile | null;
 }

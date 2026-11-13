@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, input, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
@@ -28,8 +28,14 @@ export class RegisterComponent {
   private readonly router = inject(Router);
   private readonly toast = inject(MessageService);
 
+  /** ?convite= do link que o convidado recebeu */
+  readonly convite = input<string>();
+
   readonly loading = signal(false);
+  readonly googleLoading = signal(false);
   readonly message = signal<string | null>(null);
+  /** Beta fechado: o convite é obrigatório (vem do servidor). */
+  readonly inviteRequired = signal(true);
   readonly today = new Date().toISOString().slice(0, 10);
 
   readonly form = inject(FormBuilder).nonNullable.group(
@@ -40,12 +46,53 @@ export class RegisterComponent {
       birthDate: ['', Validators.required],
       password: ['', [Validators.required, Validators.pattern(PASSWORD_PATTERN)]],
       confirmPassword: ['', Validators.required],
+      inviteCode: [''],
     },
     { validators: passwordsMatch },
   );
 
   private readonly passwordValue = toSignal(this.form.controls.password.valueChanges, { initialValue: '' });
   readonly checks = () => passwordChecks(this.passwordValue());
+
+  constructor() {
+    queueMicrotask(() => {
+      const code = this.convite();
+      if (code) {
+        this.form.controls.inviteCode.setValue(code);
+      }
+    });
+    void this.auth.config().then((config) => this.inviteRequired.set(config.inviteRequired)).catch(() => undefined);
+  }
+
+  /** Beta fechado sem código: avisa antes de qualquer coisa. */
+  private missingInvite(): boolean {
+    if (this.inviteRequired() && !this.form.controls.inviteCode.value.trim()) {
+      this.message.set('O Booksmith está em beta fechado: digite o código de convite que você recebeu.');
+      return true;
+    }
+    return false;
+  }
+
+  /** Criar a conta pelo Google: confere o convite e vai ao Google com ele. */
+  async registerWithGoogle(): Promise<void> {
+    this.message.set(null);
+    if (this.missingInvite()) {
+      return;
+    }
+    const code = this.form.controls.inviteCode.value.trim();
+    this.googleLoading.set(true);
+    try {
+      if (code && !(await this.auth.inviteValid(code))) {
+        this.message.set('Código de convite inválido, vencido ou já usado.');
+        this.googleLoading.set(false);
+        return;
+      }
+      this.auth.loginWithGoogle(code || undefined);
+    } catch (error) {
+      this.message.set(problemMessage(error, 'Não foi possível conferir o convite.'));
+      this.googleLoading.set(false);
+    }
+  }
 
   showError(control: keyof typeof this.form.controls): boolean {
     const c = this.form.controls[control];
@@ -57,12 +104,16 @@ export class RegisterComponent {
   }
 
   async register(): Promise<void> {
+    this.message.set(null);
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
+    if (this.missingInvite()) {
+      return;
+    }
 
-    const { firstName, lastName, email, birthDate, password } = this.form.getRawValue();
+    const { firstName, lastName, email, birthDate, password, inviteCode } = this.form.getRawValue();
     this.loading.set(true);
     this.message.set(null);
     try {
@@ -72,6 +123,7 @@ export class RegisterComponent {
         email: email.trim(),
         birthDate,
         password,
+        inviteCode: inviteCode.trim() || null,
       });
       this.toast.add({ severity: 'success', summary: 'Conta criada', detail: 'Falta confirmar o e-mail.' });
       await this.router.navigate(['/verificar-email'], { queryParams: { email: email.trim() } });

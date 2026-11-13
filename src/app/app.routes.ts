@@ -147,6 +147,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/books/book-form/book-form').then((c) => c.BookFormComponent),
       },
       {
+        path: 'convites',
+        loadComponent: () => import('./features/admin/invites/invites').then((c) => c.InvitesComponent),
+      },
+      {
         path: 'meus-dados',
         loadComponent: () => import('./features/account-export/account-export').then((c) => c.AccountExportComponent),
       },

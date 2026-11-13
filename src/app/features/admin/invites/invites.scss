@@ -1,0 +1,90 @@
+.narrow {
+  max-width: 720px;
+  padding-bottom: 5rem;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-height: var(--bs-touch);
+  color: var(--bs-ember);
+  font-size: .9rem;
+}
+
+.create {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+
+  p-button {
+    align-self: flex-start;
+  }
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .5rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  min-width: 0;
+
+  input {
+    width: 100%;
+  }
+}
+
+.summary {
+  margin: 0 0 .5rem;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.invite {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  padding: .7rem .9rem;
+
+  &.off {
+    opacity: .55;
+  }
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+  min-width: 0;
+}
+
+.code {
+  font-size: 1rem;
+  letter-spacing: .06em;
+}
+
+.actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: .25rem;
+}
+
+.empty {
+  padding: 2rem 0;
+}

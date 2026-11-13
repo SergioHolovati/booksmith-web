@@ -407,6 +407,18 @@ export const HELP_ARTICLES: HelpArticle[] = [
     ],
   },
   {
+    slug: 'convite-beta',
+    title: 'Convite para o beta',
+    summary: 'O Booksmith está em beta fechado: para criar conta, use o código que você recebeu.',
+    topic: 'conta',
+    keywords: ['convite', 'beta', 'código', 'criar conta', 'cadastro', 'beta fechado'],
+    body: [
+      { p: 'Por enquanto, o Booksmith está em **beta fechado**: só cria conta quem recebeu um convite. Abra o link do convite (o código já vem preenchido) ou digite o código em **Criar conta**.' },
+      { p: 'Dá para criar a conta com e-mail e senha ou tocando em **Criar conta com Google**, na mesma tela. O código pode ser digitado em minúsculas e sem os hífens.' },
+      { p: 'Já tem conta? Entre normalmente: o convite só é pedido para criar a conta.' },
+    ],
+  },
+  {
     slug: 'verificacao-em-duas-etapas',
     title: 'Verificação em duas etapas',
     summary: 'Além da senha, um código do celular ou do e-mail para entrar.',

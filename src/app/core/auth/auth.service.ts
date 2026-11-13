@@ -99,8 +99,25 @@ export class AuthService {
     this.setToken(session.accessToken);
   }
 
-  loginWithGoogle(): void {
-    window.location.href = `${environment.authBaseUrl}/oauth2/authorization/google`;
+  /** Com {@code invite}, cria a conta pelo Google (beta fechado); sem, entra numa conta que já existe. */
+  loginWithGoogle(invite?: string): void {
+    const query = invite ? `?invite=${encodeURIComponent(invite)}` : '';
+    window.location.href = `${environment.authBaseUrl}/oauth2/authorization/google${query}`;
+  }
+
+  /** Se o beta está fechado (cadastro só com convite). */
+  config(): Promise<{ inviteRequired: boolean }> {
+    return firstValueFrom(
+      this.http.get<{ inviteRequired: boolean }>(`${this.base}/config`, { context: this.noRefresh() }),
+    );
+  }
+
+  /** Confere o convite sem gastar (antes de mandar para o Google). */
+  async inviteValid(code: string): Promise<boolean> {
+    const result = await firstValueFrom(
+      this.http.post<{ valid: boolean }>(`${this.base}/invite/check`, { code }, { context: this.noRefresh() }),
+    );
+    return result.valid;
   }
 
   /**
