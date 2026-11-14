@@ -1,8 +1,11 @@
 # Caddy em produção: HTTPS automático (Let's Encrypt) para {$SITE_ADDRESS}, o app Angular como arquivos estáticos,
 # a API por proxy em /api, o login do Google em /oauth2 e /login/oauth2, e as imagens do MinIO em /media.
 # Tudo no mesmo domínio: sem CORS, e o cookie HttpOnly da sessão fica em /api/v1/auth.
-{
-	email {$ACME_EMAIL}
+# (O Let's Encrypt não exige e-mail de contato; o Caddy renova o certificado sozinho.)
+
+# www -> sem www (um endereço só, também para o Google e para o cookie da sessão)
+www.{$SITE_ADDRESS} {
+	redir https://{$SITE_ADDRESS}{uri} permanent
 }
 
 {$SITE_ADDRESS} {
