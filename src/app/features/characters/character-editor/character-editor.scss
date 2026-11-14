@@ -86,3 +86,15 @@
   opacity: 0;
   pointer-events: none;
 }
+
+// Botão do Estúdio Visual (retrato com IA)
+.studio-entry {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  margin-bottom: .75rem;
+
+  p-button {
+    align-self: flex-start;
+  }
+}

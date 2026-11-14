@@ -1,0 +1,159 @@
+<p-dialog [visible]="visible()" (visibleChange)="visible.set($event)" [modal]="true" [dismissableMask]="!busy()"
+  [closable]="!busy()" [header]="kind() === 'portrait' ? 'Retrato com IA' : 'Ilustração da cena com IA'"
+  [style]="{ width: 'min(560px, calc(100vw - 16px))' }" [contentStyle]="{ maxHeight: '78dvh', overflow: 'auto' }"
+  (onShow)="open()" styleClass="studio-dialog">
+  <div class="studio" data-studio>
+    @if (status(); as s) {
+      @if (!s.enabled) {
+        <p-message severity="warn" text="As ilustrações com IA estão desligadas neste servidor." styleClass="block-message" />
+      } @else {
+        <p class="muted small quota" data-studio-quota>
+          {{ s.remaining }} de {{ s.weeklyLimit }} ilustrações nesta semana.
+          @if (limitReached()) {
+            {{ nextSlotText() }}
+          }
+        </p>
+      }
+    }
+
+    @if (error(); as text) {
+      <p-message severity="error" [text]="text" styleClass="block-message" />
+    }
+
+    @if (result(); as r) {
+      <figure class="result" data-studio-result>
+        <img [src]="r.url" [alt]="r.caption" />
+        <figcaption class="muted small">{{ r.caption }}{{ r.portrait ? ' · agora é o retrato' : '' }}</figcaption>
+      </figure>
+      <p class="muted small">A imagem já está na biblioteca do universo, marcada como IA.</p>
+      <div class="actions">
+        <p-button label="Gerar outra" severity="secondary" [outlined]="true" [disabled]="limitReached()"
+          (onClick)="result.set(null)" />
+        <p-button label="Concluir" (onClick)="close()" />
+      </div>
+    } @else if (busy()) {
+      <div class="working" data-studio-working>
+        <p-progress-spinner strokeWidth="4" styleClass="spin" />
+        <p>Desenhando… leva de 10 a 60 segundos.</p>
+      </div>
+    } @else {
+      @if (kind() === 'portrait') {
+        <p class="small">Retrato de <strong>{{ characterName() }}</strong>, a partir da aparência da ficha.
+          Se ele já tem retrato, o novo fica parecido com o atual.</p>
+      } @else {
+        <div class="field">
+          <label for="studio-scene" class="field-label">O que a cena mostra</label>
+          <textarea id="studio-scene" class="bs-input" rows="3" [maxlength]="maxScene" [(ngModel)]="scene"
+            placeholder="Ex.: Lia e Tomás no alto do farol, olhando a tempestade chegar pelo mar"></textarea>
+          <small class="muted">{{ scene.length }}/{{ maxScene }}</small>
+        </div>
+        @if (characters().length) {
+          <fieldset class="group">
+            <legend class="field-label">Quem aparece (até {{ maxCharacters }}; o retrato de cada um mantém o rosto)</legend>
+            <div class="chips">
+              @for (c of characters(); track c.id) {
+                <button type="button" class="chip" [class.on]="chosen().includes(c.id)"
+                  [attr.aria-pressed]="chosen().includes(c.id)" (click)="toggleCharacter(c.id)">{{ c.name }}</button>
+              }
+            </div>
+          </fieldset>
+        }
+        <fieldset class="group">
+          <legend class="field-label">Formato no livro</legend>
+          <div class="chips">
+            @for (o of formats; track o.value) {
+              <button type="button" class="chip" [class.on]="format === o.value" [attr.aria-pressed]="format === o.value"
+                (click)="format = o.value">{{ o.label }}</button>
+            }
+          </div>
+        </fieldset>
+      }
+
+      <fieldset class="group">
+        <legend class="field-label">Estilo de arte</legend>
+        <div class="chips" data-studio-arts>
+          @for (o of arts; track o.value) {
+            <button type="button" class="chip" [class.on]="style().art === o.value"
+              [attr.aria-pressed]="style().art === o.value" (click)="setStyle({ art: o.value })">{{ o.label }}</button>
+          }
+        </div>
+      </fieldset>
+
+      <fieldset class="group">
+        <legend class="field-label">Cor</legend>
+        <div class="chips">
+          <button type="button" class="chip" [class.on]="style().color" [attr.aria-pressed]="style().color"
+            (click)="setStyle({ color: true })">Colorido</button>
+          <button type="button" class="chip" [class.on]="!style().color" [attr.aria-pressed]="!style().color"
+            (click)="setStyle({ color: false })">Preto e branco</button>
+        </div>
+        @if (!style().color) {
+          <small class="muted">Boa escolha para o miolo impresso: imprimir em cores encarece muito o exemplar.</small>
+        }
+      </fieldset>
+
+      @if (style().color) {
+        <fieldset class="group">
+          <legend class="field-label">Paleta</legend>
+          <div class="chips">
+            @for (o of palettes; track o.value) {
+              <button type="button" class="chip" [class.on]="style().palette === o.value"
+                [attr.aria-pressed]="style().palette === o.value" (click)="setStyle({ palette: o.value })">{{ o.label }}</button>
+            }
+          </div>
+        </fieldset>
+      }
+
+      <fieldset class="group">
+        <legend class="field-label">Detalhe e fundo</legend>
+        <div class="chips">
+          @for (o of details; track o.value) {
+            <button type="button" class="chip" [class.on]="style().detail === o.value"
+              [attr.aria-pressed]="style().detail === o.value" (click)="setStyle({ detail: o.value })">{{ o.label }}</button>
+          }
+        </div>
+        <div class="chips">
+          @for (o of backgrounds; track o.value) {
+            <button type="button" class="chip" [class.on]="style().background === o.value"
+              [attr.aria-pressed]="style().background === o.value" (click)="setStyle({ background: o.value })">{{ o.label }}</button>
+          }
+        </div>
+      </fieldset>
+
+      @if (kind() === 'portrait') {
+        <fieldset class="group">
+          <legend class="field-label">Enquadramento e expressão</legend>
+          <div class="chips">
+            @for (o of framings; track o.value) {
+              <button type="button" class="chip" [class.on]="framing === o.value" [attr.aria-pressed]="framing === o.value"
+                (click)="framing = o.value">{{ o.label }}</button>
+            }
+          </div>
+          <div class="chips">
+            @for (o of expressions; track o.value) {
+              <button type="button" class="chip" [class.on]="expression === o.value"
+                [attr.aria-pressed]="expression === o.value" (click)="expression = o.value">{{ o.label }}</button>
+            }
+          </div>
+        </fieldset>
+        <label class="check">
+          <input type="checkbox" [(ngModel)]="setAsPortrait" /> Usar como retrato do personagem
+        </label>
+      }
+
+      <div class="field">
+        <label for="studio-extra" class="field-label">Mais algum detalhe <span class="muted small">(opcional)</span></label>
+        <input id="studio-extra" class="bs-input" [maxlength]="maxExtra" [(ngModel)]="extra"
+          placeholder="Ex.: luz de fim de tarde, capa vermelha" />
+      </div>
+
+      <p class="muted small note">Gerada por IA e marcada assim na biblioteca. Personagens de outras obras e cenas de
+        violência explícita costumam ser recusados pelo gerador; recusas não contam no limite.</p>
+
+      <div class="actions">
+        <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="close()" />
+        <p-button label="Gerar ilustração" icon="pi pi-sparkles" [disabled]="!canGenerate()" (onClick)="generate()" />
+      </div>
+    }
+  </div>
+</p-dialog>

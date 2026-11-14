@@ -1,4 +1,4 @@
-import { Component, HostListener, computed, effect, inject, input, signal, untracked } from '@angular/core';
+import { Component, HostListener, computed, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -28,6 +28,8 @@ import {
   Portrait,
 } from '../../../core/models/api.models';
 import { HasUnsavedChanges } from '../../../core/util/unsaved-changes.guard';
+import { IllustrationResult } from '../../../core/models/api.models';
+import { IllustrationStudioComponent } from '../../../shared/illustration-studio/illustration-studio';
 import { BuilderFieldComponent } from '../../../shared/builder/builder-field';
 import { ImageGalleryComponent } from '../../../shared/gallery/image-gallery';
 import { RelationsCardComponent } from '../relations-card/relations-card';
@@ -69,6 +71,7 @@ interface Draft {
     BuilderFieldComponent,
     RelationsCardComponent,
     ImageGalleryComponent,
+    IllustrationStudioComponent,
     MentionedInComponent,
     CustomFieldsComponent,
     AiSuggestComponent,
@@ -87,6 +90,9 @@ export class CharacterEditorComponent implements HasUnsavedChanges {
   readonly characterId = input.required<string>();
 
   readonly character = signal<Character | null>(null);
+  /** Estúdio Visual: gerar o retrato com IA. */
+  readonly studioOpen = signal(false);
+  private readonly gallery = viewChild(ImageGalleryComponent);
   readonly form = signal<AppearanceFormDefinition | null>(null);
   readonly draft = signal<Draft>({ name: '', aliases: [], sheet: {}, appearance: {}, custom: {} });
   /** Campos próprios do autor para personagens, neste universo. */
@@ -156,6 +162,15 @@ export class CharacterEditorComponent implements HasUnsavedChanges {
   }
 
   /** O retrato mudou na galeria: só a imagem do topo muda; a ficha em edição continua como está. */
+  /** Retrato gerado com IA: a biblioteca recarrega e, se virou o retrato, o topo da ficha muda. */
+  onIllustration(result: IllustrationResult): void {
+    const character = this.character();
+    if (result.portrait && character) {
+      this.onPortrait({ entityId: character.id, imageId: result.imageId, url: result.url });
+    }
+    void this.gallery()?.load();
+  }
+
   onPortrait(portrait: Portrait): void {
     this.character.update((c) => (c ? { ...c, portraitId: portrait.imageId, portraitUrl: portrait.url } : c));
   }

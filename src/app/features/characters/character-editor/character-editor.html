@@ -80,8 +80,17 @@
       <app-custom-fields [universeId]="character.universeId" scope="character"
         [fields]="customDefinition()['character'] ?? []" [values]="draft().custom" (valueChange)="setCustom($event)" />
       <app-relations-card [universeId]="character.universeId" [characterId]="character.id" [bookId]="bookId()" />
+      <div class="studio-entry">
+        <p-button label="Gerar retrato com IA" icon="pi pi-sparkles" severity="secondary" [outlined]="true"
+          [disabled]="dirty()" (onClick)="studioOpen.set(true)" data-studio-open />
+        @if (dirty()) {
+          <small class="muted">Salve a ficha antes: o retrato usa a aparência salva.</small>
+        }
+      </div>
       <app-image-gallery [universeId]="character.universeId" [entityId]="character.id"
         [portraitId]="character.portraitId" [card]="true" (portraitChange)="onPortrait($event)" />
+      <app-illustration-studio kind="portrait" [universeId]="character.universeId" [characterId]="character.id"
+        [characterName]="character.name" [(visible)]="studioOpen" (generated)="onIllustration($event)" />
       <app-mentioned-in [entityId]="character.id" [name]="character.name" />
     } @else if (form()) {
       <section class="glass-card portrait" [attr.aria-label]="section() === 'appearance' ? 'Retrato' : 'Jeito de ser'">

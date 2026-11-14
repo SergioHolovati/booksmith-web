@@ -23,6 +23,9 @@
         @if (portraitId() === image.id) {
           <span class="badge"><i class="pi pi-star-fill" aria-hidden="true"></i> Retrato</span>
         }
+        @if (image.aiGenerated) {
+          <span class="ai" title="Gerada com IA">IA</span>
+        }
         @if (image.caption) {
           <span class="caption">{{ image.caption }}</span>
         }

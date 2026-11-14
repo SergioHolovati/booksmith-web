@@ -340,6 +340,8 @@ export interface UniverseImage {
   entities: ImageLink[];
   version: number;
   createdAt: string;
+  /** Gerada pelo Estúdio Visual (IA). */
+  aiGenerated: boolean;
 }
 
 export interface Portrait {
@@ -1234,5 +1236,46 @@ export interface BookTextsResult {
   provider: string;
   model: string;
   local: boolean;
+  remaining: number;
+}
+
+/** Ilustrações com IA: se está ligado e quantas restam nos últimos 7 dias. */
+export interface IllustrationStatus {
+  enabled: boolean;
+  weeklyLimit: number;
+  remaining: number;
+  /** Quando volta a haver vaga, se o limite acabou. */
+  nextAt: string | null;
+}
+
+export type IllustrationKind = 'portrait' | 'scene';
+
+export interface IllustrationStyle {
+  art: string;
+  color: boolean;
+  palette: string;
+  detail: string;
+  background: string;
+}
+
+export interface IllustrationRequest extends IllustrationStyle {
+  kind: IllustrationKind;
+  universeId: string;
+  characterId?: string | null;
+  characterIds?: string[];
+  scene?: string | null;
+  format?: string | null;
+  framing?: string | null;
+  expression?: string | null;
+  extra?: string | null;
+  setAsPortrait?: boolean;
+}
+
+export interface IllustrationResult {
+  imageId: string;
+  url: string;
+  caption: string;
+  /** Virou o retrato do personagem. */
+  portrait: boolean;
   remaining: number;
 }

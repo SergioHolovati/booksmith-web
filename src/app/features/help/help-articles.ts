@@ -469,6 +469,19 @@ export const HELP_ARTICLES: HelpArticle[] = [
     ],
   },
   {
+    slug: 'ilustracoes-com-ia',
+    title: 'Ilustrações com IA (retratos e cenas)',
+    summary: 'Gere o retrato de um personagem ou a ilustração de uma cena, no estilo que você escolher.',
+    topic: 'universo',
+    keywords: ['ilustração', 'ia', 'retrato', 'imagem', 'gerar', 'estúdio visual', 'desenho', 'estilo', 'aquarela', 'cena'],
+    body: [
+      { p: '**Retrato:** na ficha do personagem, toque em **Gerar retrato com IA**. O desenho parte da aparência que você preencheu na ficha (salve antes). Escolha o estilo de arte, colorido ou preto e branco, a paleta, o enquadramento e a expressão. Se ele já tem retrato, o novo fica parecido com o atual.' },
+      { p: '**Cena:** no capítulo, toque em **Inserir ilustração** e depois em **Gerar com IA**. Descreva a cena, marque quem aparece (até 4; o retrato de cada um mantém o rosto) e o formato: página inteira, abertura de capítulo ou vinheta. A imagem entra direto no texto.' },
+      { p: 'O estilo que você usar fica guardado para o universo, para todas as ilustrações saírem coerentes. **Preto e branco** é a melhor escolha para o miolo de um livro impresso: imprimir em cores encarece muito o exemplar.' },
+      { p: 'Por enquanto, cada pessoa gera **3 ilustrações por semana**. Pedidos recusados pelo gerador (personagens de outras obras, violência explícita, nudez) não contam. Toda imagem gerada fica na biblioteca do universo com a marca **IA**; ao publicar, declare que usou IA (a Amazon pede isso).' },
+    ],
+  },
+  {
     slug: 'termos-e-privacidade',
     title: 'Termos de uso e política de privacidade',
     summary: 'O que você aceita ao criar a conta, e o que acontece quando o texto muda.',
