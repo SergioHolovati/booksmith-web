@@ -1248,7 +1248,7 @@ export interface IllustrationStatus {
   nextAt: string | null;
 }
 
-export type IllustrationKind = 'portrait' | 'scene';
+export type IllustrationKind = 'portrait' | 'scene' | 'cover';
 
 export interface IllustrationStyle {
   art: string;
@@ -1269,6 +1269,14 @@ export interface IllustrationRequest extends IllustrationStyle {
   expression?: string | null;
   extra?: string | null;
   setAsPortrait?: boolean;
+  /** Cena: o lugar do universo onde ela acontece. */
+  placeId?: string | null;
+  timeOfDay?: string | null;
+  mood?: string | null;
+  shot?: string | null;
+  /** Capa: o livro (concluído) e o que ela mostra. */
+  bookId?: string | null;
+  subject?: string | null;
 }
 
 export interface IllustrationResult {

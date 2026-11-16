@@ -1,7 +1,6 @@
 <p-dialog [visible]="visible()" (visibleChange)="visible.set($event)" [modal]="true" [dismissableMask]="!busy()"
-  [closable]="!busy()" [header]="kind() === 'portrait' ? 'Retrato com IA' : 'Ilustração da cena com IA'"
-  [style]="{ width: 'min(560px, calc(100vw - 16px))' }" [contentStyle]="{ maxHeight: '78dvh', overflow: 'auto' }"
-  (onShow)="open()" styleClass="studio-dialog">
+  [closable]="!busy()" [header]="title()" [style]="{ width: 'min(560px, calc(100vw - 16px))' }"
+  [contentStyle]="{ maxHeight: '78dvh', overflow: 'auto' }" (onShow)="open()" styleClass="studio-dialog">
   <div class="studio" data-studio>
     @if (status(); as s) {
       @if (!s.enabled) {
@@ -25,7 +24,12 @@
         <img [src]="r.url" [alt]="r.caption" />
         <figcaption class="muted small">{{ r.caption }}{{ r.portrait ? ' · agora é o retrato' : '' }}</figcaption>
       </figure>
-      <p class="muted small">A imagem já está na biblioteca do universo, marcada como IA.</p>
+      <p class="muted small">
+        @switch (kind()) {
+          @case ('cover') { A arte já está na biblioteca e selecionada como fundo da capa: ajuste o título e salve. }
+          @default { A imagem já está na biblioteca do universo, marcada como IA. }
+        }
+      </p>
       <div class="actions">
         <p-button label="Gerar outra" severity="secondary" [outlined]="true" [disabled]="limitReached()"
           (onClick)="result.set(null)" />
@@ -37,29 +41,87 @@
         <p>Desenhando… leva de 10 a 60 segundos.</p>
       </div>
     } @else {
-      @if (kind() === 'portrait') {
-        <p class="small">Retrato de <strong>{{ characterName() }}</strong>, a partir da aparência da ficha.
-          Se ele já tem retrato, o novo fica parecido com o atual.</p>
-      } @else {
-        <div class="field">
-          <label for="studio-scene" class="field-label">O que a cena mostra</label>
-          <textarea id="studio-scene" class="bs-input" rows="3" [maxlength]="maxScene" [(ngModel)]="scene"
-            placeholder="Ex.: Lia e Tomás no alto do farol, olhando a tempestade chegar pelo mar"></textarea>
-          <small class="muted">{{ scene.length }}/{{ maxScene }}</small>
-        </div>
-        @if (characters().length) {
+      @switch (kind()) {
+        @case ('portrait') {
+          <p class="small">Retrato de <strong>{{ characterName() }}</strong>, a partir da aparência da ficha.
+            Se ele já tem retrato, o novo fica parecido com o atual.</p>
+        }
+        @case ('cover') {
+          <p class="small">Arte da capa de <strong>{{ bookTitle() }}</strong>, sem letras: o título e o autor entram
+            no editor de capa, por cima da arte.</p>
+          <div class="field">
+            <label for="studio-subject" class="field-label">O que a capa mostra</label>
+            <textarea id="studio-subject" class="bs-input" rows="3" [maxlength]="maxSubject" [(ngModel)]="subject"
+              placeholder="Ex.: um farol solitário na ponta do cais, mar revolto, uma figura pequena na porta"></textarea>
+            <small class="muted">{{ subject.length }}/{{ maxSubject }}</small>
+          </div>
+        }
+        @default {
+          <div class="field">
+            <label for="studio-scene" class="field-label">O que a cena mostra</label>
+            <textarea id="studio-scene" class="bs-input" rows="3" [maxlength]="maxScene" [(ngModel)]="scene"
+              placeholder="Ex.: Lia e Tomás no alto do farol, olhando a tempestade chegar pelo mar"></textarea>
+            <small class="muted">{{ scene.length }}/{{ maxScene }}</small>
+          </div>
+        }
+      }
+
+      @if (kind() !== 'portrait' && characters().length) {
+        <fieldset class="group">
+          <legend class="field-label">Quem aparece <span class="muted">(até {{ maxCharacters }}; o retrato de cada um mantém o rosto)</span></legend>
+          <div class="chips" data-studio-characters>
+            @for (c of characters(); track c.id) {
+              <button type="button" class="chip" [class.on]="chosen().includes(c.id)"
+                [attr.aria-pressed]="chosen().includes(c.id)" (click)="toggleCharacter(c.id)">{{ c.name }}</button>
+            }
+          </div>
+        </fieldset>
+      }
+
+      @if (kind() === 'scene') {
+        @if (places().length) {
           <fieldset class="group">
-            <legend class="field-label">Quem aparece (até {{ maxCharacters }}; o retrato de cada um mantém o rosto)</legend>
-            <div class="chips">
-              @for (c of characters(); track c.id) {
-                <button type="button" class="chip" [class.on]="chosen().includes(c.id)"
-                  [attr.aria-pressed]="chosen().includes(c.id)" (click)="toggleCharacter(c.id)">{{ c.name }}</button>
+            <legend class="field-label">Onde <span class="muted">(a ficha do lugar entra na descrição)</span></legend>
+            <div class="chips" data-studio-places>
+              @for (p of places(); track p.id) {
+                <button type="button" class="chip" [class.on]="placeId() === p.id" [attr.aria-pressed]="placeId() === p.id"
+                  (click)="togglePlace(p.id)">{{ p.name }}</button>
               }
             </div>
           </fieldset>
         }
         <fieldset class="group">
-          <legend class="field-label">Formato no livro</legend>
+          <legend class="field-label">Luz e hora</legend>
+          <div class="chips">
+            @for (o of times; track o.value) {
+              <button type="button" class="chip" [class.on]="timeOfDay === o.value" [attr.aria-pressed]="timeOfDay === o.value"
+                (click)="toggle('timeOfDay', o.value)">{{ o.label }}</button>
+            }
+          </div>
+        </fieldset>
+      }
+
+      @if (kind() !== 'portrait') {
+        <fieldset class="group">
+          <legend class="field-label">Clima</legend>
+          <div class="chips">
+            @for (o of moods; track o.value) {
+              <button type="button" class="chip" [class.on]="mood === o.value" [attr.aria-pressed]="mood === o.value"
+                (click)="toggle('mood', o.value)">{{ o.label }}</button>
+            }
+          </div>
+        </fieldset>
+      }
+
+      @if (kind() === 'scene') {
+        <fieldset class="group">
+          <legend class="field-label">Enquadramento e formato no livro</legend>
+          <div class="chips">
+            @for (o of shots; track o.value) {
+              <button type="button" class="chip" [class.on]="shot === o.value" [attr.aria-pressed]="shot === o.value"
+                (click)="toggle('shot', o.value)">{{ o.label }}</button>
+            }
+          </div>
           <div class="chips">
             @for (o of formats; track o.value) {
               <button type="button" class="chip" [class.on]="format === o.value" [attr.aria-pressed]="format === o.value"
@@ -87,7 +149,7 @@
           <button type="button" class="chip" [class.on]="!style().color" [attr.aria-pressed]="!style().color"
             (click)="setStyle({ color: false })">Preto e branco</button>
         </div>
-        @if (!style().color) {
+        @if (!style().color && kind() !== 'cover') {
           <small class="muted">Boa escolha para o miolo impresso: imprimir em cores encarece muito o exemplar.</small>
         }
       </fieldset>

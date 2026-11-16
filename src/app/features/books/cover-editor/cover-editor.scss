@@ -189,3 +189,15 @@
   margin: 0 0 1rem;
   padding: .75rem 1rem;
 }
+
+// Botão do Estúdio Visual (arte da capa com IA)
+.studio-entry {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  margin-bottom: .5rem;
+
+  p-button {
+    align-self: flex-start;
+  }
+}

@@ -11,6 +11,7 @@ import Aura from '@primeuix/themes/aura';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
 import { AuthService } from './core/auth/auth.service';
+import { AppUpdates } from './core/pwa/app-updates';
 import { ErrorTrail, errorTrailInterceptor } from './core/support/error-trail';
 import { timeZoneInterceptor } from './core/api/writing.api';
 
@@ -55,5 +56,7 @@ export const appConfig: ApplicationConfig = {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000',
     }),
+    // Versão nova do app instalado: entra sozinha (ao abrir ou ao sair do app), sem ficar presa no celular
+    provideAppInitializer(() => void inject(AppUpdates)),
   ],
 };

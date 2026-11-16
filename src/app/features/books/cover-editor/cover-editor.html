@@ -75,6 +75,15 @@
 
     <div class="group" data-group="image">
       <span class="group-label">Imagem</span>
+      <div class="studio-entry">
+        <p-button label="Gerar arte da capa com IA" icon="pi pi-sparkles" severity="secondary" [outlined]="true"
+          [disabled]="!bookComplete()" (onClick)="studioOpen.set(true)" data-studio-open />
+        @if (!bookComplete()) {
+          <small class="muted">Disponível quando o livro estiver marcado como <strong>Concluído</strong> na tela do livro.</small>
+        }
+      </div>
+      <app-illustration-studio kind="cover" [universeId]="book.universeId" [bookId]="book.id" [bookTitle]="book.title"
+        [(visible)]="studioOpen" (generated)="onArtwork($event)" />
       @if (images().length) {
         <div class="thumbs" role="radiogroup" aria-label="Imagem de fundo">
           <button type="button" class="thumb none" role="radio" [class.on]="!design().imageId"

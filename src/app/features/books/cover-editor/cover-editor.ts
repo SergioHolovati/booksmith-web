@@ -13,7 +13,8 @@ import { ManuscriptApi } from '../../../core/api/manuscript.api';
 import { problemMessage } from '../../../core/api/problem';
 import { UniverseApi } from '../../../core/api/universe.api';
 import { AuthService } from '../../../core/auth/auth.service';
-import { BookDetail, CoverDesign, UniverseImage } from '../../../core/models/api.models';
+import { BookDetail, CoverDesign, IllustrationResult, UniverseImage } from '../../../core/models/api.models';
+import { IllustrationStudioComponent } from '../../../shared/illustration-studio/illustration-studio';
 import { HasUnsavedChanges } from '../../../core/util/unsaved-changes.guard';
 import { COVER_HEIGHT, COVER_WIDTH, drawCover } from './cover-canvas';
 
@@ -59,7 +60,8 @@ export function isLight(hex: string): boolean {
  */
 @Component({
   selector: 'app-cover-editor',
-  imports: [RouterLink, FormsModule, ButtonModule, InputTextModule, ProgressSpinnerModule, SliderModule, TextareaModule],
+  imports: [RouterLink, FormsModule, ButtonModule, InputTextModule, ProgressSpinnerModule, SliderModule, TextareaModule,
+    IllustrationStudioComponent],
   templateUrl: './cover-editor.html',
   styleUrl: './cover-editor.scss',
 })
@@ -81,6 +83,9 @@ export class CoverEditorComponent implements HasUnsavedChanges {
   readonly book = signal<BookDetail | null>(null);
   readonly loadError = signal<string | null>(null);
   readonly images = signal<UniverseImage[]>([]);
+  /** Estúdio Visual: a arte da capa com IA (só no livro concluído). */
+  readonly studioOpen = signal(false);
+  readonly bookComplete = computed(() => this.book()?.status === 'COMPLETE');
   readonly design = signal<CoverDesign>(initialDesign('', null));
   private readonly saved = signal<string>('');
   readonly saving = signal(false);
@@ -165,6 +170,19 @@ export class CoverEditorComponent implements HasUnsavedChanges {
     image.onload = () => this.background.set(image);
     image.onerror = () => this.background.set(null);
     image.src = url;
+  }
+
+  /** Arte gerada: entra na biblioteca e vira o fundo da capa; o título continua por cima. */
+  async onArtwork(result: IllustrationResult): Promise<void> {
+    const universeId = this.book()?.universeId;
+    if (universeId) {
+      try {
+        this.images.set(await firstValueFrom(this.universeApi.listImages(universeId)));
+      } catch {
+        // a lista antiga continua valendo; a imagem nova ainda assim é escolhida abaixo
+      }
+    }
+    this.design.update((design) => ({ ...design, imageId: result.imageId }));
   }
 
   set<K extends keyof CoverDesign>(key: K, value: CoverDesign[K]): void {

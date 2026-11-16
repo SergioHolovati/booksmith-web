@@ -15,6 +15,7 @@ import {
   IllustrationResult,
   IllustrationStatus,
   IllustrationStyle,
+  PlaceSummary,
 } from '../../core/models/api.models';
 import {
   ART_STYLES,
@@ -26,16 +27,21 @@ import {
   MAX_EXTRA,
   MAX_SCENE,
   MAX_SCENE_CHARACTERS,
+  MAX_SUBJECT,
+  MOODS,
   PALETTES,
+  SHOTS,
+  TIMES,
   nextSlot,
   saveStyle,
   savedStyle,
 } from './illustration-options';
 
 /**
- * Estúdio Visual (§4.8): gera com IA o retrato de um personagem (a partir da aparência da ficha) ou a cena de um
- * capítulo (com os retratos dos personagens como referência). O estilo fica guardado por universo, para as
- * ilustrações saírem coerentes. A imagem volta já guardada na biblioteca, marcada como IA.
+ * Estúdio Visual (§4.8): gera com IA o retrato de um personagem (a partir da aparência da ficha), a cena de um
+ * capítulo (com o lugar do universo e os retratos dos personagens como referência) ou a arte da capa de um livro
+ * concluído (sem letras; o título entra no editor de capa). Tudo o que o formulário pede vira texto estruturado no
+ * servidor: nenhum modelo de texto participa. O estilo fica guardado por universo, para as imagens saírem coerentes.
  */
 @Component({
   selector: 'app-illustration-studio',
@@ -53,6 +59,9 @@ export class IllustrationStudioComponent {
   /** Retrato: o personagem. */
   readonly characterId = input<string | null>(null);
   readonly characterName = input<string | null>(null);
+  /** Capa: o livro (precisa estar concluído). */
+  readonly bookId = input<string | null>(null);
+  readonly bookTitle = input<string | null>(null);
   readonly generated = output<IllustrationResult>();
 
   readonly arts = ART_STYLES;
@@ -62,14 +71,20 @@ export class IllustrationStudioComponent {
   readonly framings = FRAMINGS;
   readonly expressions = EXPRESSIONS;
   readonly formats = FORMATS;
+  readonly times = TIMES;
+  readonly moods = MOODS;
+  readonly shots = SHOTS;
   readonly maxScene = MAX_SCENE;
+  readonly maxSubject = MAX_SUBJECT;
   readonly maxExtra = MAX_EXTRA;
   readonly maxCharacters = MAX_SCENE_CHARACTERS;
 
   readonly status = signal<IllustrationStatus | null>(null);
   readonly characters = signal<CharacterSummary[]>([]);
+  readonly places = signal<PlaceSummary[]>([]);
   readonly style = signal<IllustrationStyle>(savedStyle(''));
   readonly chosen = signal<string[]>([]);
+  readonly placeId = signal<string | null>(null);
   readonly busy = signal(false);
   readonly error = signal<string | null>(null);
   readonly result = signal<IllustrationResult | null>(null);
@@ -77,12 +92,23 @@ export class IllustrationStudioComponent {
   framing = 'half';
   expression = 'neutral';
   format = 'opening';
+  timeOfDay = '';
+  mood = '';
+  shot = '';
   scene = '';
+  subject = '';
   extra = '';
   setAsPortrait = true;
 
   readonly limitReached = computed(() => (this.status()?.remaining ?? 1) <= 0);
   readonly nextSlotText = computed(() => nextSlot(this.status()?.nextAt ?? null));
+  readonly title = computed(() => {
+    switch (this.kind()) {
+      case 'portrait': return 'Retrato com IA';
+      case 'cover': return 'Arte da capa com IA';
+      default: return 'Ilustração da cena com IA';
+    }
+  });
 
   async open(): Promise<void> {
     const universeId = this.universeId();
@@ -94,8 +120,11 @@ export class IllustrationStudioComponent {
     this.error.set(null);
     try {
       this.status.set(await firstValueFrom(this.api.status()));
-      if (this.kind() === 'scene') {
+      if (this.kind() !== 'portrait') {
         this.characters.set(await firstValueFrom(this.universes.listCharacters(universeId)));
+      }
+      if (this.kind() === 'scene') {
+        this.places.set(await firstValueFrom(this.universes.listPlaces(universeId)));
       }
     } catch (error) {
       this.error.set(problemMessage(error, 'Não foi possível abrir o Estúdio.'));
@@ -115,11 +144,24 @@ export class IllustrationStudioComponent {
     });
   }
 
+  togglePlace(id: string): void {
+    this.placeId.update((current) => (current === id ? null : id));
+  }
+
+  /** Um chip opcional: tocar de novo desmarca. */
+  toggle(field: 'timeOfDay' | 'mood' | 'shot', value: string): void {
+    this[field] = this[field] === value ? '' : value;
+  }
+
   canGenerate(): boolean {
     if (this.busy() || this.limitReached() || !this.status()?.enabled) {
       return false;
     }
-    return this.kind() === 'portrait' ? !!this.characterId() : this.scene.trim().length > 0;
+    switch (this.kind()) {
+      case 'portrait': return !!this.characterId();
+      case 'cover': return !!this.bookId() && this.subject.trim().length > 0;
+      default: return this.scene.trim().length > 0;
+    }
   }
 
   async generate(): Promise<void> {
@@ -130,21 +172,27 @@ export class IllustrationStudioComponent {
     this.busy.set(true);
     this.error.set(null);
     saveStyle(universeId, this.style());
+    const kind = this.kind();
     try {
-      const portrait = this.kind() === 'portrait';
       const result = await firstValueFrom(
         this.api.generate({
           ...this.style(),
-          kind: this.kind(),
+          kind,
           universeId,
-          characterId: portrait ? this.characterId() : null,
-          characterIds: portrait ? [] : this.chosen(),
-          scene: portrait ? null : this.scene.trim(),
-          format: portrait ? null : this.format,
-          framing: portrait ? this.framing : null,
-          expression: portrait ? this.expression : null,
+          characterId: kind === 'portrait' ? this.characterId() : null,
+          characterIds: kind === 'portrait' ? [] : this.chosen(),
+          scene: kind === 'scene' ? this.scene.trim() : null,
+          format: kind === 'scene' ? this.format : null,
+          placeId: kind === 'scene' ? this.placeId() : null,
+          timeOfDay: kind === 'scene' ? this.timeOfDay || null : null,
+          shot: kind === 'scene' ? this.shot || null : null,
+          mood: kind === 'portrait' ? null : this.mood || null,
+          framing: kind === 'portrait' ? this.framing : null,
+          expression: kind === 'portrait' ? this.expression : null,
+          bookId: kind === 'cover' ? this.bookId() : null,
+          subject: kind === 'cover' ? this.subject.trim() : null,
           extra: this.extra.trim() || null,
-          setAsPortrait: portrait && this.setAsPortrait,
+          setAsPortrait: kind === 'portrait' && this.setAsPortrait,
         }),
       );
       this.result.set(result);

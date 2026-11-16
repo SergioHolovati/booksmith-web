@@ -70,6 +70,38 @@ export const FORMATS: Option[] = [
   { value: 'vignette', label: 'Vinheta (quadrada)' },
 ];
 
+/** Luz e hora da cena (opcional). */
+export const TIMES: Option[] = [
+  { value: 'day', label: 'Dia' },
+  { value: 'dawn', label: 'Amanhecer' },
+  { value: 'dusk', label: 'Fim de tarde' },
+  { value: 'night', label: 'Noite' },
+  { value: 'storm', label: 'Tempestade' },
+  { value: 'indoor', label: 'Interior' },
+];
+
+/** Clima da cena ou da capa (opcional). */
+export const MOODS: Option[] = [
+  { value: 'calm', label: 'Calmo' },
+  { value: 'tense', label: 'Tenso' },
+  { value: 'joyful', label: 'Alegre' },
+  { value: 'melancholic', label: 'Melancólico' },
+  { value: 'mysterious', label: 'Misterioso' },
+  { value: 'epic', label: 'Épico' },
+  { value: 'romantic', label: 'Romântico' },
+  { value: 'eerie', label: 'Sinistro' },
+];
+
+/** Enquadramento da cena (opcional). */
+export const SHOTS: Option[] = [
+  { value: 'wide', label: 'Plano aberto' },
+  { value: 'medium', label: 'Plano médio' },
+  { value: 'close', label: 'Close' },
+  { value: 'low', label: 'De baixo' },
+  { value: 'high', label: 'De cima' },
+];
+
+export const MAX_SUBJECT = 300;
 export const MAX_SCENE = 600;
 export const MAX_EXTRA = 300;
 export const MAX_SCENE_CHARACTERS = 4;
