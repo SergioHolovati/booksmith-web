@@ -3,6 +3,23 @@ import type { JSONContent } from '@tiptap/core';
 /** Espelho dos DTOs da API v1 (booksmith/src/main/java/.../web). */
 
 export type BookKind = 'ORIGINAL' | 'FANFIC';
+/** Gênero: decide as ferramentas e, no infantil, o modo livro ilustrado (cada capítulo é uma página). */
+export type BookGenre = 'FICTION' | 'CHRISTIAN' | 'SELF_HELP' | 'SPIRITUAL' | 'EDUCATIONAL' | 'CHILDREN' | 'OTHER';
+
+/** Desenho de uma página do livro ilustrado (espelho do PageDesign do servidor). */
+export interface PageDesign {
+  /** Ilustração de fundo (biblioteca do universo); null = só a cor. */
+  imageId: string | null;
+  /** #rrggbb */
+  background: string;
+  text: 'top' | 'middle' | 'bottom' | 'none';
+  align: 'left' | 'center' | 'right';
+  size: 's' | 'm' | 'l' | 'xl';
+  color: 'dark' | 'light';
+  band: boolean;
+  spread: boolean;
+  textSide: 'left' | 'right';
+}
 export type BookStatus = 'DRAFT' | 'WRITING' | 'COMPLETE';
 /** Tag BCP 47 do idioma do livro (orienta o corretor ortográfico do navegador). */
 export type BookLanguage = 'pt-BR' | 'pt-PT' | 'en' | 'es';
@@ -29,6 +46,7 @@ export interface BookSummary {
   chapterCount: number;
   wordCount: number;
   updatedAt: string;
+  genre: BookGenre;
 }
 
 export interface ChapterSummary {
@@ -40,6 +58,8 @@ export interface ChapterSummary {
   updatedAt: string;
   /** Este capítulo abre uma parte do livro ("Parte I — A partida"); null = continua a anterior. */
   partTitle: string | null;
+  /** No livro ilustrado, o desenho da página. */
+  page: PageDesign;
 }
 
 export interface BookDetail {
@@ -53,6 +73,7 @@ export interface BookDetail {
   status: BookStatus;
   /** Universo do livro: personagens e, depois, lugares, linha do tempo e regras. */
   universeId: string;
+  genre: BookGenre;
   createdAt: string;
   updatedAt: string;
   chapters: ChapterSummary[];
@@ -223,6 +244,7 @@ export interface BookRequest {
   cover?: string | null;
   /** Só na criação: entrar num universo que já existe (série). Sem ele, o livro ganha um universo novo. */
   universeId?: string | null;
+  genre?: BookGenre;
 }
 
 /** Universo do autor (§4.2 do produto): uma série inteira pode compartilhar um. */
@@ -318,6 +340,8 @@ export interface Chapter {
   contentHash: string;
   version: number;
   updatedAt: string;
+  genre: BookGenre;
+  page: PageDesign;
 }
 
 export type VersionReason = 'AUTOMATIC' | 'MANUAL' | 'BEFORE_RESTORE';

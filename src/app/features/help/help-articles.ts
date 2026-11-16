@@ -271,6 +271,20 @@ export const HELP_ARTICLES: HelpArticle[] = [
     ],
   },
   {
+    slug: 'livro-infantil',
+    title: 'Livro infantil ilustrado',
+    summary: 'Cada página com a ilustração de fundo e o texto por cima, pronto para imprimir.',
+    topic: 'livros',
+    keywords: ['infantil', 'criança', 'ilustrado', 'picture book', 'página', 'fundo', 'página dupla', 'quadrado', 'imprimir', 'gênero'],
+    body: [
+      { steps: ['Ao criar o livro, escolha o gênero **Infantil ilustrado**.', 'Na Diagramação, escolha um formato **Quadrado** (ou **Deitado**) e ligue a **sangria**.', 'No livro, toque em **Nova página**.', 'Escreva o texto da página e, em cima, escolha a **ilustração de fundo** e onde fica o texto.'] },
+      { p: 'Cada página tem a ilustração cobrindo tudo, até a borda, e o texto por cima: **em cima**, **no meio**, **embaixo** ou **sem texto**. Escolha o tamanho da letra (P, M, G, GG), o alinhamento, a cor (escura ou clara) e, se a imagem atrapalhar a leitura, a **faixa atrás do texto**.' },
+      { p: '**Página dupla:** a ilustração ocupa as duas páginas do livro aberto. Ela sempre começa numa página da esquerda; se precisar, entra uma página em branco antes. Escolha em que lado fica o texto.' },
+      { p: 'A prévia em cima do texto é a página de verdade, no formato do seu livro. Embaixo aparece o **DPI** da ilustração: para imprimir bem, 300. Uma página quadrada de 20×20 cm pede uma imagem de umas 2.400 × 2.400 px.' },
+      { p: 'A tela do livro mostra quantas páginas o livro impresso terá. As gráficas imprimem em múltiplos de 4: o Booksmith diz quantas faltam para fechar.' },
+    ],
+  },
+  {
     slug: 'partes',
     title: 'Dividir o livro em partes',
     summary: '"Parte I — A partida": agrupe capítulos, com página própria no livro.',

@@ -17,8 +17,9 @@
 
       <div class="title-area">
         <input class="title-input" [attr.lang]="language()" spellcheck="true" [ngModel]="title()" (ngModelChange)="title.set($event)" (blur)="saveTitle()"
-          (keydown.enter)="$any($event.target).blur()" maxlength="200" aria-label="Título do capítulo"
-          placeholder="Título do capítulo" />
+          (keydown.enter)="$any($event.target).blur()" maxlength="200"
+          [attr.aria-label]="pictureBook() ? 'Nome da página' : 'Título do capítulo'"
+          [placeholder]="pictureBook() ? 'Nome da página (não sai no livro)' : 'Título do capítulo'" />
         <div class="meta" aria-live="polite">
           <span>{{ wordsLabel() }}</span>
           @if (goalLabel(); as goal) {
@@ -61,6 +62,10 @@
     }
 
     <main class="editor-scroll">
+      @if (pictureBook()) {
+        <app-page-designer [page]="page()" [imageUrl]="backgroundUrl()" [paragraphs]="pageParagraphs()"
+          [trimMm]="trimMm()" [dpiHint]="backgroundDpi()" (pageChange)="setPage($event)" (pickImage)="openBackgroundPicker()" />
+      }
       <div #editorHost class="editor-host"></div>
     </main>
 

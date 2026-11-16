@@ -11,6 +11,7 @@ import {
   CoverDesign,
   CoverPdf,
   BookRequest,
+  PageDesign,
   BookSummary,
   UniverseMove,
   Chapter,
@@ -165,6 +166,11 @@ export class ManuscriptApi {
   /** Começa, renomeia ou (título vazio) tira a parte que este capítulo abre. */
   setChapterPart(chapterId: string, title: string | null): Observable<ChapterSummary> {
     return this.http.put<ChapterSummary>(`${this.base}/chapters/${chapterId}/part`, { title });
+  }
+
+  /** O desenho da página no livro ilustrado (infantil). */
+  setChapterPage(chapterId: string, page: PageDesign): Observable<ChapterSummary> {
+    return this.http.put<ChapterSummary>(`${this.base}/chapters/${chapterId}/page`, page);
   }
 
   renameChapter(chapterId: string, title: string): Observable<ChapterSummary> {

@@ -4,7 +4,7 @@ import { firstValueFrom } from 'rxjs';
 
 import { ManuscriptApi } from '../../../core/api/manuscript.api';
 import { isNetworkError, problemMessage, problemOf } from '../../../core/api/problem';
-import { Chapter, ChapterVersionSummary } from '../../../core/models/api.models';
+import { Chapter, ChapterVersionSummary, PageDesign } from '../../../core/models/api.models';
 import { DraftStore } from '../../../core/util/draft-store';
 
 export type SaveStatus = 'saved' | 'pending' | 'saving' | 'offline' | 'conflict' | 'error';
@@ -69,6 +69,14 @@ export class ChapterAutosave {
 
   hasUnsavedChanges(): boolean {
     return this.editSeq !== this.savedSeq;
+  }
+
+  /** O desenho da página (livro ilustrado), na mesma fila do texto: a versão do capítulo muda. */
+  setPage(page: PageDesign): Promise<void> {
+    return this.enqueue(async () => {
+      const result = await firstValueFrom(this.api.setChapterPage(this.chapterId, page));
+      this.version.set(result.version);
+    });
   }
 
   rename(title: string): Promise<void> {

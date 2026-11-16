@@ -15,10 +15,10 @@ import { firstValueFrom } from 'rxjs';
 import { ManuscriptApi } from '../../../core/api/manuscript.api';
 import { problemMessage } from '../../../core/api/problem';
 import { UniverseApi } from '../../../core/api/universe.api';
-import { BookKind, BookLanguage, BookStatus, Universe } from '../../../core/models/api.models';
+import { BookGenre, BookKind, BookLanguage, BookStatus, Universe } from '../../../core/models/api.models';
 import { compressImage } from '../../../core/util/image';
 import { BookCoverComponent } from '../book-cover';
-import { KIND_LABEL, LANGUAGE_LABEL, STATUS_LABEL } from '../book-labels';
+import { GENRE_LABEL, KIND_LABEL, LANGUAGE_LABEL, STATUS_LABEL } from '../book-labels';
 
 /**
  * Cria (/books/new) ou edita (/books/:bookId/edit) um livro. Ao criar, o livro pode entrar num universo que
@@ -68,6 +68,7 @@ export class BookFormComponent {
   readonly form = inject(FormBuilder).nonNullable.group({
     title: ['', [Validators.required, Validators.maxLength(200)]],
     kind: ['ORIGINAL' as BookKind, Validators.required],
+    genre: ['FICTION' as BookGenre, Validators.required],
     fandom: ['', Validators.maxLength(200)],
     synopsis: ['', Validators.maxLength(4000)],
     language: ['pt-BR' as BookLanguage, Validators.required],
@@ -75,6 +76,8 @@ export class BookFormComponent {
   });
 
   readonly kind = toSignal(this.form.controls.kind.valueChanges, { initialValue: this.form.controls.kind.value });
+  readonly genre = toSignal(this.form.controls.genre.valueChanges, { initialValue: this.form.controls.genre.value });
+  readonly genreOptions = (Object.keys(GENRE_LABEL) as BookGenre[]).map((value) => ({ value, label: GENRE_LABEL[value] }));
   readonly titleValue = toSignal(this.form.controls.title.valueChanges, { initialValue: '' });
 
   readonly coverPreview = signal<string | null>(null);
@@ -175,6 +178,7 @@ export class BookFormComponent {
       this.form.setValue({
         title: book.title,
         kind: book.kind,
+        genre: book.genre ?? 'FICTION',
         fandom: book.fandom ?? '',
         synopsis: book.synopsis ?? '',
         language: book.language,
@@ -203,7 +207,7 @@ export class BookFormComponent {
   }
 
   async save(): Promise<void> {
-    const { title, kind, fandom, synopsis, language, status } = this.form.getRawValue();
+    const { title, kind, genre, fandom, synopsis, language, status } = this.form.getRawValue();
     if (this.form.invalid || (kind === 'FANFIC' && !fandom.trim())) {
       this.form.markAllAsTouched();
       this.message.set(kind === 'FANFIC' && !fandom.trim() ? 'Informe o fandom da fanfic.' : null);
@@ -213,6 +217,7 @@ export class BookFormComponent {
     const request = {
       title: title.trim(),
       kind,
+      genre,
       fandom: kind === 'FANFIC' ? fandom.trim() : null,
       synopsis: synopsis.trim() || null,
       language,

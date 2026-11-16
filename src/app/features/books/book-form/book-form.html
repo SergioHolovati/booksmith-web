@@ -49,6 +49,19 @@
     }
 
     <div class="field">
+      <label for="genre">Gênero do livro</label>
+      <p-select inputId="genre" [options]="genreOptions" formControlName="genre" optionLabel="label"
+        optionValue="value" styleClass="full-width" />
+      @if (genre() === 'CHILDREN') {
+        <small class="field-hint" data-genre-hint>Livro ilustrado: cada página tem uma ilustração de fundo e o texto
+          por cima, em letra grande. Para impressão, escolha um formato quadrado ou deitado na Diagramação.</small>
+      } @else if (genre() !== 'FICTION' && genre() !== 'OTHER') {
+        <small class="field-hint" data-genre-hint>As ferramentas de enredo (linha do tempo, continuidade) ficam
+          escondidas.</small>
+      }
+    </div>
+
+    <div class="field">
       <label for="language">Idioma do livro</label>
       <p-select inputId="language" [options]="languageOptions" formControlName="language" optionLabel="label"
         optionValue="value" styleClass="full-width" />

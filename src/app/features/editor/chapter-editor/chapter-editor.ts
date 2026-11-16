@@ -39,7 +39,9 @@ import { ProofreadPanelComponent } from '../proofread/proofread-panel';
 import { IllustrationPickerComponent } from '../illustration/illustration-picker';
 import { IllustrationPanelComponent } from '../illustration/illustration-panel';
 import { ILLUSTRATIONS_LOADED } from '../schema/illustration';
-import { PrintGeometry, printGeometry } from '../../../core/util/print-geometry';
+import { PrintGeometry, dpiHint, printDpi, printGeometry, trimSize } from '../../../core/util/print-geometry';
+import { BookGenre, BookLayout, PageDesign } from '../../../core/models/api.models';
+import { DEFAULT_PAGE, PageDesignerComponent } from '../page-designer/page-designer';
 import { NodeSelection } from '@tiptap/pm/state';
 import { UniverseImage } from '../../../core/models/api.models';
 import { ChapterAutosave, SaveStatus } from './chapter-autosave';
@@ -78,7 +80,7 @@ const LORE_HINT: Record<string, string> = {
 
 @Component({
   selector: 'app-chapter-editor',
-  imports: [FormsModule, ButtonModule, DialogModule, ProgressSpinnerModule, ChapterHistoryComponent, ChapterNotesComponent, ChapterReviewComponent, ProofreadPanelComponent, IllustrationPickerComponent, IllustrationPanelComponent],
+  imports: [FormsModule, ButtonModule, DialogModule, ProgressSpinnerModule, ChapterHistoryComponent, ChapterNotesComponent, ChapterReviewComponent, ProofreadPanelComponent, IllustrationPickerComponent, IllustrationPanelComponent, PageDesignerComponent],
   templateUrl: './chapter-editor.html',
   styleUrl: './chapter-editor.scss',
   host: {
@@ -142,6 +144,36 @@ export class ChapterEditorComponent {
   readonly flushSave = (): Promise<void> => this.autosaveRef()?.flush() ?? Promise.resolve();
   /** Ilustrações: o universo do livro (para a biblioteca), o endereço de cada imagem e a selecionada no texto. */
   readonly universeId = signal<string | null>(null);
+
+  // ===== Livro ilustrado (infantil): cada capítulo é uma página =====
+  readonly genre = signal<BookGenre | null>(null);
+  readonly pictureBook = computed(() => this.genre() === 'CHILDREN');
+  readonly page = signal<PageDesign>(DEFAULT_PAGE);
+  /** O texto da página, um item por parágrafo, para a prévia. */
+  readonly pageParagraphs = signal<string[]>([]);
+  private readonly bookLayout = signal<BookLayout | null>(null);
+  readonly trimMm = computed<[number, number]>(() => {
+    const layout = this.bookLayout();
+    return layout ? trimSize(layout) : [200, 200];
+  });
+  /** Muda quando a lista de imagens chega (o mapa de endereços não é um signal). */
+  private readonly imagesTick = signal(0);
+  readonly backgroundUrl = computed(() => {
+    this.imagesTick();
+    const id = this.page().imageId;
+    return id ? (this.imageUrls.get(id) ?? null) : null;
+  });
+  private readonly backgroundPx = signal<[number, number] | null>(null);
+  readonly backgroundDpi = computed(() => {
+    const px = this.backgroundPx();
+    const layout = this.bookLayout();
+    if (!px || !layout || !this.page().imageId) {
+      return null;
+    }
+    return dpiHint(printDpi(this.page().spread ? 'spread' : 'bleed', px[0], px[1], printGeometry(layout), false).dpi);
+  });
+  /** O seletor de imagens escolhe para o texto (ilustração) ou para o fundo da página. */
+  private pickerTarget: 'text' | 'background' = 'text';
   readonly pickerOpen = signal(false);
   readonly selectedIllustration = signal<{ pos: number; caption: string | null } | null>(null);
   private readonly imageUrls = new Map<string, string>();
@@ -254,6 +286,8 @@ export class ChapterEditorComponent {
     }
 
     this.bookId.set(chapter?.bookId ?? null);
+    this.genre.set(chapter?.genre ?? null);
+    this.page.set({ ...DEFAULT_PAGE, ...(chapter?.page ?? {}) });
     this.title.set(chapter?.title ?? '');
     this.language.set(chapter?.language ?? 'pt-BR');
     this.savedTitle = this.title();
@@ -306,6 +340,7 @@ export class ChapterEditorComponent {
       },
       onUpdate: () => {
         this.autosave?.markChanged();
+        this.refreshPageText();
         this.updateWords();
         this.proofreader?.schedule();
         this.issue.set(null);
@@ -317,6 +352,7 @@ export class ChapterEditorComponent {
     });
 
     this.editorRef.set(this.editor);
+    this.refreshPageText();
     // Com o corretor próprio no ar, o do navegador sai (senão o texto fica com dois sublinhados)
     this.proofreader = new Proofreader(this.editor, chapterId, this.api, (available) =>
       this.editor?.view.dom.setAttribute('spellcheck', available ? 'false' : 'true'),
@@ -439,7 +475,60 @@ export class ChapterEditorComponent {
 
   insertIllustration(image: UniverseImage): void {
     this.imageUrls.set(image.id, image.url);
+    if (this.pickerTarget === 'background') {
+      this.pickerTarget = 'text';
+      this.imagesTick.update((n) => n + 1);
+      this.setPage({ ...this.page(), imageId: image.id });
+      return;
+    }
     this.editor?.chain().focus().insertIllustration({ imageId: image.id, caption: image.caption }).run();
+  }
+
+  /** A ilustração de fundo da página (livro ilustrado). */
+  openBackgroundPicker(): void {
+    this.pickerTarget = 'background';
+    this.openIllustrationPicker();
+  }
+
+  /** Muda o desenho da página e salva pela fila do salvamento automático (a versão do capítulo muda junto). */
+  setPage(page: PageDesign): void {
+    const imageChanged = page.imageId !== this.page().imageId;
+    this.page.set(page);
+    if (imageChanged) {
+      this.measureBackground();
+    }
+    this.autosave?.setPage(page).catch((error: unknown) =>
+      this.toast.add({ severity: 'error', summary: problemMessage(error, 'Não foi possível salvar a página.'), life: 5000 }),
+    );
+  }
+
+  /** O tamanho em pixels da ilustração de fundo, para o DPI na impressão. */
+  private measureBackground(): void {
+    this.backgroundPx.set(null);
+    const url = this.backgroundUrl();
+    if (!url) {
+      return;
+    }
+    const img = new Image();
+    img.onload = () => this.backgroundPx.set([img.naturalWidth, img.naturalHeight]);
+    img.src = url;
+  }
+
+  /** Os parágrafos do texto, para a prévia da página. */
+  private refreshPageText(): void {
+    if (!this.pictureBook() || !this.editor) {
+      return;
+    }
+    const paragraphs: string[] = [];
+    this.editor.state.doc.forEach((node) => {
+      if (node.type.name === 'paragraph' || node.type.name === 'heading') {
+        const text = node.textContent.trim();
+        if (text) {
+          paragraphs.push(text);
+        }
+      }
+    });
+    this.pageParagraphs.set(paragraphs);
   }
 
   setIllustrationCaption(caption: string): void {
@@ -480,6 +569,10 @@ export class ChapterEditorComponent {
         this.imageUrls.set(image.id, image.url);
       }
       window.dispatchEvent(new Event(ILLUSTRATIONS_LOADED));
+      this.imagesTick.update((n) => n + 1);
+      if (this.pictureBook()) {
+        this.measureBackground();
+      }
     } catch {
       // sem a lista, a ilustração mostra só a legenda
     }
@@ -604,6 +697,7 @@ export class ChapterEditorComponent {
       const universeId = book.universeId;
       this.universeId.set(universeId);
       this.printGeometry = printGeometry(book.layout);
+      this.bookLayout.set(book.layout);
       void this.loadImageUrls(universeId);
       const [characters, places, lore] = await Promise.all([
         firstValueFrom(this.universeApi.listCharacters(universeId)),

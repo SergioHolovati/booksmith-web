@@ -23,7 +23,11 @@
           <p class="fandom">{{ book.fandom }}</p>
         }
         <p class="muted small">
-          {{ book.chapters.length }} {{ book.chapters.length === 1 ? 'capítulo' : 'capítulos' }} ·
+          @if (pictureBook()) {
+            {{ book.chapters.length }} {{ book.chapters.length === 1 ? 'página' : 'páginas' }} ·
+          } @else {
+            {{ book.chapters.length }} {{ book.chapters.length === 1 ? 'capítulo' : 'capítulos' }} ·
+          }
           {{ formatCount(totalWords()) }} palavras
         </p>
       </div>
@@ -70,7 +74,9 @@
     @if (universeName(); as name) {
       <a [routerLink]="['/universes', book.universeId]" class="universe-link"><i class="pi pi-globe"></i> Universo <strong>{{ name }}</strong></a>
     }
+    @if (hasCast(book.genre) || hasPlotTools(book.genre)) {
     <nav class="universe" aria-label="Bíblia do Universo">
+      @if (hasCast(book.genre)) {
       <a class="universe-card" [routerLink]="['/books', book.id, 'characters']">
         <i class="pi pi-users"></i>
         <span class="universe-text">
@@ -107,6 +113,8 @@
         </span>
         <i class="pi pi-chevron-right muted"></i>
       </a>
+      }
+      @if (hasPlotTools(book.genre)) {
       <a class="universe-card" [routerLink]="['/books', book.id, 'timeline']">
         <i class="pi pi-clock"></i>
         <span class="universe-text">
@@ -145,22 +153,38 @@
         </span>
         <i class="pi pi-chevron-right muted"></i>
       </a>
+      }
     </nav>
+    }
 
     <app-ask-book class="ask-book" [bookId]="book.id" />
 
     <app-book-texts class="book-texts" [bookId]="book.id" />
 
-    <app-plot-ideas class="plot-ideas" [bookId]="book.id" />
+    @if (hasPlotTools(book.genre)) {
+      <app-plot-ideas class="plot-ideas" [bookId]="book.id" />
+    }
 
     <section class="chapters">
       <div class="section-header">
-        <h2>Capítulos</h2>
-        <p-button label="Novo" icon="pi pi-plus" size="small" severity="secondary" [outlined]="true"
-          [loading]="creatingChapter()" (onClick)="newChapter()" />
+        <h2>{{ pictureBook() ? 'Páginas' : 'Capítulos' }}</h2>
+        <p-button [label]="pictureBook() ? 'Nova página' : 'Novo'" icon="pi pi-plus" size="small" severity="secondary"
+          [outlined]="true" [loading]="creatingChapter()" (onClick)="newChapter()" />
       </div>
 
-      @if (book.chapters.length === 0) {
+      @if (pictureBook()) {
+        <p class="muted small picture-hint" data-picture-hint>Livro ilustrado: cada página tem a ilustração de fundo e
+          o texto por cima. Abra a página para escolher a ilustração e onde fica o texto.
+          @if (printedPages(); as printed) {
+            <span data-printed-pages>Impresso: {{ printed.total }} páginas com a folha de rosto{{ printed.blanks ? ' ('
+              + printed.blanks + ' em branco antes de página dupla, que sempre começa à esquerda)' : '' }}{{ printed.missing
+              ? '; gráficas imprimem em múltiplos de 4: faltam ' + printed.missing + ' para fechar' : '' }}.</span>
+          }
+        </p>
+      }
+      @if (book.chapters.length === 0 && pictureBook()) {
+        <p class="muted">Nenhuma página ainda. Toque em <strong>Nova página</strong> para começar.</p>
+      } @else if (book.chapters.length === 0) {
         <p class="muted">
           Nenhum capítulo ainda. Já escreveu algo no Word, no Google Docs ou no LibreOffice?
           <a [routerLink]="['/books', book.id, 'import']">Importe o arquivo</a>.

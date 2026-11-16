@@ -21,10 +21,35 @@ import {
 } from '../../../core/models/api.models';
 import { formatCount } from '../../../core/util/word-count';
 import { BookCoverComponent } from '../book-cover';
-import { KIND_LABEL, LANGUAGE_LABEL, STATUS_LABEL } from '../book-labels';
+import { KIND_LABEL, LANGUAGE_LABEL, STATUS_LABEL, hasCast, hasPlotTools, isPictureBook } from '../book-labels';
 import { AskBookComponent } from '../ask-book/ask-book';
 import { BookTextsComponent } from '../book-texts/book-texts';
 import { PlotIdeasComponent } from '../plot-ideas/plot-ideas';
+
+/**
+ * Páginas impressas do livro ilustrado: a folha de rosto, cada página e a dupla (2). A dupla começa numa página par
+ * (a esquerda do livro aberto): se cair numa ímpar, entra uma página em branco antes. {@code missing}: quantas faltam
+ * para um múltiplo de 4, como as gráficas imprimem.
+ */
+export function printedPages(chapters: { page?: { spread?: boolean } | null }[]): { total: number; blanks: number; missing: number } | null {
+  if (!chapters.length) {
+    return null;
+  }
+  let last = 1; // a folha de rosto
+  let blanks = 0;
+  for (const chapter of chapters) {
+    if (chapter.page?.spread) {
+      if ((last + 1) % 2 !== 0) {
+        last++;
+        blanks++;
+      }
+      last += 2;
+    } else {
+      last++;
+    }
+  }
+  return { total: last, blanks, missing: (4 - (last % 4)) % 4 };
+}
 
 @Component({
   selector: 'app-book-detail',
@@ -50,6 +75,11 @@ export class BookDetailComponent {
   readonly reordering = signal(false);
   /** Parte: o capítulo que a abre (diálogo aberto) e o nome em edição. */
   /** O capítulo sendo renomeado pela lista (sem abrir o editor). */
+  readonly hasCast = hasCast;
+  readonly hasPlotTools = hasPlotTools;
+  /** Livro infantil ilustrado: os capítulos são as páginas. */
+  readonly pictureBook = computed(() => isPictureBook(this.book()?.genre));
+  readonly printedPages = computed(() => printedPages(this.book()?.chapters ?? []));
   readonly titleChapter = signal<ChapterSummary | null>(null);
   readonly titleDraft = signal('');
   readonly savingTitle = signal(false);
