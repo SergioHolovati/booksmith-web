@@ -9,7 +9,8 @@ import { firstValueFrom } from 'rxjs';
 import { ExportApi } from '../../../core/api/export.api';
 import { ManuscriptApi } from '../../../core/api/manuscript.api';
 import { problemMessage } from '../../../core/api/problem';
-import { BookDetail, BookLayout } from '../../../core/models/api.models';
+import { BookDetail, BookLayout, BookTrim } from '../../../core/models/api.models';
+import { trimSize } from '../../../core/util/print-geometry';
 import { HasUnsavedChanges } from '../../../core/util/unsaved-changes.guard';
 import { printCheckSummary } from '../print-check';
 
@@ -20,7 +21,65 @@ export const DEFAULT_LAYOUT: BookLayout = {
   margins: 'normal',
   chapterStyle: 'classic',
   sceneBreak: 'asterisks',
+  customWidthMm: null,
+  customHeightMm: null,
+  bleed: false,
 };
+
+export type Orientation = 'portrait' | 'square' | 'landscape' | 'custom';
+
+/** Os tamanhos de página, pelo formato do livro. Os do KDP estão marcados. */
+export const TRIM_GROUPS: { value: Orientation; label: string; trims: { value: BookTrim; label: string }[] }[] = [
+  {
+    value: 'portrait',
+    label: 'Em pé',
+    trims: [
+      { value: 'a5', label: 'A5' },
+      { value: '14x21', label: '14×21' },
+      { value: '16x23', label: '16×23' },
+      { value: '6x9', label: '6×9" KDP' },
+    ],
+  },
+  {
+    value: 'square',
+    label: 'Quadrado',
+    trims: [
+      { value: '15x15', label: '15×15' },
+      { value: '20x20', label: '20×20' },
+      { value: '21x21', label: '21×21' },
+      { value: '25x25', label: '25×25' },
+      { value: '8.5x8.5', label: '8,5×8,5" KDP' },
+      { value: '8.25x8.25', label: '8,25×8,25" KDP' },
+    ],
+  },
+  {
+    value: 'landscape',
+    label: 'Deitado',
+    trims: [
+      { value: '21x15', label: '21×15' },
+      { value: '25x20', label: '25×20' },
+      { value: '28x21', label: '28×21' },
+      { value: '8.25x6', label: '8,25×6" KDP' },
+    ],
+  },
+  { value: 'custom', label: 'Personalizado', trims: [] },
+];
+
+export const CUSTOM_MIN_MM = 100;
+export const CUSTOM_MAX_MM = 330;
+
+export function orientationOf(trim: BookTrim): Orientation {
+  return TRIM_GROUPS.find((g) => g.trims.some((t) => t.value === trim))?.value ?? 'custom';
+}
+
+/** "A5", "20×20", "Personalizado 230×180 mm". */
+export function trimLabel(layout: BookLayout): string {
+  if (layout.trim === 'custom') {
+    const [w, h] = trimSize(layout);
+    return `Personalizado ${String(w).replace('.', ',')}×${String(h).replace('.', ',')} mm`;
+  }
+  return TRIM_GROUPS.flatMap((g) => g.trims).find((t) => t.value === layout.trim)?.label ?? layout.trim;
+}
 
 interface Choice<K extends keyof BookLayout> {
   key: K;
@@ -30,16 +89,6 @@ interface Choice<K extends keyof BookLayout> {
 
 /** As opções de cada escolha, na ordem da tela. */
 export const CHOICES = [
-  {
-    key: 'trim',
-    label: 'Tamanho',
-    options: [
-      { value: 'a5', label: 'A5' },
-      { value: '14x21', label: '14×21' },
-      { value: '16x23', label: '16×23' },
-      { value: '6x9', label: '6×9"' },
-    ],
-  } as Choice<'trim'>,
   {
     key: 'fontSize',
     label: 'Letra',
@@ -83,6 +132,14 @@ export const CHOICES = [
       { value: 'space', label: 'Só espaço' },
     ],
   } as Choice<'sceneBreak'>,
+  {
+    key: 'bleed',
+    label: 'Sangria (imagens até a borda, para a gráfica)',
+    options: [
+      { value: false, label: 'Sem' },
+      { value: true, label: 'Com sangria' },
+    ],
+  } as Choice<'bleed'>,
 ];
 
 /** Modelos prontos: um toque muda tudo; depois dá para ajustar cada escolha. */
@@ -91,12 +148,12 @@ export const MODELS: { name: string; hint: string; layout: BookLayout }[] = [
   {
     name: 'Moderno',
     hint: 'Arejado, títulos à esquerda',
-    layout: { trim: '14x21', fontSize: 11, leading: 'airy', margins: 'normal', chapterStyle: 'modern', sceneBreak: 'diamond' },
+    layout: { ...DEFAULT_LAYOUT, trim: '14x21', leading: 'airy', chapterStyle: 'modern', sceneBreak: 'diamond' },
   },
   {
     name: 'Econômico',
     hint: 'Menos páginas para imprimir',
-    layout: { trim: '16x23', fontSize: 10.5, leading: 'compact', margins: 'narrow', chapterStyle: 'simple', sceneBreak: 'dots' },
+    layout: { ...DEFAULT_LAYOUT, trim: '16x23', fontSize: 10.5, leading: 'compact', margins: 'narrow', chapterStyle: 'simple', sceneBreak: 'dots' },
   },
 ];
 
@@ -130,6 +187,11 @@ export class BookLayoutComponent implements HasUnsavedChanges {
 
   readonly choices = CHOICES;
   readonly models = MODELS;
+  readonly trimGroups = TRIM_GROUPS;
+  readonly orientation = computed(() => orientationOf(this.layout().trim));
+  readonly trimsOfOrientation = computed(() => TRIM_GROUPS.find((g) => g.value === this.orientation())?.trims ?? []);
+  readonly customMin = CUSTOM_MIN_MM;
+  readonly customMax = CUSTOM_MAX_MM;
   readonly book = signal<BookDetail | null>(null);
   readonly loadError = signal<string | null>(null);
   readonly layout = signal<BookLayout>(DEFAULT_LAYOUT);
@@ -194,6 +256,34 @@ export class BookLayoutComponent implements HasUnsavedChanges {
     this.apply({ ...this.layout(), [key]: value } as BookLayout);
   }
 
+  /** Em pé, quadrado, deitado: o primeiro tamanho do formato. Personalizado começa com as medidas de agora. */
+  chooseOrientation(orientation: Orientation): void {
+    if (orientation === this.orientation()) {
+      return;
+    }
+    const current = this.layout();
+    if (orientation === 'custom') {
+      const [w, h] = trimSize(current);
+      this.apply({ ...current, trim: 'custom', customWidthMm: w, customHeightMm: h });
+      return;
+    }
+    const first = TRIM_GROUPS.find((g) => g.value === orientation)!.trims[0].value;
+    this.apply({ ...current, trim: first, customWidthMm: null, customHeightMm: null });
+  }
+
+  chooseTrim(trim: BookTrim): void {
+    this.apply({ ...this.layout(), trim, customWidthMm: null, customHeightMm: null });
+  }
+
+  /** Largura ou altura do tamanho personalizado, em mm; fora da faixa, a prévia mostra o motivo. */
+  setCustom(dimension: 'customWidthMm' | 'customHeightMm', value: string): void {
+    const mm = Number(value.replace(',', '.'));
+    if (!Number.isFinite(mm) || mm <= 0) {
+      return;
+    }
+    this.apply({ ...this.layout(), [dimension]: mm });
+  }
+
   useModel(layout: BookLayout): void {
     this.apply({ ...layout });
   }
@@ -215,7 +305,11 @@ export class BookLayoutComponent implements HasUnsavedChanges {
     try {
       const check = await firstValueFrom(this.exportApi.printCheck(this.bookId(), this.layout()));
       if (id === this.checkRequest) {
-        this.printWarning.set(printCheckSummary(check.illustrations));
+        const bleed = check.needsBleed
+          ? 'Há ilustração até a borda e o livro está sem sangria: para a gráfica, ligue a sangria (3,2 mm).'
+          : null;
+        const text = [bleed, printCheckSummary(check.illustrations)].filter(Boolean).join(' ');
+        this.printWarning.set(text || null);
       }
     } catch {
       // sem a conferência, sem aviso

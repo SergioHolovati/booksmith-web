@@ -147,13 +147,24 @@ export interface PrintCoverSpec {
 }
 
 /** Diagramação do PDF (as opções estão em book-layout). */
+export type BookTrim =
+  | 'a5' | '14x21' | '16x23' | '6x9'
+  | '15x15' | '20x20' | '21x21' | '25x25' | '8.5x8.5' | '8.25x8.25'
+  | '21x15' | '25x20' | '28x21' | '8.25x6'
+  | 'custom';
+
 export interface BookLayout {
-  trim: 'a5' | '14x21' | '16x23' | '6x9';
+  trim: BookTrim;
   fontSize: number;
   leading: 'compact' | 'normal' | 'airy';
   margins: 'narrow' | 'normal' | 'wide';
   chapterStyle: 'classic' | 'modern' | 'simple';
   sceneBreak: 'asterisks' | 'asterism' | 'diamond' | 'dots' | 'space';
+  /** Só no tamanho personalizado (trim = custom), em mm. */
+  customWidthMm: number | null;
+  customHeightMm: number | null;
+  /** Sangria do miolo para a gráfica (3,2 mm na borda de fora, em cima e embaixo). */
+  bleed: boolean;
 }
 
 /** Páginas do PDF como imagens (prévia), numeradas a partir de 1. */
@@ -180,6 +191,8 @@ export interface PrintCheck {
   minDpi: number;
   textWidthMm: number;
   illustrations: PrintCheckIllustration[];
+  /** Há ilustração até a borda (ou dupla) e a diagramação está sem sangria. */
+  needsBleed: boolean;
 }
 
 export interface LayoutPreview {

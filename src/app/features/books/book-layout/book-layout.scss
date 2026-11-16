@@ -87,6 +87,32 @@
   text-align: center;
 }
 
+.custom-fields {
+  display: flex;
+  align-items: flex-end;
+  gap: .6rem;
+  flex-wrap: wrap;
+}
+
+.custom-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+  font-size: .85rem;
+  color: var(--bs-text-soft);
+}
+
+.custom-fields input {
+  width: 6.5rem;
+  min-height: var(--bs-touch);
+  padding: .3rem .5rem;
+  border: 1px solid var(--bs-border);
+  border-radius: var(--bs-radius-sm);
+  background: var(--bs-surface);
+  color: var(--bs-text);
+  font: inherit;
+}
+
 .choice {
   margin-bottom: 1rem;
 }

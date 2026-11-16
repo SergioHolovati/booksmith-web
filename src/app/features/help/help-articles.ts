@@ -219,7 +219,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     keywords: ['publicar', 'publicação', 'isbn', 'kdp', 'amazon', 'clube de autores', 'uiclap', 'gráfica', 'ficha catalográfica', 'depósito legal', 'biblioteca nacional', 'palavras-chave', 'vender'],
     body: [
       { steps: ['Na tela do livro, toque em **Publicar**.', 'Escolha para onde o livro vai: Amazon KDP, Clube de Autores, UICLAP ou uma gráfica.', 'Siga a lista: o que tiver o ícone de aviso precisa de ajuste; o resto você marca quando fizer.'] },
-      { p: 'O Booksmith confere sozinho o que ele sabe: texto, sinopse, "sobre o autor", tamanho do livro, número de páginas e capa. No KDP, ele avisa se o tamanho não é aceito (use A5 ou 6×9), se o livro tem menos de 24 páginas ou se a sinopse passa de 4.000 caracteres.' },
+      { p: 'O Booksmith confere sozinho o que ele sabe: texto, sinopse, "sobre o autor", tamanho do livro, número de páginas e capa. No KDP, ele avisa se o tamanho não é aceito (o KDP imprime A5 e 6×9 em pé, 8,5×8,5" e 8,25×8,25" quadrados e 8,25×6" deitado), se o livro tem menos de 24 páginas ou se a sinopse passa de 4.000 caracteres.' },
       { p: '**ISBN:** é emitido pela Agência Brasileira do ISBN, da Câmara Brasileira do Livro, com uma taxa por número; o livro impresso e o e-book têm cada um o seu. O KDP oferece um ISBN grátis para o impresso, que só vale na Amazon. Digite o seu no guia: o Booksmith confere se nenhum número ficou trocado e coloca o ISBN nos créditos do livro (o do impresso no PDF, o do e-book no ePub).' },
       { p: '**Ficha catalográfica:** é feita por um bibliotecário, com o ISBN. Cole o texto dela em **Páginas › Créditos**.' },
       { p: '**Depósito legal:** depois de publicar, mande pelo menos 1 exemplar à Biblioteca Nacional em até 30 dias (Lei 10.994/2004). Não tem taxa; o envio é por sua conta.' },
@@ -247,10 +247,12 @@ export const HELP_ARTICLES: HelpArticle[] = [
     title: 'Diagramação do PDF: tamanho, letra e margens',
     summary: 'Escolha um modelo, ajuste e veja as páginas de verdade antes de baixar.',
     topic: 'livros',
-    keywords: ['diagramação', 'diagramar', 'tamanho', '14x21', 'a5', '16x23', '6x9', 'fonte', 'letra', 'margem', 'entrelinha', 'abertura de capítulo', 'ornamento', 'prévia'],
+    keywords: ['diagramação', 'diagramar', 'tamanho', '14x21', 'a5', '16x23', '6x9', 'quadrado', 'deitado', 'paisagem', 'personalizado', 'sangria', 'infantil', 'fonte', 'letra', 'margem', 'entrelinha', 'abertura de capítulo', 'ornamento', 'prévia'],
     body: [
       { steps: ['Abra o livro e toque em **Baixar**.', 'Toque em **Diagramação do PDF**.', 'Escolha um modelo (**Clássico**, **Moderno** ou **Econômico**) e ajuste o que quiser.', 'Toque em **Salvar**. O PDF passa a sair assim.'] },
-      { p: 'Dá para escolher o **tamanho** (A5, 14×21, 16×23 ou 6×9 polegadas, o mais comum na Amazon), a **letra**, o **espaço entre linhas**, as **margens**, a **abertura de capítulo** e o desenho da **quebra de cena**.' },
+      { p: 'Dá para escolher o **formato** e o **tamanho**: em pé (A5, 14×21, 16×23 ou 6×9 polegadas, o mais comum na Amazon), quadrado (de 15×15 a 25×25, bom para livro infantil), deitado (21×15, 25×20, 28×21) ou **personalizado**, com a largura e a altura em milímetros. Os marcados com KDP são os que a Amazon imprime.' },
+      { p: 'Também a **letra**, o **espaço entre linhas**, as **margens**, a **abertura de capítulo** e o desenho da **quebra de cena**.' },
+      { p: '**Vai para a gráfica com imagens até a borda?** Ligue a **sangria**: a página cresce 3,2 mm para fora do corte, a imagem cobre até lá e a gráfica corta sem deixar filete branco. Com sangria, o PDF é o miolo do livro: sai sem a capa (ela vai na capa para gráfica) e com as marcas de corte que a gráfica lê. A Diagramação avisa se há ilustração até a borda e a sangria está desligada.' },
       { p: 'A prévia mostra as páginas reais do PDF; passe com as setas. Mudou a letra ou o tamanho, o número de páginas muda junto.' },
       { p: 'Vale para o PDF. No ePub, quem escolhe a letra é o leitor; o Word sai no formato de manuscrito.' },
     ],

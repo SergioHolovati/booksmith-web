@@ -30,12 +30,26 @@ export interface PrintGeometry {
   textHeightMm: number;
 }
 
-const TRIMS: Record<string, [number, number]> = {
+/** Largura e altura do corte, em mm (as mesmas do BookLayout no servidor). */
+export const TRIM_MM: Record<string, [number, number]> = {
   a5: [148, 210],
   '14x21': [140, 210],
   '16x23': [160, 230],
   '6x9': [152.4, 228.6],
+  '15x15': [150, 150],
+  '20x20': [200, 200],
+  '21x21': [210, 210],
+  '25x25': [250, 250],
+  '8.5x8.5': [215.9, 215.9],
+  '8.25x8.25': [209.6, 209.6],
+  '21x15': [210, 150],
+  '25x20': [250, 200],
+  '28x21': [280, 210],
+  '8.25x6': [209.6, 152.4],
 };
+
+/** Sangria do miolo, em mm. */
+export const BLEED_MM = 3.2;
 
 /** Em cima, dos lados, embaixo. */
 const MARGINS: Record<string, [number, number, number]> = {
@@ -49,10 +63,22 @@ const CAPTION_SPACE_MM = 12;
 const MM_PER_INCH = 25.4;
 const MM_PER_CSS_PX = MM_PER_INCH / 96;
 
-export function printGeometry(layout: Pick<BookLayout, 'trim' | 'margins'>): PrintGeometry {
-  const [w, h] = TRIMS[layout.trim] ?? TRIMS['a5'];
+/** O corte (sem sangria) do livro, em mm. */
+export function trimSize(layout: Pick<BookLayout, 'trim'> & Partial<Pick<BookLayout, 'customWidthMm' | 'customHeightMm'>>): [number, number] {
+  if (layout.trim === 'custom' && layout.customWidthMm && layout.customHeightMm) {
+    return [layout.customWidthMm, layout.customHeightMm];
+  }
+  return TRIM_MM[layout.trim] ?? TRIM_MM['a5'];
+}
+
+/** Medidas para o DPI: a página (com a sangria, se houver) e a área de texto. */
+export function printGeometry(
+  layout: Pick<BookLayout, 'trim' | 'margins'> & Partial<Pick<BookLayout, 'customWidthMm' | 'customHeightMm' | 'bleed'>>,
+): PrintGeometry {
+  const [w, h] = trimSize(layout);
   const [top, side, bottom] = MARGINS[layout.margins] ?? MARGINS['normal'];
-  return { pageWidthMm: w, pageHeightMm: h, textWidthMm: w - 2 * side, textHeightMm: h - top - bottom };
+  const bleed = layout.bleed ? BLEED_MM : 0;
+  return { pageWidthMm: w + bleed, pageHeightMm: h + 2 * bleed, textWidthMm: w - 2 * side, textHeightMm: h - top - bottom };
 }
 
 const FRACTION: Record<string, number> = { small: 0.4, medium: 0.65, wide: 1 };

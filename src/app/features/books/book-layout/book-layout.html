@@ -55,6 +55,46 @@
       <p-message severity="warn" styleClass="block-message print-warning" data-print-warning [text]="warning" />
     }
 
+    <div class="choice" data-choice="format">
+      <span class="choice-label" id="choice-format">Formato</span>
+      <div class="chips" role="radiogroup" aria-labelledby="choice-format">
+        @for (group of trimGroups; track group.value) {
+          <button type="button" class="chip" role="radio" [class.on]="orientation() === group.value"
+            [attr.aria-checked]="orientation() === group.value" (click)="chooseOrientation(group.value)">
+            {{ group.label }}
+          </button>
+        }
+      </div>
+    </div>
+    @if (orientation() === 'custom') {
+      <div class="choice custom-size" data-choice="custom">
+        <span class="choice-label">Tamanho, em mm ({{ customMin }} a {{ customMax }})</span>
+        <div class="custom-fields">
+          <label>Largura
+            <input type="number" inputmode="decimal" [min]="customMin" [max]="customMax" step="1" data-custom-width
+              [value]="layout().customWidthMm" (change)="setCustom('customWidthMm', $any($event.target).value)" />
+          </label>
+          <span aria-hidden="true">×</span>
+          <label>Altura
+            <input type="number" inputmode="decimal" [min]="customMin" [max]="customMax" step="1" data-custom-height
+              [value]="layout().customHeightMm" (change)="setCustom('customHeightMm', $any($event.target).value)" />
+          </label>
+        </div>
+      </div>
+    } @else {
+      <div class="choice" data-choice="trim">
+        <span class="choice-label" id="choice-trim">Tamanho (cm)</span>
+        <div class="chips" role="radiogroup" aria-labelledby="choice-trim">
+          @for (option of trimsOfOrientation(); track option.value) {
+            <button type="button" class="chip" role="radio" [class.on]="layout().trim === option.value"
+              [attr.aria-checked]="layout().trim === option.value" (click)="chooseTrim(option.value)">
+              {{ option.label }}
+            </button>
+          }
+        </div>
+      </div>
+    }
+
     @for (choice of choices; track choice.key) {
       <div class="choice" [attr.data-choice]="choice.key">
         <span class="choice-label" [id]="'choice-' + choice.key">{{ choice.label }}</span>
@@ -70,7 +110,8 @@
     }
 
     <p class="muted small hint"><i class="pi pi-info-circle" aria-hidden="true"></i> Vale para o PDF. No ePub, quem
-      escolhe a letra é o leitor; o Word sai no formato de manuscrito.</p>
+      escolhe a letra é o leitor; o Word sai no formato de manuscrito. Com sangria, o PDF é o miolo para a gráfica:
+      sem a capa (ela vai na capa aberta) e com as marcas de corte que a gráfica lê.</p>
 
     @if (dirty()) {
       <div class="save-bar" role="region" aria-label="Alterações não salvas">

@@ -10,7 +10,7 @@ import { ManuscriptApi } from '../../../core/api/manuscript.api';
 import { problemMessage } from '../../../core/api/problem';
 import { BookDetail } from '../../../core/models/api.models';
 import { saveFile } from '../../../core/util/save-file';
-import { CHOICES, MODELS, normalizeLayout, sameLayout } from '../book-layout/book-layout';
+import { MODELS, normalizeLayout, sameLayout, trimLabel } from '../book-layout/book-layout';
 import { pageCount } from '../book-pages/book-pages';
 
 interface FormatOption {
@@ -46,7 +46,7 @@ const FORMATS: FormatOption[] = [
 export function layoutSummary(book: BookDetail): string {
   const layout = normalizeLayout(book.layout);
   const model = MODELS.find((m) => sameLayout(m.layout, layout));
-  const trim = CHOICES[0].options.find((o) => o.value === layout.trim)?.label ?? layout.trim;
+  const trim = trimLabel(layout);
   const details = `${trim}, letra ${String(layout.fontSize).replace('.', ',')}`;
   return model ? `${model.name} · ${details}` : `Personalizada · ${details}`;
 }

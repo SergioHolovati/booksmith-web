@@ -1,5 +1,6 @@
 import { BookDetail, PrintCheckIllustration, Publishing, PublishingDestination, PublishingStep } from '../../../core/models/api.models';
 import { printCheckSummary } from '../print-check';
+import { TRIM_GROUPS } from '../book-layout/book-layout';
 
 /** Para onde o livro vai. O site abre numa aba nova; a gráfica é a que o autor escolher. */
 export const DESTINATIONS: { value: PublishingDestination; label: string; hint: string; site: string | null }[] = [
@@ -10,12 +11,14 @@ export const DESTINATIONS: { value: PublishingDestination; label: string; hint: 
 ];
 
 /** Regras do KDP que o app confere (as mesmas da capa para gráfica). */
-export const KDP_TRIMS = ['a5', '6x9'];
+export const KDP_TRIMS = ['a5', '6x9', '8.5x8.5', '8.25x8.25', '8.25x6'];
 export const KDP_MIN_PAGES = 24;
 export const KDP_DESCRIPTION_MAX = 4000;
 export const MAX_KEYWORDS = 7;
 
-const TRIM_LABEL: Record<string, string> = { a5: 'A5', '14x21': '14×21', '16x23': '16×23', '6x9': '6×9"' };
+const TRIM_LABEL: Record<string, string> = Object.fromEntries(
+  TRIM_GROUPS.flatMap((g) => g.trims).map((t) => [t.value, t.label.replace(' KDP', '')]),
+);
 
 export const EMPTY_PUBLISHING: Publishing = { destination: null, isbnPrint: null, isbnEbook: null, keywords: [], done: [] };
 
@@ -141,7 +144,7 @@ export function guideSections(
       key: 'layout',
       title: `Tamanho ${TRIM_LABEL[trim] ?? trim}`,
       detail: !kdpTrim
-        ? 'O KDP não imprime neste tamanho. Na diagramação, escolha A5 ou 6×9.'
+        ? 'O KDP não imprime neste tamanho. Na diagramação, escolha A5 ou 6×9 (em pé), 8,5×8,5" ou 8,25×8,25" (quadrado) ou 8,25×6" (deitado).'
         : kdp
           ? 'O KDP imprime neste tamanho.'
           : `Confira se ${site?.label ?? 'a gráfica'} imprime em ${TRIM_LABEL[trim] ?? trim} antes de enviar.`,
