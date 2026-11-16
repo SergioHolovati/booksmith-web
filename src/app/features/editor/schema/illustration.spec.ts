@@ -14,7 +14,8 @@ describe('ilustração no texto', () => {
     editor.commands.insertIllustration({ imageId: IMAGE, caption: '  O mapa de Vel  ' });
 
     const illustration = editor.getJSON().content!.find((n) => n.type === 'illustration')!;
-    expect(Object.keys(illustration.attrs!).sort()).toEqual(['caption', 'id', 'imageId']);
+    expect(Object.keys(illustration.attrs!).sort()).toEqual(['align', 'caption', 'id', 'imageId', 'size']);
+    expect(illustration.attrs).toMatchObject({ size: null, align: null });
     expect(illustration.attrs).toMatchObject({ imageId: IMAGE, caption: 'O mapa de Vel' });
     expect(illustration.attrs!['id']).toMatch(/^[A-Za-z0-9_-]{4,64}$/);
     expect(editor.getText().trim()).toBe('Antes.');
@@ -35,6 +36,41 @@ describe('ilustração no texto', () => {
 
     expect(host.querySelector('figure img')?.getAttribute('src')).toBe('/media/gallery/mapa.png');
     expect(host.querySelector('figcaption')?.textContent).toBe('Mapa');
+    editor.destroy();
+    host.remove();
+  });
+
+  it('o autor escolhe o lugar na página e o lado; o editor mostra o DPI com as medidas do livro', () => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const urls = new Map([[IMAGE, '/media/x.png']]);
+    const geometry = { pageWidthMm: 148, pageHeightMm: 210, textWidthMm: 114, textHeightMm: 168 };
+    const editor = new Editor({ element: host, extensions: manuscriptExtensions('', undefined, () => urls, () => geometry) });
+    editor.commands.setContent({ type: 'doc', content: [{ type: 'illustration', attrs: { imageId: IMAGE, caption: 'Mapa' } }] });
+
+    const size = host.querySelector<HTMLSelectElement>('select[aria-label="Lugar da ilustração na página"]')!;
+    expect(size.value).toBe('');
+    size.value = 'small';
+    size.dispatchEvent(new Event('change'));
+    expect(editor.getJSON().content![0].attrs).toMatchObject({ size: 'small', align: null });
+    expect([...host.querySelector('figure')!.classList]).toEqual(expect.arrayContaining(['illustration', 'size-small']));
+    expect(host.querySelector('figure')!.classList.contains('align-right')).toBe(false);
+
+    const side = host.querySelector<HTMLSelectElement>('select[aria-label="Lado da ilustração"]')!;
+    side.value = 'right';
+    side.dispatchEvent(new Event('change'));
+    expect(editor.getJSON().content![0].attrs).toMatchObject({ size: 'small', align: 'right' });
+    expect([...host.querySelector('figure')!.classList]).toEqual(expect.arrayContaining(['size-small', 'align-right']));
+
+    // O DPI aparece quando a imagem carrega (2000 × 1500 numa página inteira do A5: 181)
+    host.querySelector<HTMLSelectElement>('select[aria-label="Lugar da ilustração na página"]')!.value = 'bleed';
+    host.querySelector('select')!.dispatchEvent(new Event('change'));
+    const img = host.querySelector('img')!;
+    Object.defineProperty(img, 'naturalWidth', { value: 2000 });
+    Object.defineProperty(img, 'naturalHeight', { value: 1500 });
+    img.dispatchEvent(new Event('load'));
+    expect(host.querySelector('.illustration-dpi')!.textContent).toBe('Impressão: 181 DPI, pode sair borrada (o ideal é 300)');
+    expect(host.querySelector('.illustration-note')!.textContent).toContain('legenda não aparece');
     editor.destroy();
     host.remove();
   });

@@ -132,6 +132,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/continuity/continuity').then((c) => c.ContinuityComponent),
       },
       {
+        path: 'books/:bookId/sumario',
+        loadComponent: () => import('./features/books/outline-builder/outline-builder').then((c) => c.OutlineBuilderComponent),
+      },
+      {
         path: 'books/:bookId/import',
         loadComponent: () => import('./features/books/file-import/file-import').then((c) => c.FileImportComponent),
       },

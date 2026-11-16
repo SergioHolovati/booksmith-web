@@ -15,7 +15,7 @@
     <p-message severity="error" [text]="message" styleClass="block-message" />
   }
 
-  @if (!plan() && !loading()) {
+  @if (!structure() && !plan() && !loading()) {
     <label for="import-file" class="drop" [class.dragging]="dragging()" (dragover)="onDragOver($event)"
       (dragleave)="dragging.set(false)" (drop)="onDrop($event)">
       <i class="pi pi-file-import"></i>
@@ -34,9 +34,10 @@
         <li>Bloco de Notas, Obsidian e outros editores de texto: .txt ou .md.</li>
       </ul>
       <p>
-        Para separar em capítulos, use o estilo <strong>Título 1</strong> no nome de cada capítulo (no Markdown,
-        <strong>## Nome</strong>), ou comece cada um com uma linha como "Capítulo 1". Linhas só com
-        <strong>* * *</strong> viram quebras de cena.
+        O Booksmith procura sozinho as divisões do livro: "Capítulo 1", "Parte 2", Introdução, Apresentação,
+        subcapítulos como "1.1", títulos do Word, linhas em negrito ou com letra maior, e o sumário, se o arquivo
+        tiver um. Antes de criar qualquer capítulo, você revisa e aprova. Linhas só com <strong>* * *</strong> viram
+        quebras de cena.
       </p>
     </div>
   }
@@ -46,6 +47,116 @@
       <p-progress-spinner strokeWidth="4" />
       <p class="muted">Lendo o arquivo…</p>
     </div>
+  }
+
+  @if (structure(); as s) {
+    @if (!plan() && !loading()) {
+      <section class="glass-card summary" data-structure>
+        <div class="file">
+          <i class="pi pi-file"></i>
+          <span class="file-name">{{ file()?.name }}</span>
+        </div>
+        <p class="totals">
+          <strong>{{ approvedCount() }} {{ approvedCount() === 1 ? 'capítulo' : 'capítulos' }}</strong>
+          · {{ formatCount(s.totalWords) }} palavras
+          @if (emptyCount() > 0) {
+            · {{ emptyCount() }} {{ emptyCount() === 1 ? 'ainda sem texto' : 'ainda sem texto' }}
+          }
+        </p>
+        <p class="muted small rule">Confira as divisões que encontramos. Troque o tipo ou corrija o título onde
+          precisar; nada é criado até você aprovar.</p>
+      </section>
+
+      @for (warning of s.warnings; track warning) {
+        <p-message severity="warn" [text]="warning" styleClass="block-message" />
+      }
+
+      @if (s.outline; as outline) {
+        <section class="glass-card outline-card" data-outline>
+          <p class="outline-head">
+            <i class="pi pi-list" aria-hidden="true"></i>
+            <span>Encontramos {{ outline.titled ? 'o sumário' : 'um sumário (o plano do livro)' }} com
+              <strong>{{ outlineItems().length }} itens</strong>; {{ outline.withText }} já têm texto no arquivo.</span>
+          </p>
+          <div class="choice" role="radiogroup" aria-label="Como montar o livro">
+            <label class="option" [class.on]="useOutline()">
+              <input type="radio" name="use-outline" [checked]="useOutline()" (change)="useOutline.set(true)" />
+              <span><strong>Usar o sumário como estrutura</strong><br />
+                <span class="muted small">Cria todos os capítulos do sumário, na ordem dele, com os subcapítulos. Os que
+                  ainda não têm texto nascem vazios, prontos para escrever.</span></span>
+            </label>
+            <label class="option" [class.on]="!useOutline()">
+              <input type="radio" name="use-outline" [checked]="!useOutline()" (change)="useOutline.set(false)" />
+              <span><strong>Só o que já tem texto</strong><br />
+                <span class="muted small">Cria apenas os capítulos escritos. O sumário não entra no livro.</span></span>
+            </label>
+          </div>
+          @if (useOutline()) {
+            <button type="button" class="link-button" (click)="showOutline.set(!showOutline())" data-outline-toggle>
+              {{ showOutline() ? 'Esconder o sumário' : 'Revisar o sumário' }}
+            </button>
+            @if (showOutline()) {
+              <ol class="outline" data-outline-items>
+                @for (item of outlineItems(); track $index; let i = $index) {
+                  <li class="outline-item" [class.section]="item.kind === 'section'" [class.part]="item.kind === 'part'">
+                    <select class="kind-select" [attr.aria-label]="'Tipo de ' + item.title" [ngModel]="item.kind"
+                      (ngModelChange)="setOutline(i, { kind: $event })">
+                      @for (k of outlineKinds; track k.value) {
+                        <option [value]="k.value">{{ k.label }}</option>
+                      }
+                    </select>
+                    <input class="title-input" [attr.aria-label]="'Título de ' + item.title" maxlength="200"
+                      [ngModel]="item.title" (ngModelChange)="setOutline(i, { title: $event })" />
+                    @if (item.kind !== 'part') {
+                      <span class="tag" [class.has-text]="item.match >= 0">{{ item.match >= 0 ? 'com texto' : 'vazio' }}</span>
+                    }
+                  </li>
+                }
+              </ol>
+            }
+          }
+        </section>
+      }
+
+      <h2 class="section-title">Divisões no texto</h2>
+      @if (divisions().length === 0) {
+        <p class="muted small">Não encontramos divisões no texto: ele entra como um capítulo só.</p>
+      }
+      <ol class="divisions" data-divisions>
+        @for (d of divisions(); track d.index) {
+          <li class="division glass-card" [class.dim]="d.kind === 'text' || d.kind === 'remove'"
+            [class.section]="d.kind === 'section'" [attr.data-division]="d.index">
+            <div class="division-head">
+              <select class="kind-select" [attr.aria-label]="'Tipo de ' + d.title" [ngModel]="d.kind"
+                (ngModelChange)="setDivision(d.index, { kind: $event })">
+                @for (k of divisionKinds; track k.value) {
+                  <option [value]="k.value">{{ k.label }}</option>
+                }
+              </select>
+              <span class="confidence" [class]="'confidence ' + d.confidence">{{ confidenceLabel[d.confidence] }}</span>
+            </div>
+            <input class="title-input" [attr.aria-label]="'Título de ' + d.title" maxlength="200" [ngModel]="d.title"
+              (ngModelChange)="setDivision(d.index, { title: $event })"
+              [disabled]="d.kind === 'text' || d.kind === 'remove'" />
+            @if (d.reasons.length) {
+              <span class="muted small reasons">{{ d.reasons.join(' · ') }}</span>
+            }
+            @if (d.kind !== 'part' && d.kind !== 'remove') {
+              <span class="muted small">{{ formatCount(d.words) }} palavras{{ d.excerpt ? ': ' + d.excerpt : '' }}</span>
+            }
+          </li>
+        }
+      </ol>
+
+      <div class="actions">
+        <p-button [label]="approveLabel()" icon="pi pi-check" styleClass="full-width" [loading]="importing()"
+          [disabled]="approvedCount() === 0 && divisions().length > 0" (onClick)="approve()" data-approve />
+        <p-button label="Importar tudo num capítulo só" severity="secondary" [outlined]="true" [disabled]="importing()"
+          (onClick)="importSingle()" />
+        <p-button label="Escolher outro arquivo" severity="secondary" [text]="true" [disabled]="importing()"
+          (onClick)="reset()" />
+      </div>
+    }
   }
 
   @if (plan(); as plan) {
@@ -61,11 +172,8 @@
         </p>
         <p class="muted small rule">{{ ruleText() }}</p>
 
-        @if (autoChapters() > 1) {
-          <div class="modes">
-            <p-selectbutton [options]="modes" [ngModel]="mode()" (ngModelChange)="changeMode($event)"
-              optionLabel="label" optionValue="value" [allowEmpty]="false" />
-          </div>
+        @if (structure()) {
+          <button type="button" class="link-button" (click)="backToStructure()">Voltar para as divisões</button>
         }
       </section>
 

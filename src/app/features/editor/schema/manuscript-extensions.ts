@@ -8,7 +8,7 @@ import { SceneBreak } from './scene-break';
 import { MentionSource, mentionExtension } from './mention';
 import { CommentAnchor } from './comment-anchor';
 import { ProofreadOff } from './proofread-off';
-import { IllustrationSource, illustrationExtension } from './illustration';
+import { IllustrationSource, PrintGeometrySource, illustrationExtension } from './illustration';
 
 /**
  * Esquema do manuscrito. Precisa bater com o validador do backend (ManuscriptDocument.java):
@@ -20,6 +20,7 @@ export function manuscriptExtensions(
   placeholder: string,
   mentions?: MentionSource,
   illustrations?: IllustrationSource,
+  printGeometry?: PrintGeometrySource,
 ): AnyExtension[] {
   return [
     StarterKit.configure({
@@ -37,6 +38,6 @@ export function manuscriptExtensions(
     mentionExtension(mentions),
     CommentAnchor,
     ProofreadOff,
-    illustrationExtension(illustrations),
+    illustrationExtension(illustrations, printGeometry),
   ];
 }

@@ -203,6 +203,13 @@
   opacity: .3;
 }
 
+// Celular: cinco botões na linha; um pouco mais estreitos para o nome do capítulo continuar legível
+@media (max-width: 420px) {
+  .mini {
+    width: 34px;
+  }
+}
+
 .loading {
   display: flex;
   justify-content: center;

@@ -158,13 +158,27 @@ export const HELP_ARTICLES: HelpArticle[] = [
   {
     slug: 'importar',
     title: 'Importar um livro do Word, LibreOffice ou Markdown',
-    summary: 'Arquivos .docx, .odt, .md e .txt, divididos em capítulos automaticamente.',
+    summary: 'Arquivos .docx, .odt, .md e .txt: você revisa as divisões antes de criar os capítulos.',
     topic: 'livros',
-    keywords: ['importar', 'word', 'docx', 'odt', 'libreoffice', 'markdown', 'txt', 'arquivo', 'pdf'],
+    keywords: ['importar', 'word', 'docx', 'odt', 'libreoffice', 'markdown', 'txt', 'arquivo', 'pdf', 'sumario', 'subcapitulo', 'introducao', 'apresentacao', 'dedicatoria'],
     body: [
-      { steps: ['Abra o livro e toque em **Importar**.', 'Escolha o arquivo.', 'Confira a prévia: cada título vira um capítulo.', 'Confirme.'] },
+      { steps: ['Abra o livro e toque em **Importar**.', 'Escolha o arquivo.', 'Revise as divisões que encontramos: troque o tipo ou corrija o título onde precisar.', 'Toque em **Aprovar e criar**.'] },
       { p: 'Aceitamos **.docx** (Word, Google Docs), **.odt** (LibreOffice), **.md** e **.txt**. Arquivos .doc antigos, PDF e RTF não: abra no Word ou no LibreOffice e salve como .docx.' },
-      { p: 'Os títulos com estilo (Título 1, 2 ou 3 no Word e no LibreOffice, # no Markdown) separam os capítulos. Sem estilo, o Booksmith procura linhas como "Capítulo 3", "Prólogo" e "Epílogo". Linhas só com ***, ### ou ~~~ viram quebra de cena.' },
+      { p: 'O Booksmith procura sozinho: "Capítulo 3", "Parte 2", "Lição", "Aula", títulos do Word, linhas em negrito ou com letra maior. Cada divisão mostra o motivo e quanto temos certeza. Os tipos: **Capítulo**; **Sem número** (Apresentação, Introdução, Prefácio, Conclusão: entram no sumário sem número); **Subcapítulo** (um título dentro do capítulo, como "1.1 - Natureza divina"); **Parte** (agrupa os capítulos seguintes); **Dedicatória** (vai para as Páginas do livro); **É texto** (não é divisão); **Tirar** (enfeites e subtítulos soltos).' },
+      { p: '**O arquivo tem um sumário?** Ele não entra como texto: o Booksmith gera o sumário do livro. Mas você pode usá-lo como estrutura: os capítulos que ainda não têm texto nascem vazios, com os subcapítulos planejados, prontos para escrever.' },
+      { p: 'Prefere tudo junto? Toque em **Importar tudo num capítulo só**. Linhas só com ***, ### ou ~~~ viram quebra de cena.' },
+    ],
+  },
+  {
+    slug: 'criar-pelo-sumario',
+    title: 'Criar os capítulos pelo sumário',
+    summary: 'Cole o sumário e o Booksmith cria os capítulos, as partes e os subcapítulos.',
+    topic: 'livros',
+    keywords: ['sumario', 'indice', 'estrutura', 'capitulos', 'subcapitulo', 'parte', 'plano', 'esqueleto'],
+    body: [
+      { steps: ['Abra o livro e toque em **Pelo sumário**.', 'Cole ou escreva o sumário, uma linha por capítulo.', 'Toque em **Ver a estrutura** e corrija o tipo ou o título de cada linha.', 'Toque em **Criar**.'] },
+      { p: '"Parte 1" vira parte; Introdução, Apresentação e Conclusão viram capítulos sem número; "1.1 - …" ou uma linha com espaço no começo vira subcapítulo do capítulo de cima. Números de página no fim da linha são ignorados.' },
+      { p: 'Os capítulos nascem vazios, no fim do livro, com os subcapítulos já como títulos dentro de cada um.' },
     ],
   },
   {
@@ -263,6 +277,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     body: [
       { steps: ['Abra o livro.', 'No capítulo que começa a parte, toque no marcador (**Começar parte aqui**).', 'Dê o nome, como "Parte I — A partida", e toque em **Salvar**.'] },
       { p: 'A parte vai até a próxima. Toque no nome dela para renomear ou **tirar a parte**. Mover o capítulo leva o começo da parte junto.' },
+      { p: 'Para mudar o nome de um capítulo sem abrir, toque no lápis ao lado dele na lista do livro.' },
       { p: 'No livro baixado, cada parte ganha uma página de abertura e aparece no sumário. No Word, volta igual se você importar o arquivo de novo.' },
     ],
   },
@@ -275,7 +290,9 @@ export const HELP_ARTICLES: HelpArticle[] = [
     body: [
       { steps: ['No editor, deixe o cursor onde a imagem deve ficar.', 'Toque em **Inserir ilustração** (a moldura) na barra de baixo.', 'Escolha uma imagem da biblioteca do universo ou envie uma nova.'] },
       { p: 'Toque na ilustração para mudar a legenda ou **tirar do texto**.' },
-      { p: 'No livro baixado, ela sai no ePub e no PDF com a legenda. No Word sai um marcador "[Ilustração: legenda]", como as editoras pedem nos manuscritos.' },
+      { p: 'Embaixo dela, escolha o **lugar na página**: pequena, média ou na largura do texto (a pequena e a média podem ficar à esquerda ou à direita, com o texto em volta), **página só dela**, **página inteira, até a borda** (sem margem, cobrindo a página) ou **página dupla** (as duas páginas do livro aberto, no PDF impresso). Até a borda, a legenda não aparece.' },
+      { p: 'Ali mesmo aparece o **DPI** que ela terá impressa, com as medidas do seu livro. Página inteira e dupla pedem imagens grandes: para um A5 até a borda, uma imagem em pé com uns 1.750 × 2.480 px; a dupla, deitada, com uns 3.500 × 2.480 px.' },
+      { p: 'No livro baixado, ela sai no ePub, no PDF e no Word, com a legenda.' },
       { p: 'Vai imprimir? Gráficas pedem imagens com 300 DPI no tamanho em que saem na página. A **Diagramação** e o **guia de publicação** avisam qual ilustração pode sair borrada e com quantos pixels de largura ela ficaria boa. Imagens em WebP não entram no PDF: use JPEG ou PNG.' },
     ],
   },

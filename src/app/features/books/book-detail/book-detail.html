@@ -47,6 +47,8 @@
             [routerLink]="['/books', book.id, 'edit']" />
           <p-button label="Importar" icon="pi pi-file-import" severity="secondary" [outlined]="true"
             [routerLink]="['/books', book.id, 'import']" />
+          <p-button label="Pelo sumário" icon="pi pi-list" severity="secondary" [outlined]="true"
+            [routerLink]="['/books', book.id, 'sumario']" data-outline-builder />
           <p-button label="Capa" icon="pi pi-image" severity="secondary" [outlined]="true"
             [routerLink]="['/books', book.id, 'capa']" />
           <p-button label="Páginas" icon="pi pi-bookmark" severity="secondary" [outlined]="true"
@@ -185,6 +187,8 @@
                 </span>
               </a>
               <div class="chapter-actions">
+                <button type="button" class="mini" (click)="editTitle(chapter)" data-rename-chapter
+                  [attr.aria-label]="'Renomear ' + chapter.title"><i class="pi pi-pencil"></i></button>
                 <button type="button" class="mini" [disabled]="first || reordering()" (click)="move(i, -1)"
                   aria-label="Mover para cima"><i class="pi pi-chevron-up"></i></button>
                 <button type="button" class="mini" [disabled]="last || reordering()" (click)="move(i, 1)"
@@ -207,6 +211,18 @@
 </div>
 
 <p-confirmdialog [style]="{ width: 'min(420px, calc(100vw - 32px))' }" />
+
+<p-dialog [visible]="!!titleChapter()" (visibleChange)="!$event && titleChapter.set(null)" [modal]="true"
+  header="Nome do capítulo" [style]="{ width: 'min(420px, calc(100vw - 32px))' }">
+  <input id="chapter-title" class="part-input" [value]="titleDraft()" (input)="titleDraft.set($any($event.target).value)"
+    maxlength="200" aria-label="Nome do capítulo" (keydown.enter)="saveTitle()" />
+  <ng-template #footer>
+    <p-button label="Cancelar" severity="secondary" [text]="true" [disabled]="savingTitle()"
+      (onClick)="titleChapter.set(null)" />
+    <p-button label="Salvar" icon="pi pi-check" [loading]="savingTitle()" [disabled]="!titleDraft().trim()"
+      (onClick)="saveTitle()" />
+  </ng-template>
+</p-dialog>
 
 <p-dialog [visible]="!!partChapter()" (visibleChange)="!$event && partChapter.set(null)" [modal]="true"
   [header]="partChapter()?.partTitle ? 'Parte' : 'Começar uma parte aqui'"

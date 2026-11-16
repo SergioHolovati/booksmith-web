@@ -19,6 +19,10 @@ import {
   ChapterVersionSummary,
   ImportMode,
   ImportPlan,
+  ImportStructure,
+  OutlineItem,
+  OutlineKind,
+  StructureRequest,
   Page,
   SaveResult,
   Publishing,
@@ -203,6 +207,31 @@ export class ManuscriptApi {
   restoreFromTrash(item: Pick<TrashItem, 'type' | 'id'>): Observable<unknown> {
     const kind = item.type === 'BOOK' ? 'books' : 'chapters';
     return this.http.post(`${this.base}/me/trash/${kind}/${item.id}/restore`, {});
+  }
+
+  /** A estrutura que o arquivo parece ter (partes, capítulos, subcapítulos, sumário), para revisar. Não grava nada. */
+  analyzeImport(bookId: string, file: File): Observable<ImportStructure> {
+    const form = new FormData();
+    form.append('file', file, file.name);
+    return this.http.post<ImportStructure>(`${this.base}/books/${bookId}/import/analyze`, form);
+  }
+
+  /** Importa com a estrutura aprovada pelo escritor. */
+  importStructured(bookId: string, file: File, structure: StructureRequest): Observable<ImportPlan> {
+    const form = new FormData();
+    form.append('file', file, file.name);
+    form.append('structure', new Blob([JSON.stringify(structure)], { type: 'application/json' }));
+    return this.http.post<ImportPlan>(`${this.base}/books/${bookId}/import/structured`, form);
+  }
+
+  /** A estrutura que um sumário colado descreve. Não grava nada. */
+  previewOutline(bookId: string, text: string): Observable<OutlineItem[]> {
+    return this.http.post<OutlineItem[]>(`${this.base}/books/${bookId}/outline/preview`, { text });
+  }
+
+  /** Cria os capítulos (vazios, com os subcapítulos como títulos) do sumário aprovado. */
+  createFromOutline(bookId: string, items: { kind: OutlineKind; title: string }[]): Observable<ImportPlan> {
+    return this.http.post<ImportPlan>(`${this.base}/books/${bookId}/outline`, { items });
   }
 
   /** Prévia ({@code dryRun}) ou importação de .docx, .odt, .md ou .txt; os capítulos entram no fim do livro. */

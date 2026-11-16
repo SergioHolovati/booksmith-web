@@ -169,6 +169,8 @@ export interface PrintCheckIllustration {
   dpi: number;
   /** Entra no PDF (WebP não entra: sai só a legenda). */
   printable: boolean;
+  /** Onde ela fica: auto, small, medium, wide, page, bleed, spread. */
+  size: string;
   /** Largura mínima, em pixels, para 300 DPI no mesmo tamanho na página. */
   minWidthPx: number;
   ok: boolean;
@@ -375,12 +377,53 @@ export interface TrashItem {
 
 /** Como um arquivo importado (.docx, .odt, .md, .txt) foi (ou seria) dividido em capítulos. */
 export interface ImportPlan {
-  splitRule: 'HEADINGS' | 'CHAPTER_TITLES' | 'SINGLE';
+  /** STRUCTURED: com a estrutura aprovada; OUTLINE: criado pelo sumário. */
+  splitRule: 'HEADINGS' | 'CHAPTER_TITLES' | 'SINGLE' | 'STRUCTURED' | 'OUTLINE';
   /** Nome do livro no começo do arquivo (estilo "Título" do Word ou do LibreOffice, `#` único no Markdown). */
   documentTitle: string | null;
   totalWords: number;
   warnings: string[];
   chapters: ImportedChapter[];
+}
+
+/** Tipo de uma divisão na análise da importação; "text" e "remove" deixam de ser divisão. */
+export type DivisionKind = 'part' | 'chapter' | 'unnumbered' | 'section' | 'dedication' | 'text' | 'remove';
+export type OutlineKind = 'part' | 'chapter' | 'unnumbered' | 'section';
+
+/** Uma divisão encontrada no texto: o parágrafo ({@code index}), o tipo proposto e por quê. */
+export interface ImportDivision {
+  index: number;
+  kind: DivisionKind;
+  title: string;
+  confidence: 'high' | 'medium' | 'low';
+  reasons: string[];
+  words: number;
+  excerpt: string;
+  inOutline: boolean;
+}
+
+/** Item do sumário; {@code match}: a divisão do texto com o mesmo título, ou -1 (ainda sem texto). */
+export interface OutlineItem {
+  kind: OutlineKind;
+  title: string;
+  match: number;
+}
+
+/** A estrutura que o arquivo parece ter, para o escritor revisar antes de importar. */
+export interface ImportStructure {
+  documentTitle: string | null;
+  totalWords: number;
+  divisions: ImportDivision[];
+  /** O sumário (ou plano de capítulos) encontrado no arquivo; null se não há. */
+  outline: { titled: boolean; items: OutlineItem[]; withText: number } | null;
+  warnings: string[];
+}
+
+/** O que o escritor aprovou. */
+export interface StructureRequest {
+  divisions: { index: number; kind: DivisionKind; title: string }[];
+  useOutline: boolean;
+  outline: OutlineItem[];
 }
 
 export interface ImportedChapter {

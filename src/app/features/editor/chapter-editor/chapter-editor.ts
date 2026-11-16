@@ -39,6 +39,7 @@ import { ProofreadPanelComponent } from '../proofread/proofread-panel';
 import { IllustrationPickerComponent } from '../illustration/illustration-picker';
 import { IllustrationPanelComponent } from '../illustration/illustration-panel';
 import { ILLUSTRATIONS_LOADED } from '../schema/illustration';
+import { PrintGeometry, printGeometry } from '../../../core/util/print-geometry';
 import { NodeSelection } from '@tiptap/pm/state';
 import { UniverseImage } from '../../../core/models/api.models';
 import { ChapterAutosave, SaveStatus } from './chapter-autosave';
@@ -144,6 +145,8 @@ export class ChapterEditorComponent {
   readonly pickerOpen = signal(false);
   readonly selectedIllustration = signal<{ pos: number; caption: string | null } | null>(null);
   private readonly imageUrls = new Map<string, string>();
+  /** As medidas da página do livro, para o DPI de cada ilustração no editor. */
+  private printGeometry: PrintGeometry | null = null;
   /** Corretor próprio: o erro tocado (painel de sugestões) e o corretor em si, criado com o editor. */
   readonly issue = signal<PlacedIssue | null>(null);
   private proofreader: Proofreader | null = null;
@@ -274,7 +277,7 @@ export class ChapterEditorComponent {
     this.editor = new Editor({
       element: host,
       extensions: [
-        ...manuscriptExtensions('Comece a escrever… (@ menciona um personagem ou lugar)', () => this.mentionTargets, () => this.imageUrls),
+        ...manuscriptExtensions('Comece a escrever… (@ menciona um personagem ou lugar)', () => this.mentionTargets, () => this.imageUrls, () => this.printGeometry),
         Proofread,
       ],
       content,
@@ -600,6 +603,7 @@ export class ChapterEditorComponent {
       const book = await firstValueFrom(this.api.getBook(bookId));
       const universeId = book.universeId;
       this.universeId.set(universeId);
+      this.printGeometry = printGeometry(book.layout);
       void this.loadImageUrls(universeId);
       const [characters, places, lore] = await Promise.all([
         firstValueFrom(this.universeApi.listCharacters(universeId)),

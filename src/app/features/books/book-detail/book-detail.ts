@@ -49,6 +49,10 @@ export class BookDetailComponent {
   readonly creatingChapter = signal(false);
   readonly reordering = signal(false);
   /** Parte: o capítulo que a abre (diálogo aberto) e o nome em edição. */
+  /** O capítulo sendo renomeado pela lista (sem abrir o editor). */
+  readonly titleChapter = signal<ChapterSummary | null>(null);
+  readonly titleDraft = signal('');
+  readonly savingTitle = signal(false);
   readonly partChapter = signal<ChapterSummary | null>(null);
   readonly partDraft = signal('');
   readonly savingPart = signal(false);
@@ -193,6 +197,40 @@ export class BookDetailComponent {
         }
       },
     });
+  }
+
+  editTitle(chapter: ChapterSummary): void {
+    this.titleDraft.set(chapter.title);
+    this.titleChapter.set(chapter);
+    // O campo aparece com o diálogo: foca e seleciona o nome, para digitar por cima
+    setTimeout(() => {
+      const input = document.getElementById('chapter-title') as HTMLInputElement | null;
+      input?.focus();
+      input?.select();
+    });
+  }
+
+  async saveTitle(): Promise<void> {
+    const chapter = this.titleChapter();
+    const book = this.book();
+    const title = this.titleDraft().trim();
+    if (!chapter || !book || !title || this.savingTitle()) {
+      return;
+    }
+    if (title === chapter.title) {
+      this.titleChapter.set(null);
+      return;
+    }
+    this.savingTitle.set(true);
+    try {
+      const saved = await firstValueFrom(this.api.renameChapter(chapter.id, title));
+      this.book.set({ ...book, chapters: book.chapters.map((c) => (c.id === saved.id ? { ...c, title: saved.title } : c)) });
+      this.titleChapter.set(null);
+    } catch (error) {
+      this.toast.add({ severity: 'error', summary: problemMessage(error), life: 5000 });
+    } finally {
+      this.savingTitle.set(false);
+    }
   }
 
   editPart(chapter: ChapterSummary): void {

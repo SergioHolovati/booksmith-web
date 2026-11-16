@@ -10,8 +10,17 @@ import { firstValueFrom } from 'rxjs';
 
 import { ManuscriptApi } from '../../../core/api/manuscript.api';
 import { problemMessage } from '../../../core/api/problem';
-import { BookDetail, ImportMode, ImportPlan } from '../../../core/models/api.models';
+import { BookDetail, ImportDivision, ImportMode, ImportPlan, ImportStructure, OutlineItem } from '../../../core/models/api.models';
 import { formatCount } from '../../../core/util/word-count';
+import {
+  CONFIDENCE_LABEL,
+  DIVISION_KINDS,
+  OUTLINE_KINDS,
+  chapterCount,
+  editableOutline,
+  emptyChapters,
+  toRequest,
+} from './import-structure';
 
 /** Mesmo limite da API (spring.servlet.multipart.max-file-size). */
 const MAX_BYTES = 15 * 1024 * 1024;
@@ -56,11 +65,14 @@ const RULE_TEXT: Record<ImportPlan['splitRule'], string> = {
   HEADINGS: 'Separamos pelos títulos do arquivo.',
   CHAPTER_TITLES: 'Separamos onde o texto diz "Capítulo…", "Prólogo" ou "Epílogo".',
   SINGLE: 'Tudo vai entrar como um capítulo só.',
+  STRUCTURED: 'Com a estrutura que você aprovou.',
+  OUTLINE: 'Pelo sumário.',
 };
 
 /**
- * Importar um arquivo (.docx, .odt, .md, .txt): escolher o arquivo, ver como ele vai ser dividido e confirmar. Os capítulos entram no
- * fim do livro; nada do que já existe muda.
+ * Importar um arquivo (.docx, .odt, .md, .txt): escolher o arquivo, revisar a estrutura que o Booksmith encontrou
+ * (partes, capítulos, páginas sem número, subcapítulos e o sumário do arquivo), corrigir o que precisar e aprovar.
+ * Os capítulos entram no fim do livro; nada do que já existe muda. Ainda dá para importar tudo num capítulo só.
  */
 @Component({
   selector: 'app-file-import',
@@ -79,6 +91,21 @@ export class FileImportComponent {
   readonly file = signal<File | null>(null);
   readonly mode = signal<ImportMode>('auto');
   readonly plan = signal<ImportPlan | null>(null);
+  /** A estrutura proposta, que o escritor revisa: tipos e títulos editáveis. */
+  readonly structure = signal<ImportStructure | null>(null);
+  readonly divisions = signal<ImportDivision[]>([]);
+  readonly outlineItems = signal<OutlineItem[]>([]);
+  readonly useOutline = signal(true);
+  readonly showOutline = signal(false);
+  readonly divisionKinds = DIVISION_KINDS;
+  readonly outlineKinds = OUTLINE_KINDS;
+  readonly confidenceLabel = CONFIDENCE_LABEL;
+  readonly approvedCount = computed(() => chapterCount(this.divisions(), this.outlineItems(), this.useOutline()));
+  readonly emptyCount = computed(() => (this.useOutline() ? emptyChapters(this.outlineItems()) : 0));
+  readonly approveLabel = computed(() => {
+    const n = this.approvedCount();
+    return n === 1 ? 'Aprovar e criar 1 capítulo' : `Aprovar e criar ${n} capítulos`;
+  });
   /** Divisão encontrada no modo automático, para saber se vale oferecer a escolha. */
   readonly autoChapters = signal(0);
   readonly loading = signal(false);
@@ -156,8 +183,73 @@ export class FileImportComponent {
     }
     this.file.set(file);
     this.mode.set('auto');
+    await this.analyze();
+  }
+
+  /** Lê a estrutura do arquivo para o escritor revisar. */
+  async analyze(): Promise<void> {
+    const file = this.file();
+    if (!file) {
+      return;
+    }
+    this.loading.set(true);
+    this.error.set(null);
+    try {
+      const structure = await firstValueFrom(this.api.analyzeImport(this.bookId(), file));
+      this.structure.set(structure);
+      this.divisions.set(structure.divisions.map((d) => ({ ...d })));
+      this.outlineItems.set(editableOutline(structure));
+      this.useOutline.set(!!structure.outline);
+      this.showOutline.set(false);
+    } catch (error) {
+      this.structure.set(null);
+      this.error.set(problemMessage(error, 'Não foi possível ler o arquivo.'));
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  setDivision(index: number, change: Partial<ImportDivision>): void {
+    this.divisions.update((list) => list.map((d) => (d.index === index ? { ...d, ...change } : d)));
+  }
+
+  setOutline(position: number, change: Partial<OutlineItem>): void {
+    this.outlineItems.update((list) => list.map((item, i) => (i === position ? { ...item, ...change } : item)));
+  }
+
+  /** Aprova a estrutura revisada e cria os capítulos. */
+  async approve(): Promise<void> {
+    const file = this.file();
+    if (!file) {
+      return;
+    }
+    this.importing.set(true);
+    try {
+      const request = toRequest(this.divisions(), this.outlineItems(), this.useOutline());
+      const result = await firstValueFrom(this.api.importStructured(this.bookId(), file, request));
+      this.done(result);
+      await this.router.navigate(['/books', this.bookId()]);
+    } catch (error) {
+      this.error.set(problemMessage(error, 'Não foi possível importar. Seu livro não foi alterado.'));
+    } finally {
+      this.importing.set(false);
+    }
+  }
+
+  /** Sem divisões: tudo num capítulo só (o caminho antigo, ainda útil para contos e textos curtos). */
+  async importSingle(): Promise<void> {
+    this.mode.set('single');
     await this.preview();
-    this.autoChapters.set(this.plan()?.chapters.length ?? 0);
+  }
+
+  private done(result: ImportPlan): void {
+    const count = result.chapters.length;
+    this.toast.add({
+      severity: 'success',
+      summary: count === 1 ? '1 capítulo criado' : `${count} capítulos criados`,
+      detail: `${formatCount(result.totalWords)} palavras no fim do livro.`,
+      life: 4000,
+    });
   }
 
   async changeMode(mode: ImportMode): Promise<void> {
@@ -192,13 +284,7 @@ export class FileImportComponent {
     this.importing.set(true);
     try {
       const result = await firstValueFrom(this.api.importFile(this.bookId(), file, this.mode(), false));
-      const count = result.chapters.length;
-      this.toast.add({
-        severity: 'success',
-        summary: count === 1 ? '1 capítulo importado' : `${count} capítulos importados`,
-        detail: `${formatCount(result.totalWords)} palavras no fim do livro.`,
-        life: 4000,
-      });
+      this.done(result);
       await this.router.navigate(['/books', this.bookId()]);
     } catch (error) {
       this.error.set(problemMessage(error, 'Não foi possível importar. Seu livro não foi alterado.'));
@@ -210,7 +296,16 @@ export class FileImportComponent {
   reset(): void {
     this.file.set(null);
     this.plan.set(null);
+    this.structure.set(null);
+    this.divisions.set([]);
+    this.outlineItems.set([]);
     this.error.set(null);
+    this.mode.set('auto');
+  }
+
+  /** Volta da prévia "um capítulo só" para a revisão da estrutura. */
+  backToStructure(): void {
+    this.plan.set(null);
     this.mode.set('auto');
   }
 }

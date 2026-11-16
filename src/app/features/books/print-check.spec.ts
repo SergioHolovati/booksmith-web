@@ -6,7 +6,7 @@ import { BookDetail, Publishing } from '../../core/models/api.models';
 function ill(over: Partial<PrintCheckIllustration> = {}): PrintCheckIllustration {
   return {
     imageId: 'i', chapter: 'O mapa', caption: 'O mapa de Vel', widthPx: 3000, heightPx: 2000, widthMm: 114,
-    heightMm: 76, dpi: 668, printable: true, minWidthPx: 1347, ok: true, ...over,
+    heightMm: 76, dpi: 668, printable: true, minWidthPx: 1347, ok: true, size: 'auto', ...over,
   };
 }
 
