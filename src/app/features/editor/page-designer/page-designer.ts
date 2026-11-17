@@ -1,4 +1,4 @@
-import { Component, computed, input, output } from '@angular/core';
+import { Component, ElementRef, computed, input, output, signal, viewChild } from '@angular/core';
 
 import { PageDesign } from '../../../core/models/api.models';
 
@@ -10,13 +10,14 @@ const MM_PER_PT = 25.4 / 72;
 
 export const DEFAULT_PAGE: PageDesign = {
   imageId: null, background: '#ffffff', text: 'bottom', align: 'center', size: 'l', color: 'dark', band: false,
-  spread: false, textSide: 'right',
+  spread: false, textSide: 'right', x: 10, y: 10, w: 80,
 };
 
 const TEXTS: { value: PageDesign['text']; label: string }[] = [
   { value: 'top', label: 'Em cima' },
   { value: 'middle', label: 'No meio' },
   { value: 'bottom', label: 'Embaixo' },
+  { value: 'free', label: 'Livre (arraste)' },
   { value: 'none', label: 'Sem texto' },
 ];
 const ALIGNS: { value: PageDesign['align']; label: string; icon: string }[] = [
@@ -31,10 +32,44 @@ const SIZES: { value: PageDesign['size']; label: string }[] = [
   { value: 'xl', label: 'GG' },
 ];
 
-/** A posição da caixa de texto na prévia, em % da página (a mesma conta do PDF). */
+/** A caixa do texto livre fica dentro da página: largura de 15% a 100%, a borda até onde ela ainda cabe. */
+export function clampBox(x: number, y: number, w: number): { x: number; y: number; w: number } {
+  const width = Math.min(100, Math.max(15, w));
+  const round = (v: number) => Math.round(v * 10) / 10;
+  return { x: round(Math.min(100 - width, Math.max(0, x))), y: round(Math.min(95, Math.max(0, y))), w: round(width) };
+}
+
+/**
+ * A posição da caixa de texto na prévia, em % do contêiner (a página, ou o livro aberto na dupla), a mesma conta do
+ * PDF. No texto livre, x, y e w já são em % do contêiner.
+ */
+export function previewTextStyle(page: PageDesign, trimMm: [number, number]): Record<string, string> {
+  const style = textBoxStyle(page, trimMm);
+  if (!page.spread) {
+    return style;
+  }
+  const font = `${parseFloat(style['font-size']) / 2}cqw`; // o contêiner da dupla tem duas páginas de largura
+  if (page.text === 'free') {
+    return { ...style, 'font-size': font };
+  }
+  // Na dupla, o texto fica numa das metades
+  const left = parseFloat(style['left']) / 2 + (page.textSide === 'right' ? 50 : 0);
+  return { ...style, left: `${left}%`, width: `${parseFloat(style['width']) / 2}%`, 'font-size': font };
+}
+
+/** A posição da caixa de texto na página, em % (a mesma conta do PDF). */
 export function textBoxStyle(page: PageDesign, trimMm: [number, number]): Record<string, string> {
   const [w, h] = trimMm;
   const inset = SAFE_MM;
+  if (page.text === 'free') {
+    return {
+      left: `${page.x}%`,
+      top: `${page.y}%`,
+      width: `${page.w}%`,
+      'text-align': page.align,
+      'font-size': `${((PAGE_FONT_PT[page.size] * MM_PER_PT) / w) * 100}cqw`,
+    };
+  }
   const style: Record<string, string> = {
     left: `${(inset / w) * 100}%`,
     width: `${((w - 2 * inset) / w) * 100}%`,
@@ -63,14 +98,16 @@ export function textBoxStyle(page: PageDesign, trimMm: [number, number]): Record
   template: `
     <section class="page-designer" aria-label="Desenho da página" data-page-designer>
       <div class="preview-wrap" [class.spread]="page().spread">
-        <div class="preview" [style.aspect-ratio]="ratio()" [style.background-color]="page().background"
+        <div #preview class="preview" [style.aspect-ratio]="ratio()" [style.background-color]="page().background"
           data-page-preview>
           @if (imageUrl(); as url) {
             <img class="art" [src]="url" alt="" [class.spread-half]="page().spread" />
           }
-          @if (page().text !== 'none' && paragraphs().length) {
-            <div class="text" [class]="'text ' + page().color + (page().band ? ' band' : '')" [style]="boxStyle()"
-              data-page-text>
+          @if (shown().text !== 'none' && paragraphs().length) {
+            <div class="text draggable" [class]="'text draggable ' + shown().color + (shown().band ? ' band' : '')
+              + (dragging() ? ' dragging' : '')" [style]="boxStyle()" data-page-text
+              (pointerdown)="startDrag($event)" (pointermove)="moveDrag($event)" (pointerup)="endDrag($event)"
+              (pointercancel)="endDrag($event)" title="Arraste para mudar o texto de lugar">
               @for (p of paragraphs(); track $index) {
                 <p>{{ p }}</p>
               }
@@ -101,6 +138,15 @@ export function textBoxStyle(page: PageDesign, trimMm: [number, number]): Record
               [attr.aria-checked]="page().text === t.value" (click)="set({ text: t.value })">{{ t.label }}</button>
           }
         </div>
+        @if (page().text === 'free') {
+          <div class="row">
+            <span class="label">Largura</span>
+            <input type="range" min="15" max="100" step="1" [value]="shown().w" aria-label="Largura da caixa de texto"
+              (input)="previewWidth($any($event.target).value)" (change)="commitWidth($any($event.target).value)"
+              data-page-width />
+            <span class="muted small">Arraste o texto na página para mudar de lugar.</span>
+          </div>
+        }
         @if (page().text !== 'none') {
           <div class="row">
             <span class="label">Letra</span>
@@ -154,6 +200,11 @@ export function textBoxStyle(page: PageDesign, trimMm: [number, number]): Record
     .text.light { color: #fff; }
     .text.band.dark { background: rgba(255, 255, 255, .82); padding: .5em .7em; border-radius: .5em; }
     .text.band.light { background: rgba(0, 0, 0, .6); padding: .5em .7em; border-radius: .5em; }
+    .text { box-sizing: border-box; }
+    .text.draggable { cursor: grab; touch-action: none; user-select: none; outline: 1px dashed transparent; }
+    .text.draggable:hover, .text.dragging { outline-color: rgba(242, 140, 56, .9); }
+    .text.dragging { cursor: grabbing; }
+    input[type='range'] { flex: 1 1 8rem; min-width: 8rem; accent-color: var(--bs-ember); }
     .controls { display: flex; flex-direction: column; gap: .45rem; }
     .row { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; }
     .label { width: 3.6rem; font-size: .8rem; color: var(--bs-text-soft); }
@@ -191,19 +242,77 @@ export class PageDesignerComponent {
     return `${this.page().spread ? w * 2 : w} / ${h}`;
   });
 
-  readonly boxStyle = computed(() => {
-    const [w, h] = this.trimMm();
-    const style = textBoxStyle(this.page(), [w, h]);
-    if (!this.page().spread) {
-      return style;
-    }
-    // Na dupla, o texto fica numa das metades
-    const half = (value: string) => `${parseFloat(value) / 2}%`;
-    const left = parseFloat(style['left']) / 2 + (this.page().textSide === 'right' ? 50 : 0);
-    return { ...style, left: `${left}%`, width: half(style['width']), 'font-size': half(style['font-size']).replace('%', 'cqw') };
-  });
+  /** O desenho que a prévia mostra: durante o arraste, a posição nova (ainda não salva). */
+  private readonly draft = signal<PageDesign | null>(null);
+  readonly dragging = signal(false);
+  readonly shown = computed(() => this.draft() ?? this.page());
+  private readonly previewRef = viewChild<ElementRef<HTMLElement>>('preview');
+  private start: { pointerX: number; pointerY: number; x: number; y: number; w: number } | null = null;
+
+  readonly boxStyle = computed(() => previewTextStyle(this.shown(), this.trimMm()));
 
   set(change: Partial<PageDesign>): void {
     this.pageChange.emit({ ...this.page(), ...change });
+  }
+
+  /** Pega a caixa de texto: guarda onde ela está, em % do contêiner (no modo fixo, onde ela aparece agora). */
+  startDrag(event: PointerEvent): void {
+    const preview = this.previewRef()?.nativeElement;
+    const box = event.currentTarget as HTMLElement;
+    if (!preview) {
+      return;
+    }
+    const area = preview.getBoundingClientRect();
+    const rect = box.getBoundingClientRect();
+    box.setPointerCapture?.(event.pointerId);
+    this.start = {
+      pointerX: event.clientX,
+      pointerY: event.clientY,
+      x: ((rect.left - area.left) / area.width) * 100,
+      y: ((rect.top - area.top) / area.height) * 100,
+      w: (rect.width / area.width) * 100,
+    };
+    this.dragging.set(true);
+    event.preventDefault();
+  }
+
+  moveDrag(event: PointerEvent): void {
+    const preview = this.previewRef()?.nativeElement;
+    if (!this.start || !preview) {
+      return;
+    }
+    const area = preview.getBoundingClientRect();
+    const box = clampBox(
+      this.start.x + ((event.clientX - this.start.pointerX) / area.width) * 100,
+      this.start.y + ((event.clientY - this.start.pointerY) / area.height) * 100,
+      this.start.w,
+    );
+    this.draft.set({ ...this.page(), text: 'free', ...box });
+  }
+
+  /** Solta: salva uma vez, no lugar novo. */
+  endDrag(event: PointerEvent): void {
+    if (!this.start) {
+      return;
+    }
+    (event.currentTarget as HTMLElement).releasePointerCapture?.(event.pointerId);
+    this.start = null;
+    this.dragging.set(false);
+    const moved = this.draft();
+    this.draft.set(null);
+    if (moved) {
+      this.pageChange.emit(moved);
+    }
+  }
+
+  previewWidth(value: string): void {
+    const page = this.page();
+    this.draft.set({ ...page, ...clampBox(page.x, page.y, Number(value)) });
+  }
+
+  commitWidth(value: string): void {
+    const page = this.page();
+    this.draft.set(null);
+    this.pageChange.emit({ ...page, ...clampBox(page.x, page.y, Number(value)) });
   }
 }

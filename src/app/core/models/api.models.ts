@@ -12,13 +12,18 @@ export interface PageDesign {
   imageId: string | null;
   /** #rrggbb */
   background: string;
-  text: 'top' | 'middle' | 'bottom' | 'none';
+  /** free: onde o autor arrastou (x, y, w). */
+  text: 'top' | 'middle' | 'bottom' | 'free' | 'none';
   align: 'left' | 'center' | 'right';
   size: 's' | 'm' | 'l' | 'xl';
   color: 'dark' | 'light';
   band: boolean;
   spread: boolean;
   textSide: 'left' | 'right';
+  /** Texto livre: borda esquerda, topo e largura da caixa, em % da página (na dupla, do livro aberto). */
+  x: number;
+  y: number;
+  w: number;
 }
 export type BookStatus = 'DRAFT' | 'WRITING' | 'COMPLETE';
 /** Tag BCP 47 do idioma do livro (orienta o corretor ortográfico do navegador). */
