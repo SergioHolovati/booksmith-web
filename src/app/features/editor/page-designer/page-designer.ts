@@ -2,6 +2,7 @@ import { Component, ElementRef, computed, input, output, signal, viewChild } fro
 
 import { BOOK_FONTS, bookFont, fontFamilyCss, loadBookFonts } from '../../../core/fonts/book-fonts';
 import { PageDesign } from '../../../core/models/api.models';
+import { hazeBackground } from '../../../core/util/haze';
 
 /** Corpo da letra de cada tamanho, em pontos (o mesmo do PageDesign no servidor). */
 export const PAGE_FONT_PT: Record<PageDesign['size'], number> = { s: 16, m: 20, l: 26, xl: 34 };
@@ -11,7 +12,7 @@ const MM_PER_PT = 25.4 / 72;
 
 export const DEFAULT_PAGE: PageDesign = {
   imageId: null, background: '#ffffff', text: 'bottom', align: 'center', size: 'l', color: 'dark', band: false,
-  spread: false, textSide: 'right', x: 10, y: 10, w: 80, zoom: 1, imageX: 50, imageY: 50, font: null,
+  spread: false, textSide: 'right', x: 10, y: 10, w: 80, zoom: 1, imageX: 50, imageY: 50, font: null, haze: false,
 };
 
 /**
@@ -78,6 +79,11 @@ export function previewTextStyle(page: PageDesign, trimMm: [number, number]): Re
   return { ...style, left: `${left}%`, width: `${parseFloat(style['width']) / 2}%`, 'font-size': font };
 }
 
+/** Com névoa, o fundo esfumado esticado na caixa (o mesmo desenho do PDF). */
+export function withHaze(page: PageDesign, style: Record<string, string>): Record<string, string> {
+  return page.haze ? { ...style, 'background-image': hazeBackground(page.color === 'dark') } : style;
+}
+
 /** A posição da caixa de texto na página, em % (a mesma conta do PDF). */
 export function textBoxStyle(page: PageDesign, trimMm: [number, number]): Record<string, string> {
   const [w, h] = trimMm;
@@ -127,7 +133,7 @@ export function textBoxStyle(page: PageDesign, trimMm: [number, number]): Record
               (pointercancel)="endDrag($event)" title="Arraste para enquadrar a ilustração" data-page-art />
           }
           @if (shown().text !== 'none' && paragraphs().length) {
-            <div class="text draggable" [class]="'text draggable ' + shown().color + (shown().band ? ' band' : '')
+            <div class="text draggable" [class]="'text draggable ' + shown().color + (shown().band ? ' band' : '') + (shown().haze ? ' haze' : '')
               + (dragging() ? ' dragging' : '')" [style]="boxStyle()" data-page-text
               (pointerdown)="startDrag($event)" (pointermove)="moveDrag($event)" (pointerup)="endDrag($event)"
               (pointercancel)="endDrag($event)" title="Arraste para mudar o texto de lugar"
@@ -211,7 +217,10 @@ export function textBoxStyle(page: PageDesign, trimMm: [number, number]): Record
             <button type="button" class="chip" [class.on]="page().color === 'dark'" (click)="set({ color: 'dark' })">Escura</button>
             <button type="button" class="chip" [class.on]="page().color === 'light'" (click)="set({ color: 'light' })">Clara</button>
             <button type="button" class="chip" [class.on]="page().band" [attr.aria-pressed]="page().band"
-              (click)="set({ band: !page().band })" data-page-band>Faixa atrás do texto</button>
+              (click)="set({ band: !page().band, haze: false })" data-page-band>Faixa</button>
+            <button type="button" class="chip" [class.on]="page().haze" [attr.aria-pressed]="!!page().haze"
+              (click)="set({ haze: !page().haze, band: false })" data-page-haze
+              title="A ilustração clareia atrás do texto, com a borda esfumada">Névoa</button>
           </div>
         }
         <div class="row">
@@ -246,6 +255,7 @@ export function textBoxStyle(page: PageDesign, trimMm: [number, number]): Record
     .text.light { color: #fff; }
     .text.band.dark { background: rgba(255, 255, 255, .82); padding: .5em .7em; border-radius: .5em; }
     .text.band.light { background: rgba(0, 0, 0, .6); padding: .5em .7em; border-radius: .5em; }
+    .text.haze { padding: 1em 1.3em; background-size: 100% 100%; background-repeat: no-repeat; }
     .text { box-sizing: border-box; }
     .text.draggable { cursor: grab; touch-action: none; user-select: none; outline: 1px dashed transparent; }
     .text.draggable:hover, .text.dragging { outline-color: rgba(242, 140, 56, .9); }
@@ -343,7 +353,7 @@ export class PageDesignerComponent {
     this.pageChange.emit({ ...this.page(), zoom: Number(value) / 100 });
   }
 
-  readonly boxStyle = computed(() => previewTextStyle(this.shown(), this.trimMm()));
+  readonly boxStyle = computed(() => withHaze(this.shown(), previewTextStyle(this.shown(), this.trimMm())));
 
   set(change: Partial<PageDesign>): void {
     this.pageChange.emit({ ...this.page(), ...change });

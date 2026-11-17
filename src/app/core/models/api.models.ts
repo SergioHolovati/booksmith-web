@@ -30,6 +30,16 @@ export interface PageDesign {
   imageY: number;
   /** Fonte só desta página (id do catálogo); null = a do livro. */
   font?: string | null;
+  /** Névoa: a arte clareia atrás do texto, com a borda esfumada (no lugar da faixa). */
+  haze?: boolean;
+}
+
+/** Uma página do livro ilustrado, para organizar vendo as miniaturas. */
+export interface PagePreview {
+  id: string;
+  title: string;
+  page: PageDesign;
+  paragraphs: string[];
 }
 export type BookStatus = 'DRAFT' | 'WRITING' | 'COMPLETE';
 /** Tag BCP 47 do idioma do livro (orienta o corretor ortográfico do navegador). */

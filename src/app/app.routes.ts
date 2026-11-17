@@ -153,6 +153,10 @@ export const routes: Routes = [
         canDeactivate: [unsavedChangesGuard],
       },
       {
+        path: 'books/:bookId/paginas',
+        loadComponent: () => import('./features/books/page-organizer/page-organizer').then((c) => c.PageOrganizerComponent),
+      },
+      {
         path: 'books/:bookId/diagramacao',
         loadComponent: () => import('./features/books/book-layout/book-layout').then((c) => c.BookLayoutComponent),
         canDeactivate: [unsavedChangesGuard],

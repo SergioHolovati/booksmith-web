@@ -310,3 +310,13 @@
   display: block;
   margin: .5rem 0 1rem;
 }
+
+.organize-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  min-height: var(--bs-touch);
+  margin-bottom: .4rem;
+  color: var(--bs-ember);
+  font-size: .9rem;
+}

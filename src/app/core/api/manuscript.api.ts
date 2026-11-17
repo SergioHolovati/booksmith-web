@@ -8,27 +8,32 @@ import {
   BookDetail,
   BookLayout,
   BookPages,
-  CoverDesign,
-  CoverPdf,
   BookRequest,
-  PageDesign,
-  PdfImport,
   BookSummary,
-  UniverseMove,
   Chapter,
+  ChapterNote,
   ChapterSummary,
   ChapterVersionDetail,
   ChapterVersionSummary,
+  CoverDesign,
+  CoverPdf,
   ImportMode,
   ImportPlan,
   ImportStructure,
+  MentionedIn,
   OutlineItem,
   OutlineKind,
-  StructureRequest,
   Page,
-  SaveResult,
+  PageDesign,
+  PagePreview,
+  PdfImport,
+  ProofreadBlock,
   Publishing,
-  TrashItem, MentionedIn, ChapterNote, ProofreadBlock } from '../models/api.models';
+  SaveResult,
+  StructureRequest,
+  TrashItem,
+  UniverseMove,
+} from '../models/api.models';
 
 @Injectable({ providedIn: 'root' })
 export class ManuscriptApi {
@@ -112,6 +117,11 @@ export class ManuscriptApi {
 
   createChapter(bookId: string, title?: string): Observable<Chapter> {
     return this.http.post<Chapter>(`${this.base}/books/${bookId}/chapters`, { title: title ?? null });
+  }
+
+  /** Livro ilustrado: as páginas com o desenho e o texto (as miniaturas da tela de organizar). */
+  pagePreviews(bookId: string): Observable<PagePreview[]> {
+    return this.http.get<PagePreview[]>(`${this.base}/books/${bookId}/page-previews`);
   }
 
   reorderChapters(bookId: string, chapterIds: string[]): Observable<ChapterSummary[]> {
