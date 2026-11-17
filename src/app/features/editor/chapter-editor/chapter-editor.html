@@ -94,6 +94,8 @@
         aria-label="Nota no trecho selecionado" title="Nota no trecho selecionado"><i class="pi pi-comment"></i></button>
       <button type="button" class="tool" (mousedown)="$event.preventDefault()" (click)="openIllustrationPicker()"
         aria-label="Inserir ilustração" title="Inserir ilustração"><i class="pi pi-image"></i></button>
+      <button type="button" class="tool" (mousedown)="$event.preventDefault()" (click)="newFootnote()"
+        aria-label="Nota de rodapé" title="Nota de rodapé" data-footnote-new><span class="tool-text">¹</span></button>
       <button type="button" class="tool" [class.active]="toolbar().proofreadOff" (mousedown)="$event.preventDefault()"
         (click)="toggleProofreadOff()" aria-label="Não revisar este trecho" [attr.aria-pressed]="toolbar().proofreadOff"
         title="Não revisar este trecho (fala de personagem)"><i class="pi pi-eye-slash"></i></button>
@@ -131,5 +133,9 @@
   @if (selectedIllustration(); as selected) {
     <app-illustration-panel [caption]="selected.caption" (captionChange)="setIllustrationCaption($event)"
       (remove)="removeIllustration()" />
+  }
+  @if (footnote(); as note) {
+    <app-footnote-panel [text]="note.text" (saved)="saveFootnote($event)" (remove)="removeFootnote()"
+      (closed)="footnote.set(null)" />
   }
 }

@@ -340,6 +340,19 @@
   text-decoration-color: #d6a06a;
 }
 
+/* Nota de rodapé: o número da chamada, numerado sozinho em cada capítulo */
+:host ::ng-deep .manuscript .ProseMirror { counter-reset: footnote; }
+:host ::ng-deep .manuscript sup.footnote-call {
+  counter-increment: footnote;
+  padding: 0 .1em;
+  color: var(--bs-ember);
+  font-weight: 700;
+  cursor: pointer;
+  font-size: .7em;
+}
+:host ::ng-deep .manuscript sup.footnote-call::after { content: counter(footnote); }
+:host ::ng-deep .manuscript sup.footnote-call.ProseMirror-selectednode { outline: 2px solid var(--bs-accent); border-radius: 3px; }
+
 /* Ilustração no texto: centralizada, como vai sair no livro */
 :host ::ng-deep .manuscript figure.illustration {
   margin: 1.5rem 0;
@@ -409,3 +422,6 @@
   background: rgba(214, 160, 106, .08);
   border-radius: 3px;
 }
+
+/* O botão da nota de rodapé mostra um "¹" */
+.tool-text { font-size: 1.15rem; font-weight: 700; line-height: 1; }

@@ -177,6 +177,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     keywords: ['sumario', 'indice', 'estrutura', 'capitulos', 'subcapitulo', 'parte', 'plano', 'esqueleto'],
     body: [
       { steps: ['Abra o livro e toque em **Pelo sumário**.', 'Cole ou escreva o sumário, uma linha por capítulo.', 'Toque em **Ver a estrutura** e corrija o tipo ou o título de cada linha.', 'Toque em **Criar**.'] },
+      { p: '**Começar de um modelo:** devocional de 30 ou 40 dias, estudo bíblico, livro cristão em partes, autoajuda, didático ou romance em três atos. Um toque preenche o sumário; ajuste à vontade antes de ver a estrutura. Os modelos do gênero do seu livro aparecem primeiro.' },
       { p: '"Parte 1" vira parte; Introdução, Apresentação e Conclusão viram capítulos sem número; "1.1 - …" ou uma linha com espaço no começo vira subcapítulo do capítulo de cima. Números de página no fim da linha são ignorados.' },
       { p: 'Os capítulos nascem vazios, no fim do livro, com os subcapítulos já como títulos dentro de cada um.' },
     ],
@@ -268,6 +269,19 @@ export const HELP_ARTICLES: HelpArticle[] = [
       { p: 'Antes da história saem os **créditos** (no verso da folha de rosto), a **dedicatória** e a **epígrafe**. Depois do último capítulo, os **agradecimentos** e a página **sobre você**, os dois também no sumário.' },
       { p: 'A página sobre você leva o título que você escolher ("Sobre a autora", "Sobre mim"); em branco, vai o seu nome. O que ficar vazio não aparece no livro.' },
       { p: 'No Word, essas páginas não viram capítulos se você importar o arquivo de novo.' },
+    ],
+  },
+  {
+    slug: 'notas-de-rodape',
+    title: 'Notas de rodapé',
+    summary: 'Referências e explicações no pé da página, sem atrapalhar o texto.',
+    topic: 'livros',
+    keywords: ['nota de rodapé', 'rodapé', 'nota', 'referência', 'citação', 'versículo', 'fonte', 'footnote'],
+    body: [
+      { steps: ['No editor, deixe o cursor onde a nota deve ser chamada.', 'Toque em **¹** na barra de baixo.', 'Escreva a nota e toque em **Inserir nota**.'] },
+      { p: 'No texto aparece só o número, que se ajusta sozinho em cada capítulo. Toque no número para mudar a nota ou **tirar a nota**.' },
+      { p: 'No livro baixado, a nota sai no **pé da página** no PDF, abre ao tocar no número no **ePub** e vira nota de rodapé de verdade no **Word**. A nota não conta como palavra do capítulo.' },
+      { p: 'Ao importar um arquivo do Word ou do LibreOffice com notas de rodapé, elas vêm junto, no mesmo lugar.' },
     ],
   },
   {

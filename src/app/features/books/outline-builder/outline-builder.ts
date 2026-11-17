@@ -10,6 +10,7 @@ import { ManuscriptApi } from '../../../core/api/manuscript.api';
 import { problemMessage } from '../../../core/api/problem';
 import { BookDetail, OutlineItem } from '../../../core/models/api.models';
 import { OUTLINE_KINDS } from '../file-import/import-structure';
+import { OutlineTemplate, templatesFor } from './outline-templates';
 
 export const OUTLINE_EXAMPLE = `Apresentação
 Parte 1 - O chamado
@@ -50,6 +51,18 @@ export function outlineChapters(items: OutlineItem[]): number {
       }
 
       @if (items().length === 0) {
+        <div class="templates" data-outline-templates>
+          <span class="field-label">Começar de um modelo</span>
+          <div class="template-list">
+            @for (t of templates(); track t.id) {
+              <button type="button" class="template" [class.on]="template() === t.id" (click)="useTemplate(t)"
+                [attr.data-template]="t.id">
+                <strong>{{ t.name }}</strong>
+                <span class="muted small">{{ t.hint }}</span>
+              </button>
+            }
+          </div>
+        </div>
         <label for="outline-text" class="field-label">Sumário (uma linha por capítulo)</label>
         <textarea id="outline-text" class="bs-input outline-text" rows="12" maxlength="40000" [(ngModel)]="text"
           [placeholder]="example"></textarea>
@@ -91,6 +104,12 @@ export function outlineChapters(items: OutlineItem[]): number {
   `,
   styles: `
     .narrow { max-width: 720px; }
+    .templates { margin-bottom: 1rem; }
+    .template-list { display: flex; gap: .5rem; overflow-x: auto; padding-bottom: .3rem; }
+    .template { flex: 0 0 11rem; display: flex; flex-direction: column; gap: .2rem; text-align: left;
+      padding: .6rem .7rem; border: 1px solid var(--bs-border); border-radius: var(--bs-radius-sm);
+      background: var(--bs-surface); color: var(--bs-text); font: inherit; cursor: pointer; }
+    .template.on { border-color: var(--bs-ember); }
     .back-link { display: inline-flex; align-items: center; gap: .4rem; min-height: var(--bs-touch); color: var(--bs-ember); }
     .outline-text { width: 100%; font-family: inherit; line-height: 1.5; }
     .actions { display: flex; flex-direction: column; gap: .5rem; margin-top: 1rem; }
@@ -117,7 +136,16 @@ export class OutlineBuilderComponent {
   readonly kinds = OUTLINE_KINDS;
   readonly example = OUTLINE_EXAMPLE;
   readonly chapters = computed(() => outlineChapters(this.items()));
+  /** Os modelos de estrutura, com os do gênero do livro primeiro. */
+  readonly templates = computed(() => templatesFor(this.book()?.genre));
+  readonly template = signal<string | null>(null);
   text = '';
+
+  /** Preenche o sumário com o modelo; o autor ajusta o texto antes de ver a estrutura. */
+  useTemplate(template: OutlineTemplate): void {
+    this.text = template.text;
+    this.template.set(template.id);
+  }
 
   constructor() {
     queueMicrotask(() => void this.loadBook());

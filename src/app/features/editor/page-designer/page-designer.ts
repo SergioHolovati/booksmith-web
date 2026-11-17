@@ -10,8 +10,28 @@ const MM_PER_PT = 25.4 / 72;
 
 export const DEFAULT_PAGE: PageDesign = {
   imageId: null, background: '#ffffff', text: 'bottom', align: 'center', size: 'l', color: 'dark', band: false,
-  spread: false, textSide: 'right', x: 10, y: 10, w: 80,
+  spread: false, textSide: 'right', x: 10, y: 10, w: 80, zoom: 1, imageX: 50, imageY: 50,
 };
+
+/**
+ * Tamanho e posição da ilustração na prévia, em % do contêiner (a página, ou o livro aberto): cobrir (como no PDF),
+ * vezes o zoom, com o centro em imageX/imageY. {@code imageRatio}: largura ÷ altura da imagem.
+ */
+export function artStyle(page: PageDesign, canvasRatio: number, imageRatio: number): Record<string, string> {
+  const zoom = page.zoom ?? 1;
+  let w: number;
+  let h: number;
+  if (imageRatio > canvasRatio) {
+    h = 100 * zoom;
+    w = h * (imageRatio / canvasRatio);
+  } else {
+    w = 100 * zoom;
+    h = w * (canvasRatio / imageRatio);
+  }
+  const cx = page.imageX ?? 50;
+  const cy = page.imageY ?? 50;
+  return { width: `${w}%`, height: `${h}%`, left: `${cx - w / 2}%`, top: `${cy - h / 2}%` };
+}
 
 const TEXTS: { value: PageDesign['text']; label: string }[] = [
   { value: 'top', label: 'Em cima' },
@@ -101,7 +121,9 @@ export function textBoxStyle(page: PageDesign, trimMm: [number, number]): Record
         <div #preview class="preview" [style.aspect-ratio]="ratio()" [style.background-color]="page().background"
           data-page-preview>
           @if (imageUrl(); as url) {
-            <img class="art" [src]="url" alt="" [class.spread-half]="page().spread" />
+            <img class="art" [src]="url" alt="" draggable="false" [style]="artBox()" (load)="artLoaded($event)"
+              (pointerdown)="startArtDrag($event)" (pointermove)="moveDrag($event)" (pointerup)="endDrag($event)"
+              (pointercancel)="endDrag($event)" title="Arraste para enquadrar a ilustração" data-page-art />
           }
           @if (shown().text !== 'none' && paragraphs().length) {
             <div class="text draggable" [class]="'text draggable ' + shown().color + (shown().band ? ' band' : '')
@@ -131,6 +153,17 @@ export function textBoxStyle(page: PageDesign, trimMm: [number, number]): Record
             Cor
           </label>
         </div>
+        @if (page().imageId) {
+          <div class="row">
+            <span class="label">Zoom</span>
+            <input type="range" min="30" max="400" step="5" [value]="round(shown().zoom * 100)"
+              aria-label="Zoom da ilustração" (input)="previewZoom($any($event.target).value)"
+              (change)="commitZoom($any($event.target).value)" data-page-zoom />
+            <span class="muted small zoom-value">{{ round(shown().zoom * 100) }}%</span>
+            <button type="button" class="chip" (click)="set({ zoom: 1, imageX: 50, imageY: 50 })" data-page-art-reset>
+              Enquadrar</button>
+          </div>
+        }
         <div class="row" role="radiogroup" aria-label="Onde fica o texto">
           <span class="label">Texto</span>
           @for (t of texts; track t.value) {
@@ -193,7 +226,8 @@ export function textBoxStyle(page: PageDesign, trimMm: [number, number]): Record
     .preview { position: relative; overflow: hidden; width: min(100%, 420px); container-type: inline-size;
       border-radius: 4px; box-shadow: 0 2px 12px rgba(0, 0, 0, .35); }
     .preview-wrap.spread .preview { width: min(100%, 560px); }
-    .art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .art { position: absolute; max-width: none; cursor: grab; touch-action: none; user-select: none; }
+    .zoom-value { min-width: 3rem; }
     .text { position: absolute; font-family: 'Literata', Georgia, serif; font-weight: 700; line-height: 1.3; }
     .text p { margin: 0 0 .35em; }
     .text.dark { color: #1a1a1a; }
@@ -247,7 +281,41 @@ export class PageDesignerComponent {
   readonly dragging = signal(false);
   readonly shown = computed(() => this.draft() ?? this.page());
   private readonly previewRef = viewChild<ElementRef<HTMLElement>>('preview');
-  private start: { pointerX: number; pointerY: number; x: number; y: number; w: number } | null = null;
+  private start: { pointerX: number; pointerY: number; x: number; y: number; w: number; mode: 'text' | 'art' } | null = null;
+  /** Largura ÷ altura da ilustração de fundo (para cobrir a página como o PDF). */
+  private readonly imageRatio = signal(1);
+
+  readonly artBox = computed(() => {
+    const [w, h] = this.trimMm();
+    return artStyle(this.shown(), (this.page().spread ? 2 * w : w) / h, this.imageRatio());
+  });
+
+  readonly round = Math.round;
+
+  artLoaded(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    if (img.naturalWidth && img.naturalHeight) {
+      this.imageRatio.set(img.naturalWidth / img.naturalHeight);
+    }
+  }
+
+  /** Pega a ilustração para enquadrar: arrastar move o centro dela. */
+  startArtDrag(event: PointerEvent): void {
+    (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
+    const page = this.page();
+    this.start = { pointerX: event.clientX, pointerY: event.clientY, x: page.imageX, y: page.imageY, w: 0, mode: 'art' };
+    this.dragging.set(true);
+    event.preventDefault();
+  }
+
+  previewZoom(value: string): void {
+    this.draft.set({ ...this.page(), zoom: Number(value) / 100 });
+  }
+
+  commitZoom(value: string): void {
+    this.draft.set(null);
+    this.pageChange.emit({ ...this.page(), zoom: Number(value) / 100 });
+  }
 
   readonly boxStyle = computed(() => previewTextStyle(this.shown(), this.trimMm()));
 
@@ -271,6 +339,7 @@ export class PageDesignerComponent {
       x: ((rect.left - area.left) / area.width) * 100,
       y: ((rect.top - area.top) / area.height) * 100,
       w: (rect.width / area.width) * 100,
+      mode: 'text',
     };
     this.dragging.set(true);
     event.preventDefault();
@@ -282,11 +351,14 @@ export class PageDesignerComponent {
       return;
     }
     const area = preview.getBoundingClientRect();
-    const box = clampBox(
-      this.start.x + ((event.clientX - this.start.pointerX) / area.width) * 100,
-      this.start.y + ((event.clientY - this.start.pointerY) / area.height) * 100,
-      this.start.w,
-    );
+    const dx = ((event.clientX - this.start.pointerX) / area.width) * 100;
+    const dy = ((event.clientY - this.start.pointerY) / area.height) * 100;
+    if (this.start.mode === 'art') {
+      const clamp = (v: number) => Math.round(Math.min(150, Math.max(-50, v)) * 10) / 10;
+      this.draft.set({ ...this.page(), imageX: clamp(this.start.x + dx), imageY: clamp(this.start.y + dy) });
+      return;
+    }
+    const box = clampBox(this.start.x + dx, this.start.y + dy, this.start.w);
     this.draft.set({ ...this.page(), text: 'free', ...box });
   }
 

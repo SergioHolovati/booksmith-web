@@ -42,6 +42,7 @@ import { ILLUSTRATIONS_LOADED } from '../schema/illustration';
 import { PrintGeometry, dpiHint, printDpi, printGeometry, trimSize } from '../../../core/util/print-geometry';
 import { BookGenre, BookLayout, PageDesign } from '../../../core/models/api.models';
 import { DEFAULT_PAGE, PageDesignerComponent } from '../page-designer/page-designer';
+import { FootnotePanelComponent } from '../footnote/footnote-panel';
 import { NodeSelection } from '@tiptap/pm/state';
 import { UniverseImage } from '../../../core/models/api.models';
 import { ChapterAutosave, SaveStatus } from './chapter-autosave';
@@ -80,7 +81,7 @@ const LORE_HINT: Record<string, string> = {
 
 @Component({
   selector: 'app-chapter-editor',
-  imports: [FormsModule, ButtonModule, DialogModule, ProgressSpinnerModule, ChapterHistoryComponent, ChapterNotesComponent, ChapterReviewComponent, ProofreadPanelComponent, IllustrationPickerComponent, IllustrationPanelComponent, PageDesignerComponent],
+  imports: [FormsModule, ButtonModule, DialogModule, ProgressSpinnerModule, ChapterHistoryComponent, ChapterNotesComponent, ChapterReviewComponent, ProofreadPanelComponent, IllustrationPickerComponent, IllustrationPanelComponent, PageDesignerComponent, FootnotePanelComponent],
   templateUrl: './chapter-editor.html',
   styleUrl: './chapter-editor.scss',
   host: {
@@ -170,12 +171,16 @@ export class ChapterEditorComponent {
     if (!px || !layout || !this.page().imageId) {
       return null;
     }
-    return dpiHint(printDpi(this.page().spread ? 'spread' : 'bleed', px[0], px[1], printGeometry(layout), false).dpi);
+    // O zoom estica a mesma imagem: o DPI cai na mesma proporção
+    const dpi = printDpi(this.page().spread ? 'spread' : 'bleed', px[0], px[1], printGeometry(layout), false).dpi;
+    return dpiHint(Math.floor(dpi / (this.page().zoom || 1)));
   });
   /** O seletor de imagens escolhe para o texto (ilustração) ou para o fundo da página. */
   private pickerTarget: 'text' | 'background' = 'text';
   readonly pickerOpen = signal(false);
   readonly selectedIllustration = signal<{ pos: number; caption: string | null } | null>(null);
+  /** O painel da nota de rodapé: nova (pos null, text null) ou a tocada no texto. */
+  readonly footnote = signal<{ pos: number | null; text: string | null } | null>(null);
   private readonly imageUrls = new Map<string, string>();
   /** As medidas da página do livro, para o DPI de cada ilustração no editor. */
   private printGeometry: PrintGeometry | null = null;
@@ -553,8 +558,45 @@ export class ChapterEditorComponent {
     }
   }
 
+  /** Nota de rodapé nova, no lugar do cursor. */
+  newFootnote(): void {
+    this.footnote.set({ pos: null, text: null });
+  }
+
+  saveFootnote(text: string): void {
+    const note = this.footnote();
+    const editor = this.editor;
+    if (!note || !editor) {
+      return;
+    }
+    if (note.pos === null) {
+      editor.chain().focus().insertFootnote(text).run();
+    } else {
+      const node = editor.state.doc.nodeAt(note.pos);
+      if (node?.type.name === 'footnote') {
+        editor.view.dispatch(editor.state.tr.setNodeMarkup(note.pos, undefined, { ...node.attrs, text }));
+      }
+    }
+    this.footnote.set(null);
+  }
+
+  removeFootnote(): void {
+    const note = this.footnote();
+    const editor = this.editor;
+    const node = note?.pos !== null && note && editor ? editor.state.doc.nodeAt(note.pos) : null;
+    if (editor && note?.pos !== null && note && node?.type.name === 'footnote') {
+      editor.view.dispatch(editor.state.tr.delete(note.pos, note.pos + node.nodeSize));
+    }
+    this.footnote.set(null);
+  }
+
   private updateSelectedIllustration(): void {
     const selection = this.editor?.state.selection;
+    if (selection instanceof NodeSelection && selection.node.type.name === 'footnote') {
+      this.footnote.set({ pos: selection.from, text: selection.node.attrs['text'] as string });
+    } else if (this.footnote()?.pos !== null && this.footnote() !== null) {
+      this.footnote.set(null);
+    }
     if (selection instanceof NodeSelection && selection.node.type.name === 'illustration') {
       this.selectedIllustration.set({ pos: selection.from, caption: selection.node.attrs['caption'] as string | null });
     } else if (this.selectedIllustration()) {

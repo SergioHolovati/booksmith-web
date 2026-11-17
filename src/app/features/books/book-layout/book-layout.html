@@ -95,6 +95,25 @@
       </div>
     }
 
+    @if (book.genre === 'CHILDREN') {
+      @for (choice of pictureChoices; track choice.key) {
+        <div class="choice" [attr.data-choice]="choice.key">
+          <span class="choice-label" [id]="'choice-' + choice.key">{{ choice.label }}</span>
+          <div class="chips" role="radiogroup" [attr.aria-labelledby]="'choice-' + choice.key">
+            @for (option of choice.options; track option.value) {
+              <button type="button" class="chip" role="radio" [class.on]="isOn(choice.key, option.value)"
+                [attr.aria-checked]="isOn(choice.key, option.value)" (click)="choose(choice.key, option.value)">
+                {{ option.label }}
+              </button>
+            }
+          </div>
+        </div>
+      }
+      <p class="muted small hint" data-picture-layout-hint>Montando todas as páginas, faça a capa ilustrada, os
+        créditos (com a ficha catalográfica), a dedicatória e o "sobre o autor" como páginas do livro, com fundo e
+        texto livre.</p>
+    }
+
     @for (choice of choices; track choice.key) {
       <div class="choice" [attr.data-choice]="choice.key">
         <span class="choice-label" [id]="'choice-' + choice.key">{{ choice.label }}</span>

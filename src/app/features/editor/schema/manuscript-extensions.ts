@@ -9,6 +9,7 @@ import { MentionSource, mentionExtension } from './mention';
 import { CommentAnchor } from './comment-anchor';
 import { ProofreadOff } from './proofread-off';
 import { IllustrationSource, PrintGeometrySource, illustrationExtension } from './illustration';
+import { Footnote } from './footnote';
 
 /**
  * Esquema do manuscrito. Precisa bater com o validador do backend (ManuscriptDocument.java):
@@ -39,5 +40,6 @@ export function manuscriptExtensions(
     CommentAnchor,
     ProofreadOff,
     illustrationExtension(illustrations, printGeometry),
+    Footnote,
   ];
 }

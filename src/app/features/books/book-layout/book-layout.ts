@@ -24,7 +24,29 @@ export const DEFAULT_LAYOUT: BookLayout = {
   customWidthMm: null,
   customHeightMm: null,
   bleed: false,
+  autoPages: true,
+  pageNumbers: false,
 };
+
+/** Escolhas que só existem no livro ilustrado (infantil). */
+export const PICTURE_CHOICES = [
+  {
+    key: 'autoPages',
+    label: 'Folha de rosto, créditos e dedicatória',
+    options: [
+      { value: true, label: 'O Booksmith gera' },
+      { value: false, label: 'Eu monto todas as páginas' },
+    ],
+  } as Choice<'autoPages'>,
+  {
+    key: 'pageNumbers',
+    label: 'Número de página',
+    options: [
+      { value: false, label: 'Sem' },
+      { value: true, label: 'No canto' },
+    ],
+  } as Choice<'pageNumbers'>,
+];
 
 export type Orientation = 'portrait' | 'square' | 'landscape' | 'custom';
 
@@ -37,6 +59,7 @@ export const TRIM_GROUPS: { value: Orientation; label: string; trims: { value: B
       { value: 'a5', label: 'A5' },
       { value: '14x21', label: '14×21' },
       { value: '16x23', label: '16×23' },
+      { value: '17x24', label: '17×24' },
       { value: '6x9', label: '6×9" KDP' },
     ],
   },
@@ -186,6 +209,7 @@ export class BookLayoutComponent implements HasUnsavedChanges {
   readonly bookId = input.required<string>();
 
   readonly choices = CHOICES;
+  readonly pictureChoices = PICTURE_CHOICES;
   readonly models = MODELS;
   readonly trimGroups = TRIM_GROUPS;
   readonly orientation = computed(() => orientationOf(this.layout().trim));

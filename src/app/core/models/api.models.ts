@@ -24,6 +24,10 @@ export interface PageDesign {
   x: number;
   y: number;
   w: number;
+  /** Zoom da ilustração de fundo (1 cobre a página; 0,3 a 4) e onde fica o centro dela, em % da página. */
+  zoom: number;
+  imageX: number;
+  imageY: number;
 }
 export type BookStatus = 'DRAFT' | 'WRITING' | 'COMPLETE';
 /** Tag BCP 47 do idioma do livro (orienta o corretor ortográfico do navegador). */
@@ -174,7 +178,7 @@ export interface PrintCoverSpec {
 
 /** Diagramação do PDF (as opções estão em book-layout). */
 export type BookTrim =
-  | 'a5' | '14x21' | '16x23' | '6x9'
+  | 'a5' | '14x21' | '16x23' | '17x24' | '6x9'
   | '15x15' | '20x20' | '21x21' | '25x25' | '8.5x8.5' | '8.25x8.25'
   | '21x15' | '25x20' | '28x21' | '8.25x6'
   | 'custom';
@@ -191,6 +195,10 @@ export interface BookLayout {
   customHeightMm: number | null;
   /** Sangria do miolo para a gráfica (3,2 mm na borda de fora, em cima e embaixo). */
   bleed: boolean;
+  /** Livro ilustrado: o Booksmith gera a folha de rosto, créditos e dedicatória (senão o autor monta tudo). */
+  autoPages: boolean;
+  /** Livro ilustrado: número de página pequeno no canto. */
+  pageNumbers: boolean;
 }
 
 /** Páginas do PDF como imagens (prévia), numeradas a partir de 1. */
