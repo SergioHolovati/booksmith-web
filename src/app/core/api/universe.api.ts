@@ -105,6 +105,16 @@ export class UniverseApi {
 
   // ===== Campos próprios do autor =====
 
+  /**
+   * Leva o universo para a lixeira. Com livros vinculados, a API recusa (409 universe_has_books, com a lista) a não
+   * ser com `withBooks`, que leva os livros juntos para a lixeira.
+   */
+  deleteUniverse(universeId: string, withBooks: boolean): Observable<{ trashedBooks: { id: string; title: string }[] }> {
+    return this.http.delete<{ trashedBooks: { id: string; title: string }[] }>(`${this.base}/universes/${universeId}`, {
+      params: { withBooks },
+    });
+  }
+
   customFields(universeId: string): Observable<CustomFieldDefinition> {
     return this.http.get<CustomFieldDefinition>(`${this.base}/universes/${universeId}/custom-fields`);
   }

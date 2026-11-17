@@ -1,14 +1,15 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { firstValueFrom } from 'rxjs';
 
 import { ManuscriptApi } from '../../core/api/manuscript.api';
-import { problemMessage } from '../../core/api/problem';
+import { problemMessage, problemOf } from '../../core/api/problem';
 import { UniverseApi } from '../../core/api/universe.api';
 import { BookSummary, Universe } from '../../core/models/api.models';
 import { BookCoverComponent } from '../books/book-cover';
@@ -32,9 +33,21 @@ export function groupBooks(universes: Universe[], books: BookSummary[]): Univers
  * Universos do autor (§4.2 do produto): cada um com seus livros. Uma série vive num universo só, e os livros
  * dela usam os mesmos personagens, lugares e linha do tempo.
  */
+/** O texto do alerta: sem livros, só a lixeira; com livros, quais vão junto. */
+export function deleteUniverseMessage(books: { title: string }[]): string {
+  if (!books.length) {
+    return 'O universo vai para a lixeira, com os personagens, lugares, linha do tempo e imagens dele.';
+  }
+  const names = books.slice(0, 5).map((b) => `"${b.title}"`).join(', ') + (books.length > 5 ? ` e mais ${books.length - 5}` : '');
+  const which = books.length === 1 ? `o livro ${names} está vinculado a ele e vai` : `os livros ${names} estão vinculados a ele e vão`;
+  return `Atenção: ${which} junto para a lixeira (30 dias). Restaurar um livro traz o universo de volta.`;
+}
+
 @Component({
   selector: 'app-universe-list',
-  imports: [RouterLink, FormsModule, ButtonModule, InputTextModule, ProgressSpinnerModule, BookCoverComponent],
+  imports: [RouterLink, FormsModule, ButtonModule, InputTextModule, ProgressSpinnerModule, BookCoverComponent,
+    ConfirmDialogModule],
+  providers: [ConfirmationService],
   templateUrl: './universe-list.html',
   styleUrl: './universe-list.scss',
 })
@@ -43,6 +56,7 @@ export class UniverseListComponent {
   private readonly manuscriptApi = inject(ManuscriptApi);
   private readonly toast = inject(MessageService);
   private readonly router = inject(Router);
+  private readonly confirm = inject(ConfirmationService);
 
   readonly universes = signal<Universe[]>([]);
   readonly books = signal<BookSummary[]>([]);
@@ -58,6 +72,45 @@ export class UniverseListComponent {
 
   constructor() {
     void this.load();
+  }
+
+  /**
+   * Excluir o universo: sem livros, vai para a lixeira; com livros, o alerta diz quais vão junto (30 dias na lixeira,
+   * e restaurar um livro traz o universo de volta).
+   */
+  confirmDelete(universe: Universe, books: { id: string; title: string }[]): void {
+    this.confirm.confirm({
+      header: `Excluir "${universe.name}"?`,
+      message: deleteUniverseMessage(books),
+      acceptLabel: books.length ? 'Excluir com os livros' : 'Excluir',
+      rejectLabel: 'Cancelar',
+      acceptButtonStyleClass: 'p-button-danger',
+      rejectButtonStyleClass: 'p-button-text',
+      accept: () => void this.deleteUniverse(universe, books.length > 0),
+    });
+  }
+
+  private async deleteUniverse(universe: Universe, withBooks: boolean): Promise<void> {
+    try {
+      const result = await firstValueFrom(this.universeApi.deleteUniverse(universe.id, withBooks));
+      const count = result.trashedBooks.length;
+      this.toast.add({
+        severity: 'success',
+        summary: 'Universo na lixeira',
+        detail: count ? (count === 1 ? '1 livro foi junto para a lixeira.' : `${count} livros foram juntos para a lixeira.`) : undefined,
+        life: 5000,
+      });
+      await this.load();
+    } catch (error) {
+      // Um livro entrou no universo depois que a lista foi carregada: o alerta com a lista do servidor
+      const problem = problemOf(error);
+      const books = problem?.books ?? null;
+      if (problem?.code === 'universe_has_books' && books) {
+        this.confirmDelete(universe, books);
+        return;
+      }
+      this.toast.add({ severity: 'error', summary: problemMessage(error), life: 5000 });
+    }
   }
 
   async load(): Promise<void> {

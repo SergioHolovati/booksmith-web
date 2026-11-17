@@ -92,6 +92,8 @@
             [routerLink]="['/universes', card.universe.id]" />
           <p-button label="Novo livro neste universo" icon="pi pi-plus" severity="secondary" [outlined]="true"
             size="small" routerLink="/books/new" [queryParams]="{ universe: card.universe.id }" />
+          <p-button label="Excluir" icon="pi pi-trash" severity="danger" [text]="true" size="small"
+            (onClick)="confirmDelete(card.universe, card.books)" data-universe-delete />
         </div>
       </section>
     } @empty {
@@ -108,3 +110,5 @@
     </p>
   }
 </div>
+
+<p-confirmdialog [style]="{ width: 'min(440px, calc(100vw - 32px))' }" />

@@ -1,5 +1,5 @@
 import { BookSummary, Universe } from '../../core/models/api.models';
-import { groupBooks } from './universe-list';
+import { deleteUniverseMessage, groupBooks } from './universe-list';
 
 const universe = (id: string, name: string): Universe => ({
   id,
@@ -27,5 +27,14 @@ describe('universos', () => {
       ['Avulso', ['conto']],
       ['Vazio', []],
     ]);
+  });
+
+  it('o alerta da exclusão diz quais livros vão junto para a lixeira', () => {
+    expect(deleteUniverseMessage([])).toContain('vai para a lixeira');
+    expect(deleteUniverseMessage([{ title: 'Café em Vel' }])).toBe(
+      'Atenção: o livro "Café em Vel" está vinculado a ele e vai junto para a lixeira (30 dias). Restaurar um livro traz o universo de volta.',
+    );
+    const many = deleteUniverseMessage(['A', 'B', 'C', 'D', 'E', 'F', 'G'].map((title) => ({ title })));
+    expect(many).toContain('os livros "A", "B", "C", "D", "E" e mais 2 estão vinculados');
   });
 });

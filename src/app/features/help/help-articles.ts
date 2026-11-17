@@ -348,10 +348,11 @@ export const HELP_ARTICLES: HelpArticle[] = [
     title: 'Universos, séries e personagens compartilhados',
     summary: 'Vários livros no mesmo mundo, com os mesmos personagens, lugares e linha do tempo.',
     topic: 'universo',
-    keywords: ['universo', 'série', 'saga', 'continuação', 'mundo', 'compartilhar', 'juntar'],
+    keywords: ['universo', 'série', 'saga', 'continuação', 'mundo', 'compartilhar', 'juntar', 'excluir', 'apagar'],
     body: [
       { p: 'Todo livro vive num universo. Para uma série, crie os livros seguintes **no mesmo universo**: em Universos, toque em **Novo livro neste universo**. Personagens, lugares, linha do tempo, mapa e imagens ficam disponíveis para todos.' },
       { p: 'Já tem um livro em outro universo? Abra o livro, toque em **Editar** e escolha o universo da série. Os personagens, lugares e a linha do tempo dele vão junto, e o Booksmith avisa se houver nomes repetidos.' },
+      { p: '**Excluir um universo:** em Universos, toque em **Excluir** no cartão dele. Se houver livros vinculados, o Booksmith avisa quais são: eles vão **juntos para a lixeira** (30 dias). Restaurar um desses livros na lixeira traz o universo de volta, com tudo o que havia nele.' },
     ],
   },
   {

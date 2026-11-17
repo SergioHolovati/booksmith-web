@@ -673,6 +673,8 @@ export interface ProblemDetail {
   /** mfa_required: o desafio da segunda etapa e os métodos da conta. */
   challenge?: string;
   methods?: MfaMethod[];
+  /** universe_has_books: os livros vinculados ao universo. */
+  books?: { id: string; title: string }[];
 }
 
 // ===== Bíblia do Universo =====
