@@ -14,6 +14,7 @@ import { AuthService } from './core/auth/auth.service';
 import { AppUpdates } from './core/pwa/app-updates';
 import { ErrorTrail, errorTrailInterceptor } from './core/support/error-trail';
 import { timeZoneInterceptor } from './core/api/writing.api';
+import { uploadBypassInterceptor } from './core/api/upload-bypass';
 
 const BooksmithTheme = definePreset(Aura, {
   semantic: {
@@ -45,7 +46,7 @@ export const appConfig: ApplicationConfig = {
     }),
     provideRouter(routes, withComponentInputBinding()),
     provideAnimationsAsync(),
-    provideHttpClient(withInterceptors([authInterceptor, timeZoneInterceptor, errorTrailInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor, timeZoneInterceptor, uploadBypassInterceptor, errorTrailInterceptor])),
     // Desde o início, para o pedido de suporte saber a tela de onde a pessoa veio
     provideAppInitializer(() => void inject(ErrorTrail)),
     // Antes da primeira tela: retoma a sessão pelo cookie HttpOnly (o token de acesso não fica salvo no aparelho)
