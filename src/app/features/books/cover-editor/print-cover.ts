@@ -101,6 +101,9 @@ export class PrintCoverComponent {
   private readonly backImage = signal<HTMLImageElement | null>(null);
   private readonly authorPhoto = signal<HTMLImageElement | null>(null);
   readonly backPickerOpen = signal(false);
+  /** Orelhas (só em outra gráfica): a largura de cada uma, em mm; null = sem orelhas. */
+  readonly flapMm = signal<number | null>(null);
+  readonly flapText = signal('');
   /** O ISBN do impresso (guia de publicação), para o código de barras. */
   readonly isbn = computed(() => this.book()?.publishing?.isbnPrint ?? null);
   readonly isbnValid = computed(() => !!isbn13(this.isbn()));
@@ -140,6 +143,7 @@ export class PrintCoverComponent {
       backPhoto: this.backPhoto(),
       backBio: this.backBio().trim() || null,
       barcode: this.barcode(),
+      flapText: this.flapText().trim() || null,
     };
   });
   readonly coverPdf = computed(() => this.book()?.coverPdf ?? null);
@@ -198,6 +202,7 @@ export class PrintCoverComponent {
       this.backPhoto.set(book.coverDesign?.backPhoto ?? false);
       this.backBio.set(book.coverDesign?.backBio ?? '');
       this.barcode.set(book.coverDesign?.barcode ?? true);
+      this.flapText.set(book.coverDesign?.flapText ?? book.synopsis ?? '');
       this.specTrim.update((trim) => trim ?? book.coverPdf?.trim ?? book.layout.trim);
       const imageId = book.coverDesign?.imageId;
       const wanted = [imageId, book.coverDesign?.backImageId, book.pages?.authorPhotoId];
@@ -351,8 +356,8 @@ export class PrintCoverComponent {
   }
 
   /** Medida digitada ("12,5" ou "12.5"): espera parar de digitar antes de pedir as medidas de novo. */
-  setCustom(key: 'spine' | 'bleed', text: string): void {
-    (key === 'spine' ? this.spineMm : this.bleedMm).set(parseMm(text));
+  setCustom(key: 'spine' | 'bleed' | 'flap', text: string): void {
+    ({ spine: this.spineMm, bleed: this.bleedMm, flap: this.flapMm })[key].set(parseMm(text));
     clearTimeout(this.timer);
     this.timer = setTimeout(() => {
       if (this.spineMm()) {
@@ -368,7 +373,8 @@ export class PrintCoverComponent {
     try {
       this.spec.set(
         await firstValueFrom(
-          this.exportApi.printCoverSpec(this.bookId(), this.profile(), custom ? this.spineMm() : null, custom ? this.bleedMm() : null),
+          this.exportApi.printCoverSpec(this.bookId(), this.profile(), custom ? this.spineMm() : null,
+            custom ? this.bleedMm() : null, custom ? this.flapMm() : null),
         ),
       );
     } catch (error) {
@@ -406,6 +412,7 @@ export class PrintCoverComponent {
               profile: this.profile(),
               spineMm: custom ? this.spineMm() : null,
               bleedMm: custom ? this.bleedMm() : null,
+              flapMm: custom ? this.flapMm() : null,
               image: '',
             }),
           ),
@@ -431,6 +438,7 @@ export class PrintCoverComponent {
           profile: this.profile(),
           spineMm: custom ? this.spineMm() : null,
           bleedMm: custom ? this.bleedMm() : null,
+          flapMm: custom ? this.flapMm() : null,
           image: canvas.toDataURL('image/jpeg', 0.92),
         }),
       );

@@ -86,6 +86,9 @@
         (click)="toggleHeading()" aria-label="Título">H</button>
       <button type="button" class="tool" [class.active]="toolbar().blockquote" (mousedown)="$event.preventDefault()"
         (click)="toggleQuote()" aria-label="Citação">❝</button>
+      <button type="button" class="tool" [class.active]="!!toolbar().callout" (mousedown)="$event.preventDefault()"
+        (click)="calloutMenu.set(!calloutMenu())" aria-label="Quadro de destaque" title="Quadro de destaque"
+        [attr.aria-expanded]="calloutMenu()" data-callout-menu><i class="pi pi-bookmark"></i></button>
       <button type="button" class="tool" [class.active]="toolbar().indent" (mousedown)="$event.preventDefault()"
         (click)="toggleIndent()" aria-label="Recuo de parágrafo" title="Recuo de parágrafo (Tab)">⇥</button>
       <button type="button" class="tool" (mousedown)="$event.preventDefault()" (click)="insertSceneBreak()"
@@ -133,6 +136,19 @@
   @if (selectedIllustration(); as selected) {
     <app-illustration-panel [caption]="selected.caption" (captionChange)="setIllustrationCaption($event)"
       (remove)="removeIllustration()" />
+  }
+  @if (calloutMenu()) {
+    <section class="callout-menu" role="menu" aria-label="Quadro de destaque" data-callout-kinds>
+      @for (k of calloutKinds; track k.value) {
+        <button type="button" role="menuitem" class="callout-option" [class.on]="toolbar().callout === k.value"
+          (mousedown)="$event.preventDefault()" (click)="setCallout(k.value)" [attr.data-callout-kind]="k.value">
+          {{ k.label }}</button>
+      }
+      @if (toolbar().callout) {
+        <button type="button" role="menuitem" class="callout-option remove" (mousedown)="$event.preventDefault()"
+          (click)="unsetCallout()">Tirar o destaque</button>
+      }
+    </section>
   }
   @if (footnote(); as note) {
     <app-footnote-panel [text]="note.text" (saved)="saveFootnote($event)" (remove)="removeFootnote()"

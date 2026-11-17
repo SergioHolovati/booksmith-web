@@ -340,6 +340,61 @@
   text-decoration-color: #d6a06a;
 }
 
+/* Quadro de destaque: borda e fundo, com o nome do tipo em cima (o livro sai igual) */
+:host ::ng-deep .manuscript div.callout {
+  margin: 1.2rem 0;
+  padding: .6rem .9rem;
+  border-left: 4px solid #c8743a;
+  border-radius: 4px;
+  background: rgba(200, 116, 58, .1);
+}
+:host ::ng-deep .manuscript div.callout::before {
+  content: attr(data-label);
+  display: block;
+  margin-bottom: .3rem;
+  font-family: var(--bs-font-ui, inherit);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: #d98a4f;
+}
+:host ::ng-deep .manuscript div.callout[data-callout='verse'],
+:host ::ng-deep .manuscript div.callout[data-callout='quote'] { border-left-color: #5b7fb8; background: rgba(91, 127, 184, .12); }
+:host ::ng-deep .manuscript div.callout[data-callout='verse']::before,
+:host ::ng-deep .manuscript div.callout[data-callout='quote']::before { color: #8fb0e0; }
+:host ::ng-deep .manuscript div.callout p { text-indent: 0; }
+
+.callout-menu {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--keyboard-offset, 0px) + 64px + var(--bs-safe-bottom));
+  z-index: 30;
+  width: min(420px, calc(100vw - 16px));
+  transform: translateX(-50%);
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  padding: .7rem;
+  border: 1px solid var(--bs-border);
+  border-radius: var(--bs-radius);
+  background: var(--bs-bg-elevated);
+  box-shadow: var(--bs-shadow);
+}
+.callout-option {
+  min-height: 38px;
+  padding: .3rem .8rem;
+  border: 1px solid var(--bs-border);
+  border-radius: 999px;
+  background: var(--bs-surface);
+  color: var(--bs-text);
+  font: inherit;
+  font-size: .85rem;
+  cursor: pointer;
+}
+.callout-option.on { border-color: var(--bs-ember); background: rgba(242, 140, 56, .15); }
+.callout-option.remove { color: var(--bs-danger); }
+
 /* Nota de rodapé: o número da chamada, numerado sozinho em cada capítulo */
 :host ::ng-deep .manuscript .ProseMirror { counter-reset: footnote; }
 :host ::ng-deep .manuscript sup.footnote-call {

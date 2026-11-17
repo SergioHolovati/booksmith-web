@@ -157,6 +157,8 @@ export interface CoverDesign {
   backBio?: string | null;
   /** Contracapa: código de barras do ISBN do impresso (padrão: sim, quando há ISBN). */
   barcode?: boolean;
+  /** Orelha da frente (capa com orelhas): em geral, a sinopse. */
+  flapText?: string | null;
 }
 
 export type PrintProfile = 'kdp-white' | 'kdp-cream' | 'kdp-color-premium' | 'custom';
@@ -164,6 +166,8 @@ export type PrintProfile = 'kdp-white' | 'kdp-cream' | 'kdp-color-premium' | 'cu
 /** Medidas da capa aberta para gráfica, em mm. */
 export interface PrintCoverSpec {
   profile: PrintProfile;
+  /** Largura de cada orelha, em mm (0 = sem orelhas). */
+  flapMm?: number;
   /** Páginas do miolo (o PDF diagramado, sem a página da capa). */
   pages: number;
   trimWidthMm: number;

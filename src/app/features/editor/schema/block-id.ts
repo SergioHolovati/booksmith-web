@@ -6,6 +6,7 @@ export const BLOCK_TYPES = [
   'paragraph',
   'heading',
   'blockquote',
+  'callout',
   'sceneBreak',
   'illustration',
   'bulletList',

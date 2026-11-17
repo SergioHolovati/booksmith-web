@@ -135,6 +135,11 @@
               <input id="bleed" pInputText inputmode="decimal" autocomplete="off"
                 value="3" (input)="setCustom('bleed', $any($event.target).value)" />
             </div>
+            <div class="field">
+              <label for="flap">Orelhas (mm, se tiver)</label>
+              <input id="flap" pInputText inputmode="decimal" autocomplete="off" placeholder="ex.: 80"
+                (input)="setCustom('flap', $any($event.target).value)" data-flap />
+            </div>
           </div>
         </div>
       }
@@ -201,6 +206,15 @@
                 placeholder="Ana escreve para crianças desde 2015. Mora em São Paulo." [ngModel]="backBio()"
                 (ngModelChange)="backBio.set($event)" data-back-bio></textarea>
             </div>
+            @if (spec.flapMm) {
+              <div class="field">
+                <label for="print-flap">Orelha da frente (sinopse)</label>
+                <textarea id="print-flap" pTextarea rows="3" [autoResize]="true" maxlength="1500"
+                  [ngModel]="flapText()" (ngModelChange)="flapText.set($event)" data-flap-text></textarea>
+                <small class="muted small">Com orelhas, sua foto, o nome e a mini biografia vão para a orelha de
+                  trás.</small>
+              </div>
+            }
             <label class="back-check">
               <input type="checkbox" [checked]="barcode()" [disabled]="!isbnValid()"
                 (change)="barcode.set($any($event.target).checked)" data-back-barcode />

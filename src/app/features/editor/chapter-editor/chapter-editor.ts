@@ -43,6 +43,7 @@ import { PrintGeometry, dpiHint, printDpi, printGeometry, trimSize } from '../..
 import { BookGenre, BookLayout, PageDesign } from '../../../core/models/api.models';
 import { DEFAULT_PAGE, PageDesignerComponent } from '../page-designer/page-designer';
 import { FootnotePanelComponent } from '../footnote/footnote-panel';
+import { CALLOUT_KINDS, CalloutKind } from '../schema/callout';
 import { NodeSelection } from '@tiptap/pm/state';
 import { UniverseImage } from '../../../core/models/api.models';
 import { ChapterAutosave, SaveStatus } from './chapter-autosave';
@@ -54,6 +55,8 @@ interface ToolbarState {
   underline: boolean;
   heading: boolean;
   blockquote: boolean;
+  /** O tipo do quadro de destaque em que o cursor está (null = fora de um). */
+  callout: string | null;
   indent: boolean;
   proofreadOff: boolean;
   canUndo: boolean;
@@ -132,7 +135,7 @@ export class ChapterEditorComponent {
   readonly focusMode = signal(false);
   readonly keyboardOffset = signal(0);
   readonly toolbar = signal<ToolbarState>({
-    bold: false, italic: false, underline: false, heading: false, blockquote: false, indent: false, proofreadOff: false,
+    bold: false, italic: false, underline: false, heading: false, blockquote: false, callout: null, indent: false, proofreadOff: false,
     canUndo: false, canRedo: false,
   });
 
@@ -428,6 +431,20 @@ export class ChapterEditorComponent {
 
   toggleQuote(): void {
     this.editor?.chain().focus().toggleBlockquote().run();
+  }
+
+  /** O menu dos quadros de destaque (versículo-chave, para refletir, oração…). */
+  readonly calloutMenu = signal(false);
+  readonly calloutKinds = CALLOUT_KINDS;
+
+  setCallout(kind: CalloutKind): void {
+    this.editor?.chain().focus().setCallout(kind).run();
+    this.calloutMenu.set(false);
+  }
+
+  unsetCallout(): void {
+    this.editor?.chain().focus().unsetCallout().run();
+    this.calloutMenu.set(false);
   }
 
   /** No celular não há tecla Tab: o recuo também fica na barra. */
@@ -799,6 +816,7 @@ export class ChapterEditorComponent {
       underline: editor.isActive('underline'),
       heading: editor.isActive('heading'),
       blockquote: editor.isActive('blockquote'),
+      callout: editor.isActive('callout') ? (editor.getAttributes('callout')['kind'] as string) : null,
       indent: editor.isActive('paragraph', { indent: true }),
       proofreadOff: editor.isActive('proofreadOff'),
       canUndo: editor.can().undo(),

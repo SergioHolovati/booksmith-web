@@ -29,8 +29,17 @@ export class ExportApi {
   }
 
   /** Medidas da capa aberta; em `custom`, a lombada (e a sangria) vêm da gráfica. */
-  printCoverSpec(bookId: string, profile: PrintProfile, spineMm?: number | null, bleedMm?: number | null): Observable<PrintCoverSpec> {
+  printCoverSpec(
+    bookId: string,
+    profile: PrintProfile,
+    spineMm?: number | null,
+    bleedMm?: number | null,
+    flapMm?: number | null,
+  ): Observable<PrintCoverSpec> {
     const params: Record<string, string> = { profile };
+    if (flapMm) {
+      params['flapMm'] = String(flapMm);
+    }
     if (spineMm !== null && spineMm !== undefined) {
       params['spineMm'] = String(spineMm);
     }
@@ -43,7 +52,7 @@ export class ExportApi {
   /** PDF da capa aberta, a partir da imagem desenhada no aparelho. */
   printCover(
     bookId: string,
-    request: { profile: PrintProfile; spineMm: number | null; bleedMm: number | null; image: string },
+    request: { profile: PrintProfile; spineMm: number | null; bleedMm: number | null; flapMm?: number | null; image: string },
   ): Observable<ExportedFile> {
     return this.http
       .post(`${this.base}/books/${bookId}/export/print-cover`, request, { observe: 'response', responseType: 'blob' })

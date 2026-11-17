@@ -238,6 +238,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
       { steps: ['Monte e salve a frente em **Capa**, e escreva o **texto da contracapa** ali mesmo.', 'Toque em **Capa para gráfica**.', 'Escolha onde vai imprimir.', 'Confira as medidas e toque em **Baixar o PDF da capa**.'] },
       { p: 'No **KDP** (Amazon), a lombada é calculada pelo número de páginas do seu PDF e pelo papel (branco, creme ou colorido premium), com 3,2 mm de sangria. O KDP aceita A5 e 6×9 e livros a partir de 24 páginas; a lombada só leva texto a partir de 80 páginas.' },
       { p: 'Em **outra gráfica** (Clube de Autores, UICLAP ou uma gráfica local), cada uma tem a sua conta para a lombada. Digite a medida que ela informar para o seu número de páginas, e a sangria que ela pedir.' },
+      { p: '**Capa com orelhas?** Em **Outra gráfica**, informe a largura das orelhas (de 50 a 120 mm). A orelha da frente leva o texto que você escrever (em geral, a sinopse); a de trás, sua foto, o nome e a mini biografia. O KDP não imprime capa com orelhas.' },
       { p: '**Contracapa completa:** o texto (sinopse e depoimentos), uma **imagem de fundo** com escurecimento, a **sua foto** (a das Páginas do livro) com uma **mini biografia** e o **código de barras do ISBN**, gerado a partir do ISBN do impresso que você informou no guia de publicação (o padrão EAN-13 que livrarias e gráficas leem).' },
       { p: 'A prévia mostra o corte (vermelho) e as dobras da lombada (azul). O PDF sai em 300 DPI, em cores de tela; confira no gabarito da gráfica antes de mandar imprimir. Mudou a diagramação? O número de páginas muda, e a lombada junto.' },
       { p: '**Já tem a capa pronta em PDF?** Toque em **Importar capa em PDF**. Se for só a frente (página em pé), ela vira a capa do livro e entra sem perder qualidade, com a lombada e a contracapa daqui. Se for a capa aberta (deitada), conferimos as medidas: se a lombada não bate, dizemos quanto falta ou sobra; se bate, você baixa o seu próprio arquivo, conferido.' },
@@ -272,6 +273,18 @@ export const HELP_ARTICLES: HelpArticle[] = [
       { p: 'A **ficha catalográfica** é feita por bibliotecária(o) com registro no CRB (muitas gráficas e a Câmara Brasileira do Livro oferecem). Toque em **Usar o modelo** para ver o que ela costuma ter; ela sai em quadro, no fim dos créditos.' },
       { p: 'A página sobre você leva o título que você escolher ("Sobre a autora", "Sobre mim"); em branco, vai o seu nome. O que ficar vazio não aparece no livro.' },
       { p: 'No Word, essas páginas não viram capítulos se você importar o arquivo de novo.' },
+    ],
+  },
+  {
+    slug: 'quadros-de-destaque',
+    title: 'Quadros de destaque',
+    summary: 'Versículo-chave, Para refletir, Oração, Exercício, Resumo… em quadro no livro.',
+    topic: 'livros',
+    keywords: ['destaque', 'quadro', 'caixa', 'versículo', 'oração', 'reflexão', 'exercício', 'resumo', 'objetivos', 'devocional', 'didático'],
+    body: [
+      { steps: ['No editor, deixe o cursor no parágrafo (ou selecione vários).', 'Toque no **marcador** da barra de baixo.', 'Escolha o tipo: Versículo-chave, Para refletir, Oração, Exercício, Resumo, Objetivos, Importante ou Em destaque.'] },
+      { p: 'O texto fica num quadro com borda e fundo, com o nome do tipo em cima, no editor e no livro baixado (ePub, PDF e Word). Para trocar o tipo ou **tirar o destaque**, toque no marcador de novo com o cursor dentro do quadro.' },
+      { p: 'Bom para devocionais (versículo do dia, oração), estudos bíblicos (perguntas para o grupo), autoajuda (exercícios, resumo do capítulo) e didáticos (objetivos da lição).' },
     ],
   },
   {

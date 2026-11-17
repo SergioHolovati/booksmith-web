@@ -13,10 +13,15 @@ export function printSize(spec: PrintCoverSpec, pxPerMm: number): { width: numbe
   return { width: Math.round(spec.widthMm * pxPerMm), height: Math.round(spec.heightMm * pxPerMm) };
 }
 
-/** Onde fica cada parte, em mm a partir da esquerda: contracapa, lombada e frente (com a sangria por fora). */
-export function printPanels(spec: PrintCoverSpec): { backEnd: number; spineEnd: number } {
-  const backEnd = spec.bleedMm + spec.trimWidthMm;
-  return { backEnd, spineEnd: backEnd + spec.spineMm };
+/**
+ * Onde fica cada parte, em mm a partir da esquerda: orelha de trás, contracapa, lombada, frente e orelha da frente
+ * (com a sangria por fora). Sem orelhas, a contracapa começa na sangria.
+ */
+export function printPanels(spec: PrintCoverSpec): { backStart: number; backEnd: number; spineEnd: number; frontEnd: number } {
+  const backStart = spec.bleedMm + (spec.flapMm ?? 0);
+  const backEnd = backStart + spec.trimWidthMm;
+  const spineEnd = backEnd + spec.spineMm;
+  return { backStart, backEnd, spineEnd, frontEnd: spineEnd + spec.trimWidthMm };
 }
 
 /**
@@ -40,16 +45,18 @@ export function drawPrintCover(
 ): void {
   const k = options.pxPerMm;
   const { width, height } = printSize(spec, k);
-  const { backEnd, spineEnd } = printPanels(spec);
+  const { backStart, backEnd, spineEnd, frontEnd } = printPanels(spec);
+  const flap = spec.flapMm ?? 0;
   const family = fontFamily(design.font);
   const back = design.template === 'band' ? design.accentColor : design.backgroundColor;
 
   ctx.clearRect(0, 0, width, height);
-  // Contracapa e lombada: a cor de fundo (na Faixa, a cor da faixa, que segue da frente)
+  // Orelhas, contracapa e lombada: a cor de fundo (na Faixa, a cor da faixa, que segue da frente)
   ctx.fillStyle = back;
-  ctx.fillRect(0, 0, Math.round(spineEnd * k), height);
-  // Contracapa com imagem de fundo (até a borda, com a sangria), escurecida para o texto aparecer
-  const backBox = { x: 0, y: 0, w: Math.round(backEnd * k), h: height };
+  ctx.fillRect(0, 0, width, height);
+  // Contracapa com imagem de fundo (até a borda, com a sangria, ou até a dobra da orelha), escurecida para o texto
+  const backX = flap ? Math.round(backStart * k) : 0;
+  const backBox = { x: backX, y: 0, w: Math.round(backEnd * k) - backX, h: height };
   if (options.backImage) {
     coverImage(ctx, options.backImage, backBox);
     const shade = design.backShade ?? 0;
@@ -61,7 +68,7 @@ export function drawPrintCover(
 
   // Frente: do começo dela até a sangria da direita. Com a capa importada em PDF, a imagem dela (o servidor põe
   // o PDF original por cima, como vetor)
-  const front = { x: spineEnd * k, y: 0, w: width - spineEnd * k, h: height };
+  const front = { x: spineEnd * k, y: 0, w: flap ? spec.trimWidthMm * k : width - spineEnd * k, h: height };
   if (options.frontImage) {
     coverImage(ctx, options.frontImage, front);
   } else {
@@ -72,17 +79,28 @@ export function drawPrintCover(
   ctx.textBaseline = 'top';
 
   // Contracapa: o texto em cima; embaixo à direita fica livre para o código de barras
-  const left = (spec.bleedMm + SAFE_MM + 6) * k;
+  const left = (backStart + SAFE_MM + 6) * k;
   const textWidth = (spec.trimWidthMm - 2 * SAFE_MM - 12) * k;
   const size = 4.2 * k;
   ctx.textAlign = 'left';
   ctx.font = `400 ${size}px ${family}`;
   let y = (spec.bleedMm + SAFE_MM + 14) * k;
-  // Embaixo: foto e mini biografia à esquerda, código de barras à direita; o texto para antes
+  // Embaixo: foto e mini biografia à esquerda, código de barras à direita; o texto para antes. Com orelhas, a foto
+  // e a biografia vão para a orelha de trás
   const photo = design.backPhoto ? (options.authorPhoto ?? null) : null;
   const bio = design.backBio?.trim() || null;
+  if (flap && (photo || bio || design.author)) {
+    drawFlap(ctx, { x: (spec.bleedMm + 6) * k, w: (flap - 12) * k, top: (spec.bleedMm + SAFE_MM + 14) * k,
+      bottom: (spec.bleedMm + spec.trimHeightMm - SAFE_MM) * k }, family, design.textColor, k,
+      { photo, author: design.author, text: bio });
+  }
+  if (flap && design.flapText?.trim()) {
+    drawFlap(ctx, { x: (frontEnd + 6) * k, w: (flap - 12) * k, top: (spec.bleedMm + SAFE_MM + 14) * k,
+      bottom: (spec.bleedMm + spec.trimHeightMm - SAFE_MM) * k }, family, design.textColor, k,
+      { photo: null, author: null, text: design.flapText.trim() });
+  }
   const barcode = design.barcode !== false && !!isbn13(options.isbn);
-  const lower = !!photo || !!bio || barcode;
+  const lower = (!flap && (!!photo || !!bio)) || barcode;
   const bottom = (spec.bleedMm + spec.trimHeightMm * (lower ? 0.6 : 0.7)) * k;
   for (const paragraph of (design.backText ?? '').split('\n').filter((p) => p.trim())) {
     for (const line of wrapText((t) => ctx.measureText(t).width, paragraph.trim(), textWidth)) {
@@ -97,11 +115,11 @@ export function drawPrintCover(
   const zoneTop = (spec.bleedMm + spec.trimHeightMm - SAFE_MM - 34) * k;
   const barW = 38 * k;
   const barH = 24 * k;
-  const barX = (spec.bleedMm + spec.trimWidthMm - SAFE_MM - 4) * k - barW;
+  const barX = (backEnd - SAFE_MM - 4) * k - barW;
   if (barcode && options.isbn) {
     drawBarcode(ctx, options.isbn, barX, (spec.bleedMm + spec.trimHeightMm - SAFE_MM - 4) * k - barH, barW, barH);
   }
-  if (photo || bio) {
+  if (!flap && (photo || bio)) {
     // Foto redonda e, ao lado, o nome e a mini biografia
     let textX = left;
     if (photo) {
@@ -114,7 +132,7 @@ export function drawPrintCover(
       ctx.restore();
       textX = left + d + 4 * k;
     }
-    const bioWidth = (barcode ? barX - 4 * k : (spec.bleedMm + spec.trimWidthMm - SAFE_MM - 6) * k) - textX;
+    const bioWidth = (barcode ? barX - 4 * k : (backEnd - SAFE_MM - 6) * k) - textX;
     ctx.fillStyle = design.textColor;
     ctx.textAlign = 'left';
     let by = zoneTop;
@@ -135,7 +153,7 @@ export function drawPrintCover(
         by += bioSize * 1.4;
       }
     }
-  } else if (design.author) {
+  } else if (design.author && !flap) {
     ctx.fillStyle = design.textColor;
     ctx.font = `600 ${3.6 * k}px ${family}`;
     ctx.fillText(design.author, left, (spec.bleedMm + spec.trimHeightMm - SAFE_MM - 16) * k);
@@ -161,7 +179,7 @@ export function drawPrintCover(
   }
 
   if (options.guides) {
-    drawGuides(ctx, spec, k, { backEnd, spineEnd });
+    drawGuides(ctx, spec, k, { backStart, backEnd, spineEnd, frontEnd });
   }
 }
 
@@ -174,7 +192,54 @@ function coverImage(ctx: CanvasRenderingContext2D, image: HTMLImageElement, { x,
 }
 
 /** Linha tracejada no corte (sangria) e nas dobras da lombada; só na tela. */
-function drawGuides(ctx: CanvasRenderingContext2D, spec: PrintCoverSpec, k: number, panels: { backEnd: number; spineEnd: number }): void {
+/** Uma orelha: a foto (redonda), o nome e o texto, de cima para baixo. */
+function drawFlap(
+  ctx: CanvasRenderingContext2D,
+  area: { x: number; w: number; top: number; bottom: number },
+  family: string,
+  color: string,
+  k: number,
+  content: { photo: HTMLImageElement | null; author: string | null; text: string | null },
+): void {
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  let y = area.top;
+  if (content.photo) {
+    const d = Math.min(30 * k, area.w);
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(area.x + d / 2, y + d / 2, d / 2, 0, Math.PI * 2);
+    ctx.clip();
+    coverImage(ctx, content.photo, { x: area.x, y, w: d, h: d });
+    ctx.restore();
+    y += d + 5 * k;
+  }
+  if (content.author) {
+    ctx.font = `600 ${3.6 * k}px ${family}`;
+    ctx.fillText(content.author, area.x, y, area.w);
+    y += 3.6 * k * 1.6;
+  }
+  if (content.text) {
+    const size = 3.3 * k;
+    ctx.font = `400 ${size}px ${family}`;
+    for (const paragraph of content.text.split('\n').filter((p) => p.trim())) {
+      for (const line of wrapText((t) => ctx.measureText(t).width, paragraph.trim(), area.w)) {
+        if (y + size > area.bottom) {
+          ctx.restore();
+          return;
+        }
+        ctx.fillText(line, area.x, y);
+        y += size * 1.45;
+      }
+      y += size * 0.7;
+    }
+  }
+  ctx.restore();
+}
+
+function drawGuides(ctx: CanvasRenderingContext2D, spec: PrintCoverSpec, k: number, panels: { backStart: number; backEnd: number; spineEnd: number; frontEnd: number }): void {
   const { width, height } = printSize(spec, k);
   ctx.save();
   ctx.setLineDash([2 * k, 1.5 * k]);
@@ -182,7 +247,9 @@ function drawGuides(ctx: CanvasRenderingContext2D, spec: PrintCoverSpec, k: numb
   ctx.strokeStyle = 'rgba(255, 64, 64, 0.9)';
   ctx.strokeRect(spec.bleedMm * k, spec.bleedMm * k, width - 2 * spec.bleedMm * k, height - 2 * spec.bleedMm * k);
   ctx.strokeStyle = 'rgba(64, 160, 255, 0.9)';
-  for (const x of [panels.backEnd, panels.spineEnd]) {
+  // Dobras da lombada e, com orelhas, das orelhas
+  const folds = spec.flapMm ? [panels.backStart, panels.backEnd, panels.spineEnd, panels.frontEnd] : [panels.backEnd, panels.spineEnd];
+  for (const x of folds) {
     ctx.beginPath();
     ctx.moveTo(x * k, 0);
     ctx.lineTo(x * k, height);
