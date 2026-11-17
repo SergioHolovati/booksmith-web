@@ -11,7 +11,7 @@ import { UniverseApi } from '../../../core/api/universe.api';
 import { fontFamilyCss, loadBookFonts } from '../../../core/fonts/book-fonts';
 import { BookDetail, PagePreview } from '../../../core/models/api.models';
 import { trimSize } from '../../../core/util/print-geometry';
-import { artStyle, previewTextStyle, withHaze } from '../../editor/page-designer/page-designer';
+import { artStyle, previewTextStyle, withBackdrop } from '../../editor/page-designer/page-designer';
 
 /** A lista com o item de {@code from} levado para {@code to} (os outros andam uma casa). */
 export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
@@ -58,7 +58,7 @@ export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
                     <img class="art" [src]="url" alt="" [style]="art(p)" (load)="imageLoaded(p, $event)" />
                   }
                   @if (p.page.text !== 'none' && p.paragraphs.length) {
-                    <span class="text" [class]="'text ' + p.page.color + (p.page.band ? ' band' : '') + (p.page.haze ? ' haze' : '')"
+                    <span class="text" [class]="'text ' + p.page.color + (p.page.band ? ' band' : '') + (p.page.haze ? ' haze' : '') + (p.page.blur ? ' blur' : '')"
                       [style]="textStyle(p)" [style.font-family]="font(p)">
                       @for (line of p.paragraphs; track $index) {
                         <span class="line">{{ line }}</span>
@@ -110,6 +110,14 @@ export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
     .text.band.dark { background: rgba(255, 255, 255, .82); padding: .5em .7em; border-radius: .5em; }
     .text.band.light { background: rgba(0, 0, 0, .6); padding: .5em .7em; border-radius: .5em; }
     .text.haze { padding: 1em 1.3em; background-size: 100% 100%; background-repeat: no-repeat; }
+    .text.blur { z-index: 1; }
+    .text.blur::before { content: ''; position: absolute; inset: -.9em -1.2em; z-index: -1; pointer-events: none;
+      backdrop-filter: blur(var(--blur, 4px)); -webkit-backdrop-filter: blur(var(--blur, 4px));
+      background: rgba(255, 255, 255, .25);
+      mask-image: linear-gradient(to right, transparent, #000 1.2em, #000 calc(100% - 1.2em), transparent),
+        linear-gradient(to bottom, transparent, #000 .9em, #000 calc(100% - .9em), transparent);
+      mask-composite: intersect; -webkit-mask-composite: source-in; }
+    .text.blur.light::before { background: rgba(0, 0, 0, .25); }
     .caption { font-size: .8rem; color: var(--bs-text-soft); text-align: left; overflow: hidden; text-overflow: ellipsis;
       white-space: nowrap; }
     .caption strong { color: var(--bs-text); margin-right: .25rem; }
@@ -190,7 +198,7 @@ export class PageOrganizerComponent {
   }
 
   textStyle(p: PagePreview): Record<string, string> {
-    return withHaze(p.page, previewTextStyle(p.page, this.trim()));
+    return withBackdrop(p.page, previewTextStyle(p.page, this.trim()), this.trim()[0]);
   }
 
   font(p: PagePreview): string {

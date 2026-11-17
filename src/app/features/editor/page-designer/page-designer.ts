@@ -13,6 +13,7 @@ const MM_PER_PT = 25.4 / 72;
 export const DEFAULT_PAGE: PageDesign = {
   imageId: null, background: '#ffffff', text: 'bottom', align: 'center', size: 'l', color: 'dark', band: false,
   spread: false, textSide: 'right', x: 10, y: 10, w: 80, zoom: 1, imageX: 50, imageY: 50, font: null, haze: false,
+  blur: false,
 };
 
 /**
@@ -79,8 +80,17 @@ export function previewTextStyle(page: PageDesign, trimMm: [number, number]): Re
   return { ...style, left: `${left}%`, width: `${parseFloat(style['width']) / 2}%`, 'font-size': font };
 }
 
-/** Com névoa, o fundo esfumado esticado na caixa (o mesmo desenho do PDF). */
-export function withHaze(page: PageDesign, style: Record<string, string>): Record<string, string> {
+/** Desfoque do PDF: 2,5 mm de desvio (BlurPatch no servidor). */
+const BLUR_MM = 2.45;
+
+/**
+ * O destaque atrás do texto: com névoa, o fundo esfumado esticado na caixa (o mesmo desenho do PDF); com desfoque, o
+ * tamanho do borrado proporcional à página (o ::before da caixa desfoca o que está atrás).
+ */
+export function withBackdrop(page: PageDesign, style: Record<string, string>, trimWidthMm: number): Record<string, string> {
+  if (page.blur) {
+    return { ...style, '--blur': `${(BLUR_MM / (page.spread ? 2 * trimWidthMm : trimWidthMm)) * 100}cqw` };
+  }
   return page.haze ? { ...style, 'background-image': hazeBackground(page.color === 'dark') } : style;
 }
 
@@ -133,7 +143,7 @@ export function textBoxStyle(page: PageDesign, trimMm: [number, number]): Record
               (pointercancel)="endDrag($event)" title="Arraste para enquadrar a ilustração" data-page-art />
           }
           @if (shown().text !== 'none' && paragraphs().length) {
-            <div class="text draggable" [class]="'text draggable ' + shown().color + (shown().band ? ' band' : '') + (shown().haze ? ' haze' : '')
+            <div class="text draggable" [class]="'text draggable ' + shown().color + (shown().band ? ' band' : '') + (shown().haze ? ' haze' : '') + (shown().blur ? ' blur' : '')
               + (dragging() ? ' dragging' : '')" [style]="boxStyle()" data-page-text
               (pointerdown)="startDrag($event)" (pointermove)="moveDrag($event)" (pointerup)="endDrag($event)"
               (pointercancel)="endDrag($event)" title="Arraste para mudar o texto de lugar"
@@ -216,11 +226,17 @@ export function textBoxStyle(page: PageDesign, trimMm: [number, number]): Record
             <span class="label">Cor</span>
             <button type="button" class="chip" [class.on]="page().color === 'dark'" (click)="set({ color: 'dark' })">Escura</button>
             <button type="button" class="chip" [class.on]="page().color === 'light'" (click)="set({ color: 'light' })">Clara</button>
+          </div>
+          <div class="row">
+            <span class="label" title="O que fica atrás do texto">Atrás</span>
             <button type="button" class="chip" [class.on]="page().band" [attr.aria-pressed]="page().band"
-              (click)="set({ band: !page().band, haze: false })" data-page-band>Faixa</button>
+              (click)="set({ band: !page().band, haze: false, blur: false })" data-page-band>Faixa</button>
             <button type="button" class="chip" [class.on]="page().haze" [attr.aria-pressed]="!!page().haze"
-              (click)="set({ haze: !page().haze, band: false })" data-page-haze
+              (click)="set({ haze: !page().haze, band: false, blur: false })" data-page-haze
               title="A ilustração clareia atrás do texto, com a borda esfumada">Névoa</button>
+            <button type="button" class="chip" [class.on]="page().blur" [attr.aria-pressed]="!!page().blur"
+              (click)="set({ blur: !page().blur, band: false, haze: false })" data-page-blur
+              title="A ilustração fica desfocada atrás do texto, com a borda esfumada">Desfoque</button>
           </div>
         }
         <div class="row">
@@ -256,6 +272,14 @@ export function textBoxStyle(page: PageDesign, trimMm: [number, number]): Record
     .text.band.dark { background: rgba(255, 255, 255, .82); padding: .5em .7em; border-radius: .5em; }
     .text.band.light { background: rgba(0, 0, 0, .6); padding: .5em .7em; border-radius: .5em; }
     .text.haze { padding: 1em 1.3em; background-size: 100% 100%; background-repeat: no-repeat; }
+    .text.blur { z-index: 1; }
+    .text.blur::before { content: ''; position: absolute; inset: -.9em -1.2em; z-index: -1; pointer-events: none;
+      backdrop-filter: blur(var(--blur, 4px)); -webkit-backdrop-filter: blur(var(--blur, 4px));
+      background: rgba(255, 255, 255, .25);
+      mask-image: linear-gradient(to right, transparent, #000 1.2em, #000 calc(100% - 1.2em), transparent),
+        linear-gradient(to bottom, transparent, #000 .9em, #000 calc(100% - .9em), transparent);
+      mask-composite: intersect; -webkit-mask-composite: source-in; }
+    .text.blur.light::before { background: rgba(0, 0, 0, .25); }
     .text { box-sizing: border-box; }
     .text.draggable { cursor: grab; touch-action: none; user-select: none; outline: 1px dashed transparent; }
     .text.draggable:hover, .text.dragging { outline-color: rgba(242, 140, 56, .9); }
@@ -353,7 +377,8 @@ export class PageDesignerComponent {
     this.pageChange.emit({ ...this.page(), zoom: Number(value) / 100 });
   }
 
-  readonly boxStyle = computed(() => withHaze(this.shown(), previewTextStyle(this.shown(), this.trimMm())));
+  readonly boxStyle = computed(() =>
+    withBackdrop(this.shown(), previewTextStyle(this.shown(), this.trimMm()), this.trimMm()[0]));
 
   set(change: Partial<PageDesign>): void {
     this.pageChange.emit({ ...this.page(), ...change });

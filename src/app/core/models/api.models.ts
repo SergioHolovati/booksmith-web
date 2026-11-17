@@ -32,6 +32,8 @@ export interface PageDesign {
   font?: string | null;
   /** Névoa: a arte clareia atrás do texto, com a borda esfumada (no lugar da faixa). */
   haze?: boolean;
+  /** Desfoque: a arte borrada atrás do texto, com a borda esfumada (no lugar da faixa e da névoa). */
+  blur?: boolean;
 }
 
 /** Uma página do livro ilustrado, para organizar vendo as miniaturas. */
