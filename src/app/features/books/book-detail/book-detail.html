@@ -168,13 +168,31 @@
     <section class="chapters">
       <div class="section-header">
         <h2>{{ pictureBook() ? 'Páginas' : 'Capítulos' }}</h2>
-        <p-button [label]="pictureBook() ? 'Nova página' : 'Novo'" icon="pi pi-plus" size="small" severity="secondary"
-          [outlined]="true" [loading]="creatingChapter()" (onClick)="newChapter()" />
+        <div class="chapter-buttons">
+          @if (pictureBook()) {
+            <label class="import-art p-button p-button-sm p-button-secondary p-button-outlined" [class.p-disabled]="importing()"
+              data-import-illustrations>
+              <input type="file" accept="image/*" multiple class="visually-hidden" [disabled]="!!importing()"
+                (change)="importIllustrations($event)" aria-label="Importar ilustrações" />
+              <i class="pi pi-images" aria-hidden="true"></i> Importar ilustrações
+            </label>
+          }
+          <p-button [label]="pictureBook() ? 'Nova página' : 'Novo'" icon="pi pi-plus" size="small" severity="secondary"
+            [outlined]="true" [loading]="creatingChapter()" (onClick)="newChapter()" />
+        </div>
       </div>
+      @if (importing(); as progress) {
+        <div class="import-progress glass-card" role="status" data-import-progress>
+          <p-progress-spinner strokeWidth="5" styleClass="import-spin" />
+          <span>Criando as páginas: {{ progress.done }} de {{ progress.total }}…</span>
+          <p-button label="Parar" severity="secondary" [text]="true" size="small" (onClick)="stopImport()" />
+        </div>
+      }
 
       @if (pictureBook()) {
         <p class="muted small picture-hint" data-picture-hint>Livro ilustrado: cada página tem a ilustração de fundo e
-          o texto por cima. Abra a página para escolher a ilustração e onde fica o texto.
+          o texto por cima. Abra a página para escolher a ilustração e onde fica o texto. Com as ilustrações prontas,
+          <strong>Importar ilustrações</strong> cria uma página para cada, na ordem dos nomes dos arquivos (1, 2, 3…).
           @if (printedPages(); as printed) {
             <span data-printed-pages>Impresso: {{ printed.total }} páginas com a folha de rosto{{ printed.blanks ? ' ('
               + printed.blanks + ' em branco antes de página dupla, que sempre começa à esquerda)' : '' }}{{ printed.missing

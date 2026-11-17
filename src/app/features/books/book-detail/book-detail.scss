@@ -320,3 +320,42 @@
   color: var(--bs-ember);
   font-size: .9rem;
 }
+
+.chapter-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: .4rem;
+}
+
+.import-art {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  cursor: pointer;
+}
+
+.import-progress {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  margin: 0 0 .8rem;
+  padding: .6rem .8rem;
+}
+
+:host ::ng-deep .import-spin {
+  width: 22px;
+  height: 22px;
+}
+
+.import-art {
+  position: relative;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}

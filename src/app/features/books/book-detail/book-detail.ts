@@ -20,6 +20,9 @@ import {
   TimelineEvent,
 } from '../../../core/models/api.models';
 import { formatCount } from '../../../core/util/word-count';
+import { trimSize } from '../../../core/util/print-geometry';
+import { DEFAULT_PAGE } from '../../editor/page-designer/page-designer';
+import { compressForPrint, isSpreadImage, naturalOrder, pageTitle } from '../illustration-pages';
 import { BookCoverComponent } from '../book-cover';
 import { KIND_LABEL, LANGUAGE_LABEL, STATUS_LABEL, hasCast, hasPlotTools, isPictureBook } from '../book-labels';
 import { AskBookComponent } from '../ask-book/ask-book';
@@ -72,6 +75,9 @@ export class BookDetailComponent {
   readonly book = signal<BookDetail | null>(null);
   readonly error = signal<string | null>(null);
   readonly creatingChapter = signal(false);
+  /** Importando ilustrações: quantas já foram e de quantas (null = parado). */
+  readonly importing = signal<{ done: number; total: number } | null>(null);
+  private cancelImport = false;
   readonly reordering = signal(false);
   /** Parte: o capítulo que a abre (diálogo aberto) e o nome em edição. */
   /** O capítulo sendo renomeado pela lista (sem abrir o editor). */
@@ -161,6 +167,57 @@ export class BookDetailComponent {
     } finally {
       this.creatingChapter.set(false);
     }
+  }
+
+  /**
+   * Livro ilustrado: várias ilustrações de uma vez, uma página nova para cada (no fim do livro, na ordem dos nomes
+   * dos arquivos). Imagem na proporção do livro aberto vira página dupla. Uma que falhe não para as outras.
+   */
+  async importIllustrations(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const files = naturalOrder(Array.from(input.files ?? []));
+    input.value = '';
+    const book = this.book();
+    if (!files.length || !book) {
+      return;
+    }
+    const [trimW, trimH] = trimSize(book.layout);
+    const failed: string[] = [];
+    let created = 0;
+    this.cancelImport = false;
+    this.importing.set({ done: 0, total: files.length });
+    for (const [i, file] of files.entries()) {
+      if (this.cancelImport) {
+        break;
+      }
+      try {
+        const art = await compressForPrint(file);
+        const image = await firstValueFrom(this.universe.uploadImage(book.universeId, art.dataUrl, pageTitle(file.name), []));
+        const chapter = await firstValueFrom(this.api.createChapter(book.id, pageTitle(file.name)));
+        await firstValueFrom(this.api.setChapterPage(chapter.id, {
+          ...DEFAULT_PAGE, imageId: image.id, spread: isSpreadImage(art.width, art.height, trimW, trimH),
+        }));
+        created++;
+      } catch {
+        failed.push(file.name);
+      }
+      this.importing.set({ done: i + 1, total: files.length });
+    }
+    this.importing.set(null);
+    await this.load();
+    if (created) {
+      this.toast.add({ severity: 'success', life: 5000,
+        summary: created === 1 ? '1 página criada' : `${created} páginas criadas`,
+        detail: this.cancelImport ? 'Importação interrompida: as que já tinham ido ficaram.' : undefined });
+    }
+    if (failed.length) {
+      this.toast.add({ severity: 'warn', life: 8000, summary: 'Algumas ilustrações não foram',
+        detail: failed.slice(0, 5).join(', ') + (failed.length > 5 ? ` e mais ${failed.length - 5}` : '') });
+    }
+  }
+
+  stopImport(): void {
+    this.cancelImport = true;
   }
 
   async move(index: number, direction: -1 | 1): Promise<void> {

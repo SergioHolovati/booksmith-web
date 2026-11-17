@@ -27,7 +27,7 @@ import { GALLERY_MAX_DIMENSION } from '../../../shared/gallery/image-gallery';
           <i class="pi pi-sparkles" aria-hidden="true"></i><small>Gerar com IA</small>
         </button>
         <label class="add" [class.busy]="uploading()">
-          <input type="file" accept="image/*" class="file-input" (change)="upload($event)" aria-label="Enviar imagem"
+          <input type="file" accept="image/*" multiple class="file-input" (change)="upload($event)" aria-label="Enviar imagem"
             [disabled]="uploading()" />
           @if (uploading()) {
             <p-progress-spinner strokeWidth="5" styleClass="spin" />
@@ -120,17 +120,26 @@ export class IllustrationPickerComponent {
 
   async upload(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
+    const files = Array.from(input.files ?? []);
     input.value = '';
     const universeId = this.universeId();
-    if (!file || !universeId) {
+    if (!files.length || !universeId) {
       return;
     }
     this.uploading.set(true);
     try {
-      const dataUrl = await compressImage(file, GALLERY_MAX_DIMENSION, 0.85, 'portable');
-      const image = await firstValueFrom(this.api.uploadImage(universeId, dataUrl, null, []));
-      this.choose(image);
+      // Uma: entra e já é escolhida. Várias: todas entram na biblioteca, para escolher em seguida
+      const sent: UniverseImage[] = [];
+      for (const file of files) {
+        const dataUrl = await compressImage(file, GALLERY_MAX_DIMENSION, 0.85, 'portable');
+        sent.push(await firstValueFrom(this.api.uploadImage(universeId, dataUrl, null, [])));
+      }
+      if (sent.length === 1) {
+        this.choose(sent[0]);
+      } else {
+        this.images.update((list) => [...sent, ...list]);
+        this.toast.add({ severity: 'success', summary: `${sent.length} imagens na biblioteca`, life: 4000 });
+      }
     } catch (error) {
       this.toast.add({ severity: 'error', summary: problemMessage(error, 'Não foi possível enviar a imagem.'), life: 5000 });
     } finally {
