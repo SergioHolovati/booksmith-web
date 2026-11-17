@@ -28,6 +28,8 @@ export interface PageDesign {
   zoom: number;
   imageX: number;
   imageY: number;
+  /** Fonte só desta página (id do catálogo); null = a do livro. */
+  font?: string | null;
 }
 export type BookStatus = 'DRAFT' | 'WRITING' | 'COMPLETE';
 /** Tag BCP 47 do idioma do livro (orienta o corretor ortográfico do navegador). */
@@ -215,6 +217,8 @@ export interface BookLayout {
   pageNumbers: boolean;
   /** Modo páginas (o livro pronto importado em PDF): cada capítulo é uma página, em qualquer gênero. */
   fixedLayout: boolean;
+  /** A fonte do texto (id do catálogo, core/fonts/book-fonts). */
+  font: string;
 }
 
 /** O resultado da importação do livro pronto em PDF. */

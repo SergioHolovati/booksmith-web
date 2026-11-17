@@ -157,7 +157,7 @@ export class ChapterEditorComponent {
   readonly page = signal<PageDesign>(DEFAULT_PAGE);
   /** O texto da página, um item por parágrafo, para a prévia. */
   readonly pageParagraphs = signal<string[]>([]);
-  private readonly bookLayout = signal<BookLayout | null>(null);
+  protected readonly bookLayout = signal<BookLayout | null>(null);
   readonly trimMm = computed<[number, number]>(() => {
     const layout = this.bookLayout();
     return layout ? trimSize(layout) : [200, 200];

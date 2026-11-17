@@ -7,6 +7,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { firstValueFrom } from 'rxjs';
 
 import { ExportApi } from '../../../core/api/export.api';
+import { BOOK_FONTS, BookFontOption, fontFamilyCss, loadBookFonts } from '../../../core/fonts/book-fonts';
 import { ManuscriptApi } from '../../../core/api/manuscript.api';
 import { problemMessage } from '../../../core/api/problem';
 import { BookDetail, BookLayout, BookTrim } from '../../../core/models/api.models';
@@ -27,6 +28,7 @@ export const DEFAULT_LAYOUT: BookLayout = {
   autoPages: true,
   pageNumbers: false,
   fixedLayout: false,
+  font: 'literata',
 };
 
 /** Escolhas que só existem no livro ilustrado (infantil). */
@@ -210,6 +212,13 @@ export class BookLayoutComponent implements HasUnsavedChanges {
   readonly bookId = input.required<string>();
 
   readonly choices = CHOICES;
+  readonly fontFamily = fontFamilyCss;
+  /** As fontes em dois grupos; no infantil, as infantis primeiro. */
+  readonly fontGroups = computed<{ label: string; fonts: BookFontOption[] }[]>(() => {
+    const reading = { label: 'Leitura', fonts: BOOK_FONTS.filter((f) => !f.children) };
+    const children = { label: 'Infantis', fonts: BOOK_FONTS.filter((f) => f.children) };
+    return this.book()?.pictureBook ? [children, reading] : [reading, children];
+  });
   readonly pictureChoices = PICTURE_CHOICES;
   readonly models = MODELS;
   readonly trimGroups = TRIM_GROUPS;
@@ -242,6 +251,7 @@ export class BookLayoutComponent implements HasUnsavedChanges {
 
   constructor() {
     inject(DestroyRef).onDestroy(() => clearTimeout(this.timer));
+    loadBookFonts(BOOK_FONTS.map((f) => f.id));
     queueMicrotask(() => void this.load());
   }
 

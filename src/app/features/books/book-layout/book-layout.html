@@ -95,6 +95,23 @@
       </div>
     }
 
+    <div class="choice" data-choice="font">
+      <span class="choice-label" id="choice-font">Fonte do texto</span>
+      @for (group of fontGroups(); track group.label) {
+        <span class="font-group muted small">{{ group.label }}</span>
+        <div class="chips fonts" role="radiogroup" aria-labelledby="choice-font">
+          @for (font of group.fonts; track font.id) {
+            <button type="button" class="chip font" role="radio" [class.on]="isOn('font', font.id)"
+              [attr.aria-checked]="isOn('font', font.id)" (click)="choose('font', font.id)" [attr.data-font]="font.id"
+              [title]="font.hint">
+              <span class="font-name" [style.font-family]="fontFamily(font.id)">{{ font.family }}</span>
+              <span class="font-hint">{{ font.hint }}</span>
+            </button>
+          }
+        </div>
+      }
+    </div>
+
     @if (book.pictureBook) {
       @for (choice of pictureChoices; track choice.key) {
         <div class="choice" [attr.data-choice]="choice.key">
@@ -128,8 +145,9 @@
       </div>
     }
 
-    <p class="muted small hint"><i class="pi pi-info-circle" aria-hidden="true"></i> Vale para o PDF. No ePub, quem
-      escolhe a letra é o leitor; o Word sai no formato de manuscrito. Com sangria, o PDF é o miolo para a gráfica:
+    <p class="muted small hint"><i class="pi pi-info-circle" aria-hidden="true"></i> Vale para o PDF. No ePub, a fonte
+      escolhida vai junto (o leitor ainda pode trocar); no Word, ela é a fonte do texto (com a Literata, o Word sai em
+      Times New Roman, o formato de manuscrito). Com sangria, o PDF é o miolo para a gráfica:
       sem a capa (ela vai na capa aberta) e com as marcas de corte que a gráfica lê.</p>
 
     @if (dirty()) {

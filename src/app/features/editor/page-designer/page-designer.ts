@@ -1,5 +1,6 @@
 import { Component, ElementRef, computed, input, output, signal, viewChild } from '@angular/core';
 
+import { BOOK_FONTS, bookFont, fontFamilyCss, loadBookFonts } from '../../../core/fonts/book-fonts';
 import { PageDesign } from '../../../core/models/api.models';
 
 /** Corpo da letra de cada tamanho, em pontos (o mesmo do PageDesign no servidor). */
@@ -10,7 +11,7 @@ const MM_PER_PT = 25.4 / 72;
 
 export const DEFAULT_PAGE: PageDesign = {
   imageId: null, background: '#ffffff', text: 'bottom', align: 'center', size: 'l', color: 'dark', band: false,
-  spread: false, textSide: 'right', x: 10, y: 10, w: 80, zoom: 1, imageX: 50, imageY: 50,
+  spread: false, textSide: 'right', x: 10, y: 10, w: 80, zoom: 1, imageX: 50, imageY: 50, font: null,
 };
 
 /**
@@ -129,7 +130,8 @@ export function textBoxStyle(page: PageDesign, trimMm: [number, number]): Record
             <div class="text draggable" [class]="'text draggable ' + shown().color + (shown().band ? ' band' : '')
               + (dragging() ? ' dragging' : '')" [style]="boxStyle()" data-page-text
               (pointerdown)="startDrag($event)" (pointermove)="moveDrag($event)" (pointerup)="endDrag($event)"
-              (pointercancel)="endDrag($event)" title="Arraste para mudar o texto de lugar">
+              (pointercancel)="endDrag($event)" title="Arraste para mudar o texto de lugar"
+              [style.font-family]="textFont()">
               @for (p of paragraphs(); track $index) {
                 <p>{{ p }}</p>
               }
@@ -195,6 +197,16 @@ export function textBoxStyle(page: PageDesign, trimMm: [number, number]): Record
             }
           </div>
           <div class="row">
+            <label class="label" for="page-font">Fonte</label>
+            <select id="page-font" class="font-select" [value]="page().font ?? ''" data-page-font
+              (change)="set({ font: $any($event.target).value || null })">
+              <option value="">A do livro ({{ bookFontName() }})</option>
+              @for (f of fonts; track f.id) {
+                <option [value]="f.id">{{ f.family }}{{ f.children ? ' (infantil)' : '' }}</option>
+              }
+            </select>
+          </div>
+          <div class="row">
             <span class="label">Cor</span>
             <button type="button" class="chip" [class.on]="page().color === 'dark'" (click)="set({ color: 'dark' })">Escura</button>
             <button type="button" class="chip" [class.on]="page().color === 'light'" (click)="set({ color: 'light' })">Clara</button>
@@ -248,6 +260,9 @@ export function textBoxStyle(page: PageDesign, trimMm: [number, number]): Record
     .chip.on { border-color: var(--bs-ember); background: rgba(242, 140, 56, .15); }
     .chip.icon { width: 36px; justify-content: center; padding: 0; }
     .chip.color input { width: 22px; height: 22px; border: 0; padding: 0; background: none; }
+    .font-select { min-height: 36px; max-width: calc(100% - 4.2rem); padding: .25rem .6rem;
+      border: 1px solid var(--bs-border); border-radius: 10px; background: var(--bs-surface); color: var(--bs-text);
+      font: inherit; font-size: .85rem; }
     .dpi { margin: 0; font-size: .8rem; color: var(--bs-text-soft); }
     .dpi.low { color: #e0a24a; }
   `,
@@ -263,12 +278,23 @@ export class PageDesignerComponent {
   /** O aviso de DPI da ilustração de fundo, se já dá para saber. */
   readonly dpiHint = input<{ text: string; ok: boolean } | null>(null);
 
+  /** A fonte do livro (diagramação); a página pode ter a dela. */
+  readonly bookFont = input<string>('literata');
+
   readonly pageChange = output<PageDesign>();
   readonly pickImage = output<void>();
 
   readonly texts = TEXTS;
   readonly aligns = ALIGNS;
   readonly sizes = SIZES;
+  readonly fonts = BOOK_FONTS;
+  readonly bookFontName = computed(() => bookFont(this.bookFont()).family);
+  /** A fonte do texto na prévia: a da página, senão a do livro (carregada sob demanda). */
+  readonly textFont = computed(() => {
+    const id = this.shown().font ?? this.bookFont();
+    loadBookFonts([id]);
+    return fontFamilyCss(id);
+  });
 
   /** Proporção da prévia: a página, ou o livro aberto na dupla. */
   readonly ratio = computed(() => {

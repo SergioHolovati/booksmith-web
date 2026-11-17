@@ -276,6 +276,19 @@ export const HELP_ARTICLES: HelpArticle[] = [
     ],
   },
   {
+    slug: 'fontes',
+    title: 'Fontes do texto',
+    summary: 'Escolha a letra do livro; no infantil, cada página pode ter a sua.',
+    topic: 'livros',
+    keywords: ['fonte', 'letra', 'tipografia', 'infantil', 'escola', 'manuscrita', 'legível', 'garamond', 'diagramação'],
+    body: [
+      { steps: ['Abra o livro e toque em **Baixar** e depois em **Diagramação do PDF**.', 'Em **Fonte do texto**, toque na fonte (cada uma aparece escrita nela mesma).', 'Toque em **Salvar**.'] },
+      { p: 'São 12 fontes livres: 6 de leitura (Literata, Lora, EB Garamond, Merriweather, Atkinson Hyperlegible e Lexend) e 6 infantis (Andika, a letra de escola para quem está aprendendo a ler; Nunito; Fredoka; Baloo 2; Patrick Hand, escrita à mão; e Comic Neue). No livro infantil, as infantis aparecem primeiro.' },
+      { p: '**Uma página com outra fonte:** no livro infantil, no desenho da página, escolha a fonte em **Fonte**. "A do livro" volta para a fonte da diagramação.' },
+      { p: 'A fonte vai junto no PDF e no ePub (no ePub, o leitor ainda pode trocar). No Word, ela é a fonte do texto; com a Literata, o Word sai em Times New Roman, o formato de manuscrito para editoras.' },
+    ],
+  },
+  {
     slug: 'quadros-de-destaque',
     title: 'Quadros de destaque',
     summary: 'Versículo-chave, Para refletir, Oração, Exercício, Resumo… em quadro no livro.',

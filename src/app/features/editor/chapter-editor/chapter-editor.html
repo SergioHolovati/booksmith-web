@@ -64,7 +64,7 @@
     <main class="editor-scroll">
       @if (pictureBook()) {
         <app-page-designer [page]="page()" [imageUrl]="backgroundUrl()" [paragraphs]="pageParagraphs()"
-          [trimMm]="trimMm()" [dpiHint]="backgroundDpi()" (pageChange)="setPage($event)" (pickImage)="openBackgroundPicker()" />
+          [trimMm]="trimMm()" [dpiHint]="backgroundDpi()" [bookFont]="bookLayout()?.font ?? 'literata'" (pageChange)="setPage($event)" (pickImage)="openBackgroundPicker()" />
       }
       <div #editorHost class="editor-host"></div>
     </main>
