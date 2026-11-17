@@ -20,9 +20,9 @@ www.{$SITE_ADDRESS} {
 		-Server
 	}
 
-	# Corpo no máximo 20 MB (a API já limita uploads a 15 MB; isto barra antes de chegar nela)
+	# Corpo no máximo 105 MB: o livro pronto em PDF vai até 100 MB (a API confere cada envio; texto e capa: 15 MB)
 	request_body {
-		max_size 20MB
+		max_size 105MB
 	}
 
 	@api path /api/* /oauth2/* /login/oauth2/* /actuator/health

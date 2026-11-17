@@ -24,12 +24,14 @@ import { ManuscriptApi } from '../../../core/api/manuscript.api';
 import { problemMessage } from '../../../core/api/problem';
 import { UniverseApi } from '../../../core/api/universe.api';
 import { AuthService } from '../../../core/auth/auth.service';
-import { BookDetail, CoverDesign, PrintCoverSpec, PrintProfile } from '../../../core/models/api.models';
+import { BookDetail, CoverDesign, PrintCoverSpec, PrintProfile, UniverseImage } from '../../../core/models/api.models';
 import { copyText } from '../../../core/util/copy-text';
 import { saveFile } from '../../../core/util/save-file';
 import { TRIM_OPTIONS, parseCoverSpec, specTemplate } from './cover-spec';
 import { initialDesign } from './cover-editor';
 import { PRINT_PX_PER_MM, drawPrintCover, printSize } from './print-cover-canvas';
+import { isbn13 } from './isbn-barcode';
+import { IllustrationPickerComponent } from '../../editor/illustration/illustration-picker';
 
 export const PROFILES: { value: PrintProfile; label: string; hint: string }[] = [
   { value: 'kdp-white', label: 'KDP, papel branco', hint: 'Amazon, miolo preto e branco' },
@@ -56,7 +58,8 @@ export function mm(value: number): string {
  */
 @Component({
   selector: 'app-print-cover',
-  imports: [RouterLink, FormsModule, TextareaModule, ButtonModule, InputTextModule, MessageModule, ProgressSpinnerModule],
+  imports: [RouterLink, FormsModule, TextareaModule, ButtonModule, InputTextModule, MessageModule, ProgressSpinnerModule,
+    IllustrationPickerComponent],
   templateUrl: './print-cover.html',
   styleUrl: './print-cover.scss',
 })
@@ -89,6 +92,19 @@ export class PrintCoverComponent {
   readonly importError = signal<string | null>(null);
   /** Texto da contracapa editado aqui (capa importada em PDF, sem o editor de capa). */
   readonly backText = signal('');
+  // Contracapa completa: fundo, foto e mini biografia de quem escreveu, código de barras
+  readonly backImageId = signal<string | null>(null);
+  readonly backShade = signal(0);
+  readonly backPhoto = signal(false);
+  readonly backBio = signal('');
+  readonly barcode = signal(true);
+  private readonly backImage = signal<HTMLImageElement | null>(null);
+  private readonly authorPhoto = signal<HTMLImageElement | null>(null);
+  readonly backPickerOpen = signal(false);
+  /** O ISBN do impresso (guia de publicação), para o código de barras. */
+  readonly isbn = computed(() => this.book()?.publishing?.isbnPrint ?? null);
+  readonly isbnValid = computed(() => !!isbn13(this.isbn()));
+  readonly hasAuthorPhoto = computed(() => !!this.book()?.pages?.authorPhotoId);
   /**
    * Especificações da capa que vai ser importada: o tamanho do livro (começa com o da diagramação), a lombada e a
    * sangria. Com o tamanho, a frente sai recortada no corte, sem sangria e sem marcas de corte.
@@ -116,7 +132,15 @@ export class PrintCoverComponent {
       return null;
     }
     const base = book.coverDesign ?? initialDesign(book.title, this.auth.user()?.displayName ?? null, book.synopsis);
-    return { ...base, backText: this.backText().trim() || null };
+    return {
+      ...base,
+      backText: this.backText().trim() || null,
+      backImageId: this.backImageId(),
+      backShade: this.backShade(),
+      backPhoto: this.backPhoto(),
+      backBio: this.backBio().trim() || null,
+      barcode: this.barcode(),
+    };
   });
   readonly coverPdf = computed(() => this.book()?.coverPdf ?? null);
   readonly canUse = computed(() => !!this.book()?.coverDesign || !!this.coverPdf());
@@ -145,6 +169,8 @@ export class PrintCoverComponent {
       const design = this.design();
       const image = this.background();
       const frontImage = this.coverPdf()?.kind === 'front' ? this.frontImage() : null;
+      this.backImage();
+      this.authorPhoto();
       this.fontsReady();
       const size = this.previewSize();
       if (!canvas || !spec || !design) {
@@ -154,7 +180,9 @@ export class PrintCoverComponent {
       canvas.height = size.height;
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        drawPrintCover(ctx, design, image, spec, { pxPerMm: this.previewScale(), guides: true, frontImage });
+        drawPrintCover(ctx, design, image, spec, {
+          pxPerMm: this.previewScale(), guides: true, frontImage, ...this.backOptions(),
+        });
       }
     });
   }
@@ -165,11 +193,20 @@ export class PrintCoverComponent {
       const book = await firstValueFrom(this.api.getBook(this.bookId()));
       this.book.set(book);
       this.backText.set(book.coverDesign?.backText ?? book.synopsis ?? '');
+      this.backImageId.set(book.coverDesign?.backImageId ?? null);
+      this.backShade.set(book.coverDesign?.backShade ?? 0);
+      this.backPhoto.set(book.coverDesign?.backPhoto ?? false);
+      this.backBio.set(book.coverDesign?.backBio ?? '');
+      this.barcode.set(book.coverDesign?.barcode ?? true);
       this.specTrim.update((trim) => trim ?? book.coverPdf?.trim ?? book.layout.trim);
       const imageId = book.coverDesign?.imageId;
-      if (imageId && book.universeId) {
+      const wanted = [imageId, book.coverDesign?.backImageId, book.pages?.authorPhotoId];
+      if (wanted.some((id) => !!id) && book.universeId) {
         const images = await firstValueFrom(this.universeApi.listImages(book.universeId));
-        this.loadImage(images.find((i) => i.id === imageId)?.url ?? null, this.background);
+        const url = (id: string | null | undefined) => (id ? (images.find((i) => i.id === id)?.url ?? null) : null);
+        this.loadImage(url(imageId), this.background);
+        this.loadImage(url(book.coverDesign?.backImageId), this.backImage);
+        this.loadImage(url(book.pages?.authorPhotoId), this.authorPhoto);
       }
       this.loadImage(book.coverPdf ? book.coverUrl : null, this.frontImage);
       if ((book.coverDesign || book.coverPdf) && book.chapters.length > 0) {
@@ -178,6 +215,21 @@ export class PrintCoverComponent {
     } catch (error) {
       this.loadError.set(problemMessage(error, 'Não foi possível abrir o livro.'));
     }
+  }
+
+  /** O que a contracapa desenha além do texto (a mesma coisa na prévia e no arquivo para a gráfica). */
+  private backOptions(): { backImage: HTMLImageElement | null; authorPhoto: HTMLImageElement | null; isbn: string | null } {
+    return { backImage: this.backImage(), authorPhoto: this.authorPhoto(), isbn: this.isbn() };
+  }
+
+  pickBackImage(image: UniverseImage): void {
+    this.backImageId.set(image.id);
+    this.loadImage(image.url, this.backImage);
+  }
+
+  removeBackImage(): void {
+    this.backImageId.set(null);
+    this.backImage.set(null);
   }
 
   private loadImage(url: string | null, target: WritableSignal<HTMLImageElement | null>): void {
@@ -341,8 +393,8 @@ export class PrintCoverComponent {
     this.generateError.set(null);
     try {
       const pdf = this.coverPdf();
-      if (pdf?.kind === 'front') {
-        // O texto da contracapa editado aqui fica guardado no livro
+      if (pdf?.kind !== 'wrap') {
+        // A contracapa montada aqui (texto, fundo, foto, código de barras) fica guardada no livro
         const saved = await firstValueFrom(this.api.saveCoverDesign(this.bookId(), design));
         this.book.update((book) => (book ? { ...book, coverDesign: saved } : book));
       }
@@ -372,6 +424,7 @@ export class PrintCoverComponent {
         pxPerMm: PRINT_PX_PER_MM,
         guides: false,
         frontImage: pdf?.kind === 'front' ? this.frontImage() : null,
+        ...this.backOptions(),
       });
       const file = await firstValueFrom(
         this.exportApi.printCover(this.bookId(), {

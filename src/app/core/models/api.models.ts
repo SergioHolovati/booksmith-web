@@ -83,6 +83,8 @@ export interface BookDetail {
   /** Universo do livro: personagens e, depois, lugares, linha do tempo e regras. */
   universeId: string;
   genre: BookGenre;
+  /** Livro de páginas (o infantil, ou o livro pronto em PDF): cada capítulo é uma página. */
+  pictureBook: boolean;
   createdAt: string;
   updatedAt: string;
   chapters: ChapterSummary[];
@@ -147,6 +149,14 @@ export interface CoverDesign {
   accentColor: string;
   /** Texto da contracapa (capa para gráfica); uma linha por parágrafo. */
   backText?: string | null;
+  /** Contracapa: imagem de fundo (biblioteca) e quanto escurece (0 a 70). */
+  backImageId?: string | null;
+  backShade?: number;
+  /** Contracapa: a foto de quem escreveu (a das Páginas do livro) e uma mini biografia. */
+  backPhoto?: boolean;
+  backBio?: string | null;
+  /** Contracapa: código de barras do ISBN do impresso (padrão: sim, quando há ISBN). */
+  barcode?: boolean;
 }
 
 export type PrintProfile = 'kdp-white' | 'kdp-cream' | 'kdp-color-premium' | 'custom';
@@ -199,6 +209,18 @@ export interface BookLayout {
   autoPages: boolean;
   /** Livro ilustrado: número de página pequeno no canto. */
   pageNumbers: boolean;
+  /** Modo páginas (o livro pronto importado em PDF): cada capítulo é uma página, em qualquer gênero. */
+  fixedLayout: boolean;
+}
+
+/** O resultado da importação do livro pronto em PDF. */
+export interface PdfImport {
+  pages: number;
+  spreads: number;
+  widthMm: number;
+  heightMm: number;
+  bleed: boolean;
+  chapters: string[];
 }
 
 /** Páginas do PDF como imagens (prévia), numeradas a partir de 1. */
@@ -244,6 +266,14 @@ export interface BookPages {
   aboutAuthor: string | null;
   /** Título da página "sobre"; null = o nome de quem escreveu. */
   aboutAuthorTitle: string | null;
+  /** Falsa folha de rosto: só o título, antes da folha de rosto. */
+  halfTitle: boolean;
+  /** Ficha catalográfica (CIP), no verso da folha de rosto. */
+  catalogCard: string | null;
+  /** Colofão: a última página. */
+  colophon: string | null;
+  /** Foto de quem escreveu (biblioteca do universo): na página "sobre" e na contracapa. */
+  authorPhotoId: string | null;
 }
 
 export interface BookRequest {
@@ -355,6 +385,8 @@ export interface Chapter {
   updatedAt: string;
   genre: BookGenre;
   page: PageDesign;
+  /** Livro de páginas: o editor mostra o desenho da página. */
+  pictureBook: boolean;
 }
 
 export type VersionReason = 'AUTOMATIC' | 'MANUAL' | 'BEFORE_RESTORE';

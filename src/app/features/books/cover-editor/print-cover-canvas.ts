@@ -1,5 +1,6 @@
 import { CoverDesign, PrintCoverSpec } from '../../../core/models/api.models';
 import { Box, drawCover, fontFamily, wrapText } from './cover-canvas';
+import { drawBarcode, isbn13 } from './isbn-barcode';
 
 /** 300 DPI, o que as gráficas pedem: pixels por milímetro. */
 export const PRINT_PX_PER_MM = 300 / 25.4;
@@ -27,7 +28,15 @@ export function drawPrintCover(
   design: CoverDesign,
   image: HTMLImageElement | null,
   spec: PrintCoverSpec,
-  options: { pxPerMm: number; guides: boolean; frontImage?: HTMLImageElement | null },
+  options: {
+    pxPerMm: number;
+    guides: boolean;
+    frontImage?: HTMLImageElement | null;
+    /** Contracapa: a imagem de fundo, a foto de quem escreveu e o ISBN do impresso. */
+    backImage?: HTMLImageElement | null;
+    authorPhoto?: HTMLImageElement | null;
+    isbn?: string | null;
+  },
 ): void {
   const k = options.pxPerMm;
   const { width, height } = printSize(spec, k);
@@ -39,6 +48,16 @@ export function drawPrintCover(
   // Contracapa e lombada: a cor de fundo (na Faixa, a cor da faixa, que segue da frente)
   ctx.fillStyle = back;
   ctx.fillRect(0, 0, Math.round(spineEnd * k), height);
+  // Contracapa com imagem de fundo (até a borda, com a sangria), escurecida para o texto aparecer
+  const backBox = { x: 0, y: 0, w: Math.round(backEnd * k), h: height };
+  if (options.backImage) {
+    coverImage(ctx, options.backImage, backBox);
+    const shade = design.backShade ?? 0;
+    if (shade > 0) {
+      ctx.fillStyle = `rgba(0, 0, 0, ${shade / 100})`;
+      ctx.fillRect(backBox.x, backBox.y, backBox.w, backBox.h);
+    }
+  }
 
   // Frente: do começo dela até a sangria da direita. Com a capa importada em PDF, a imagem dela (o servidor põe
   // o PDF original por cima, como vetor)
@@ -59,7 +78,12 @@ export function drawPrintCover(
   ctx.textAlign = 'left';
   ctx.font = `400 ${size}px ${family}`;
   let y = (spec.bleedMm + SAFE_MM + 14) * k;
-  const bottom = (spec.bleedMm + spec.trimHeightMm * 0.7) * k;
+  // Embaixo: foto e mini biografia à esquerda, código de barras à direita; o texto para antes
+  const photo = design.backPhoto ? (options.authorPhoto ?? null) : null;
+  const bio = design.backBio?.trim() || null;
+  const barcode = design.barcode !== false && !!isbn13(options.isbn);
+  const lower = !!photo || !!bio || barcode;
+  const bottom = (spec.bleedMm + spec.trimHeightMm * (lower ? 0.6 : 0.7)) * k;
   for (const paragraph of (design.backText ?? '').split('\n').filter((p) => p.trim())) {
     for (const line of wrapText((t) => ctx.measureText(t).width, paragraph.trim(), textWidth)) {
       if (y + size > bottom) {
@@ -70,7 +94,49 @@ export function drawPrintCover(
     }
     y += size * 0.8;
   }
-  if (design.author) {
+  const zoneTop = (spec.bleedMm + spec.trimHeightMm - SAFE_MM - 34) * k;
+  const barW = 38 * k;
+  const barH = 24 * k;
+  const barX = (spec.bleedMm + spec.trimWidthMm - SAFE_MM - 4) * k - barW;
+  if (barcode && options.isbn) {
+    drawBarcode(ctx, options.isbn, barX, (spec.bleedMm + spec.trimHeightMm - SAFE_MM - 4) * k - barH, barW, barH);
+  }
+  if (photo || bio) {
+    // Foto redonda e, ao lado, o nome e a mini biografia
+    let textX = left;
+    if (photo) {
+      const d = 24 * k;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(left + d / 2, zoneTop + d / 2, d / 2, 0, Math.PI * 2);
+      ctx.clip();
+      coverImage(ctx, photo, { x: left, y: zoneTop, w: d, h: d });
+      ctx.restore();
+      textX = left + d + 4 * k;
+    }
+    const bioWidth = (barcode ? barX - 4 * k : (spec.bleedMm + spec.trimWidthMm - SAFE_MM - 6) * k) - textX;
+    ctx.fillStyle = design.textColor;
+    ctx.textAlign = 'left';
+    let by = zoneTop;
+    if (design.author) {
+      ctx.font = `600 ${3.4 * k}px ${family}`;
+      ctx.fillText(design.author, textX, by, bioWidth);
+      by += 3.4 * k * 1.5;
+    }
+    if (bio) {
+      const bioSize = 2.9 * k;
+      ctx.font = `400 ${bioSize}px ${family}`;
+      const limit = (spec.bleedMm + spec.trimHeightMm - SAFE_MM) * k;
+      for (const line of wrapText((t) => ctx.measureText(t).width, bio, bioWidth)) {
+        if (by + bioSize > limit) {
+          break;
+        }
+        ctx.fillText(line, textX, by);
+        by += bioSize * 1.4;
+      }
+    }
+  } else if (design.author) {
+    ctx.fillStyle = design.textColor;
     ctx.font = `600 ${3.6 * k}px ${family}`;
     ctx.fillText(design.author, left, (spec.bleedMm + spec.trimHeightMm - SAFE_MM - 16) * k);
   }

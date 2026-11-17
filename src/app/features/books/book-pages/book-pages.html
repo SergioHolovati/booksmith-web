@@ -18,12 +18,34 @@
   } @else if (book()) {
     <p class="muted small group">Antes da história</p>
 
+    <section class="glass-card page-card" data-page="half-title">
+      <label class="check">
+        <input type="checkbox" [checked]="draft().halfTitle" (change)="setHalfTitle($any($event.target).checked)" />
+        <span><strong>Falsa folha de rosto</strong><br />
+          <span class="muted small">Uma página só com o título, antes da folha de rosto, como nos livros
+            impressos.</span></span>
+      </label>
+    </section>
+
     <section class="glass-card page-card" data-page="credits">
       <div class="field">
         <label for="credits">Créditos</label>
         <textarea id="credits" pTextarea rows="3" [autoResize]="true" maxlength="3000" [placeholder]="creditsHint()"
           [ngModel]="draft().credits" (ngModelChange)="set('credits', $event)"></textarea>
         <small class="field-hint">Verso da folha de rosto: direitos, quem fez a capa, as ilustrações, a revisão.</small>
+      </div>
+      <div class="field">
+        <label for="catalog-card">Ficha catalográfica</label>
+        <textarea id="catalog-card" pTextarea rows="4" [autoResize]="true" maxlength="3000" class="mono"
+          placeholder="Dados Internacionais de Catalogação na Publicação (CIP)…" [ngModel]="draft().catalogCard"
+          (ngModelChange)="set('catalogCard', $event)"></textarea>
+        <small class="field-hint">Sai em quadro, no fim dos créditos. Ela é feita por bibliotecária(o) com registro no
+          CRB (muitas gráficas e a Câmara Brasileira do Livro oferecem).
+          @if (!draft().catalogCard.trim()) {
+            <button type="button" class="link-button" (click)="useCatalogTemplate()" data-catalog-template>Usar o
+              modelo</button>
+          }
+        </small>
       </div>
     </section>
 
@@ -62,6 +84,24 @@
     </section>
 
     <section class="glass-card page-card" data-page="about">
+      <div class="field photo-field">
+        <span class="field-label">Sua foto</span>
+        <div class="photo-row">
+          @if (photoUrl(); as url) {
+            <img class="author-photo" [src]="url" alt="Sua foto" data-author-photo />
+          } @else {
+            <div class="author-photo empty"><i class="pi pi-user" aria-hidden="true"></i></div>
+          }
+          <div class="photo-actions">
+            <p-button [label]="draft().authorPhotoId ? 'Trocar foto' : 'Escolher foto'" icon="pi pi-image"
+              severity="secondary" [outlined]="true" size="small" (onClick)="pickerOpen.set(true)" data-author-photo-pick />
+            @if (draft().authorPhotoId) {
+              <p-button label="Tirar" severity="danger" [text]="true" size="small" (onClick)="removePhoto()" />
+            }
+          </div>
+        </div>
+        <small class="field-hint">Sai na página sobre você e, se quiser, na contracapa.</small>
+      </div>
       <div class="field">
         <label for="about-title">Título da página sobre você</label>
         <input id="about-title" pInputText maxlength="80" [placeholder]="authorName()"
@@ -75,6 +115,19 @@
           (ngModelChange)="set('aboutAuthor', $event)"></textarea>
       </div>
     </section>
+
+    <section class="glass-card page-card" data-page="colophon">
+      <div class="field">
+        <label for="colophon">Colofão</label>
+        <textarea id="colophon" pTextarea rows="2" [autoResize]="true" maxlength="2000"
+          placeholder="Composto em Literata, impresso em papel pólen 80 g, em novembro de 2026." [ngModel]="draft().colophon"
+          (ngModelChange)="set('colophon', $event)"></textarea>
+        <small class="field-hint">A última página do livro: letra, papel, gráfica, data.</small>
+      </div>
+    </section>
+
+    <app-illustration-picker [universeId]="book()?.universeId ?? null" [(visible)]="pickerOpen"
+      (picked)="pickPhoto($event)" />
 
     <p class="muted small hint"><i class="pi pi-info-circle" aria-hidden="true"></i> Cada linha vira um parágrafo.</p>
 

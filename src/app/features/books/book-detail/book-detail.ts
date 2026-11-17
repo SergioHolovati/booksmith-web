@@ -78,7 +78,7 @@ export class BookDetailComponent {
   readonly hasCast = hasCast;
   readonly hasPlotTools = hasPlotTools;
   /** Livro infantil ilustrado: os capítulos são as páginas. */
-  readonly pictureBook = computed(() => isPictureBook(this.book()?.genre));
+  readonly pictureBook = computed(() => this.book()?.pictureBook ?? isPictureBook(this.book()?.genre));
   readonly printedPages = computed(() => printedPages(this.book()?.chapters ?? []));
   readonly titleChapter = signal<ChapterSummary | null>(null);
   readonly titleDraft = signal('');

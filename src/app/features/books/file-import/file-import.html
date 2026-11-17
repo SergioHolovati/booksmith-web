@@ -15,7 +15,28 @@
     <p-message severity="error" [text]="message" styleClass="block-message" />
   }
 
-  @if (!structure() && !plan() && !loading()) {
+  @if (pdf(); as file) {
+    <section class="glass-card summary" data-pdf-import>
+      <div class="file">
+        <i class="pi pi-file-pdf"></i>
+        <span class="file-name">{{ file.name }}</span>
+      </div>
+      <p><strong>Livro pronto em PDF.</strong> Cada página do PDF vira uma página do livro, com a página inteira como
+        imagem de fundo, em qualidade de gráfica (300 DPI). Páginas duplas (as duas do livro aberto numa folha) viram
+        páginas duplas, e o livro fica no tamanho das páginas do PDF.</p>
+      <p class="muted small">O texto do PDF vem como parte da imagem: dá para cobrir ou acrescentar texto por cima de
+        cada página, mas não editar o texto original. Para editar o texto, importe o .docx. Num livro grande, leva
+        alguns minutos.</p>
+      <div class="actions">
+        <p-button label="Importar o livro pronto" icon="pi pi-file-import" styleClass="full-width"
+          [loading]="importingPdf()" (onClick)="importPdf()" data-pdf-confirm />
+        <p-button label="Escolher outro arquivo" severity="secondary" [text]="true" [disabled]="importingPdf()"
+          (onClick)="reset()" />
+      </div>
+    </section>
+  }
+
+  @if (!structure() && !plan() && !loading() && !pdf()) {
     <label for="import-file" class="drop" [class.dragging]="dragging()" (dragover)="onDragOver($event)"
       (dragleave)="dragging.set(false)" (drop)="onDrop($event)">
       <i class="pi pi-file-import"></i>

@@ -22,8 +22,14 @@ import {
   toRequest,
 } from './import-structure';
 
-/** Mesmo limite da API (spring.servlet.multipart.max-file-size). */
+/** Mesmo limite da API para arquivos de texto. */
 const MAX_BYTES = 15 * 1024 * 1024;
+/** O livro pronto em PDF vai até 100 MB. */
+export const MAX_PDF_BYTES = 100 * 1024 * 1024;
+
+export function isPdf(fileName: string): boolean {
+  return fileName.toLowerCase().endsWith('.pdf');
+}
 
 /** Formatos que a API lê; o servidor confere o conteúdo de novo. */
 export const ACCEPTED = ['.docx', '.odt', '.md', '.markdown', '.txt'];
@@ -38,7 +44,7 @@ export function rejectReason(fileName: string): string | null {
     return 'Este é o formato antigo do Word (.doc). Abra no Word e use "Salvar como" → "Documento do Word (.docx)".';
   }
   if (name.endsWith('.pdf')) {
-    return 'PDF não dá para importar: ele guarda páginas, não parágrafos. Se você tem o original, baixe em .docx.';
+    return null; // o livro pronto: cada página vira uma página do livro (outro caminho, em choose)
   }
   if (name.endsWith('.pages')) {
     return 'No Pages, use Arquivo → Exportar para → Word (.docx) e importe o novo arquivo.';
@@ -114,7 +120,10 @@ export class FileImportComponent {
   readonly dragging = signal(false);
 
   readonly formatCount = formatCount;
-  readonly accept = ACCEPTED.join(',');
+  readonly accept = [...ACCEPTED, '.pdf'].join(',');
+  /** O livro pronto em PDF escolhido, esperando a confirmação. */
+  readonly pdf = signal<File | null>(null);
+  readonly importingPdf = signal(false);
   readonly modes = [
     { label: 'Em capítulos', value: 'auto' },
     { label: 'Um capítulo só', value: 'single' },
@@ -177,6 +186,14 @@ export class FileImportComponent {
       this.error.set(rejected);
       return;
     }
+    if (isPdf(file.name)) {
+      if (file.size > MAX_PDF_BYTES) {
+        this.error.set('O PDF é grande demais. O limite é de 100 MB.');
+        return;
+      }
+      this.pdf.set(file);
+      return;
+    }
     if (file.size > MAX_BYTES) {
       this.error.set('O arquivo é grande demais. O limite é de 15 MB.');
       return;
@@ -184,6 +201,30 @@ export class FileImportComponent {
     this.file.set(file);
     this.mode.set('auto');
     await this.analyze();
+  }
+
+  /** O livro pronto em PDF: cada página vira uma página do livro, com a página como imagem de fundo. */
+  async importPdf(): Promise<void> {
+    const file = this.pdf();
+    if (!file) {
+      return;
+    }
+    this.importingPdf.set(true);
+    this.error.set(null);
+    try {
+      const result = await firstValueFrom(this.api.importPdf(this.bookId(), file));
+      this.toast.add({
+        severity: 'success',
+        summary: result.pages === 1 ? '1 página importada' : `${result.pages} páginas importadas`,
+        detail: result.spreads ? `${result.spreads} delas são páginas duplas.` : undefined,
+        life: 5000,
+      });
+      await this.router.navigate(['/books', this.bookId()]);
+    } catch (error) {
+      this.error.set(problemMessage(error, 'Não foi possível importar o PDF. Seu livro não foi alterado.'));
+    } finally {
+      this.importingPdf.set(false);
+    }
   }
 
   /** Lê a estrutura do arquivo para o escritor revisar. */
@@ -294,6 +335,7 @@ export class FileImportComponent {
   }
 
   reset(): void {
+    this.pdf.set(null);
     this.file.set(null);
     this.plan.set(null);
     this.structure.set(null);

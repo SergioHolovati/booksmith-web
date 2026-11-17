@@ -26,6 +26,7 @@ export const DEFAULT_LAYOUT: BookLayout = {
   bleed: false,
   autoPages: true,
   pageNumbers: false,
+  fixedLayout: false,
 };
 
 /** Escolhas que só existem no livro ilustrado (infantil). */

@@ -1,4 +1,4 @@
-import { headingsText, rejectReason } from './file-import';
+import { headingsText, rejectReason, isPdf } from './file-import';
 
 describe('importar arquivo', () => {
   it('aceita Word, LibreOffice, texto e Markdown, sem diferenciar maiúsculas', () => {
@@ -9,7 +9,9 @@ describe('importar arquivo', () => {
 
   it('explica como converter os formatos que não dá para ler', () => {
     expect(rejectReason('velho.doc')).toContain('Salvar como');
-    expect(rejectReason('livro.pdf')).toContain('PDF');
+    // O PDF é o livro pronto: não é recusado (vira páginas do livro)
+    expect(rejectReason('livro.pdf')).toBeNull();
+    expect(isPdf('Livro.PDF')).toBe(true);
     expect(rejectReason('livro.pages')).toContain('Exportar para');
     expect(rejectReason('foto.jpg')).toContain('.odt');
   });

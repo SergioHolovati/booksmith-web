@@ -148,7 +148,9 @@ export class ChapterEditorComponent {
 
   // ===== Livro ilustrado (infantil): cada capítulo é uma página =====
   readonly genre = signal<BookGenre | null>(null);
-  readonly pictureBook = computed(() => this.genre() === 'CHILDREN');
+  readonly pictureBook = computed(() => this.genre() === 'CHILDREN' || this.fixedPages());
+  /** O livro pronto em PDF (modo páginas), em qualquer gênero. */
+  private readonly fixedPages = signal(false);
   readonly page = signal<PageDesign>(DEFAULT_PAGE);
   /** O texto da página, um item por parágrafo, para a prévia. */
   readonly pageParagraphs = signal<string[]>([]);
@@ -292,6 +294,7 @@ export class ChapterEditorComponent {
 
     this.bookId.set(chapter?.bookId ?? null);
     this.genre.set(chapter?.genre ?? null);
+    this.fixedPages.set(!!chapter?.pictureBook);
     this.page.set({ ...DEFAULT_PAGE, ...(chapter?.page ?? {}) });
     this.title.set(chapter?.title ?? '');
     this.language.set(chapter?.language ?? 'pt-BR');

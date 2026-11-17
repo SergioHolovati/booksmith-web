@@ -12,6 +12,7 @@ import {
   CoverPdf,
   BookRequest,
   PageDesign,
+  PdfImport,
   BookSummary,
   UniverseMove,
   Chapter,
@@ -241,6 +242,13 @@ export class ManuscriptApi {
   }
 
   /** Prévia ({@code dryRun}) ou importação de .docx, .odt, .md ou .txt; os capítulos entram no fim do livro. */
+  /** O livro pronto em PDF: cada página vira uma página do livro (pode levar alguns minutos). */
+  importPdf(bookId: string, file: File): Observable<PdfImport> {
+    const form = new FormData();
+    form.append('file', file, file.name);
+    return this.http.post<PdfImport>(`${this.base}/books/${bookId}/import/pdf`, form);
+  }
+
   importFile(bookId: string, file: File, mode: ImportMode, dryRun: boolean): Observable<ImportPlan> {
     const form = new FormData();
     form.append('file', file, file.name);

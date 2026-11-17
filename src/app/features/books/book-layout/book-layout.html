@@ -95,7 +95,7 @@
       </div>
     }
 
-    @if (book.genre === 'CHILDREN') {
+    @if (book.pictureBook) {
       @for (choice of pictureChoices; track choice.key) {
         <div class="choice" [attr.data-choice]="choice.key">
           <span class="choice-label" [id]="'choice-' + choice.key">{{ choice.label }}</span>

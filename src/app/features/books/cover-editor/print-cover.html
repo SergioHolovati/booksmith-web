@@ -166,13 +166,54 @@
           @if (!spec.spineText) {
             <p class="muted small">Lombada fina demais para texto: ela sai só com a cor.</p>
           }
-          @if (spec.imported === 'front') {
+          <section class="back-cover" data-back-cover aria-label="Contracapa">
+            <h2 class="back-title">Contracapa</h2>
             <div class="field">
-              <label for="print-back">Texto da contracapa</label>
+              <label for="print-back">Texto (sinopse, depoimentos)</label>
               <textarea id="print-back" pTextarea rows="3" [autoResize]="true" maxlength="1500"
                 [ngModel]="backText()" (ngModelChange)="backText.set($event)"></textarea>
             </div>
-          }
+            <div class="back-row">
+              <span class="back-label">Fundo</span>
+              <p-button [label]="backImageId() ? 'Trocar imagem' : 'Imagem de fundo'" icon="pi pi-image" size="small"
+                severity="secondary" [outlined]="true" (onClick)="backPickerOpen.set(true)" data-back-image />
+              @if (backImageId()) {
+                <p-button label="Tirar" size="small" severity="danger" [text]="true" (onClick)="removeBackImage()" />
+                <label class="shade">Escurecer
+                  <input type="range" min="0" max="70" step="5" [value]="backShade()"
+                    (input)="backShade.set(+$any($event.target).value)" aria-label="Escurecer a imagem da contracapa" />
+                </label>
+              }
+            </div>
+            <label class="back-check">
+              <input type="checkbox" [checked]="backPhoto()" [disabled]="!hasAuthorPhoto()"
+                (change)="backPhoto.set($any($event.target).checked)" data-back-photo />
+              <span>Sua foto
+                @if (!hasAuthorPhoto()) {
+                  <span class="muted small">(escolha a foto nas <a [routerLink]="['/books', bookId(), 'paginas']">Páginas do
+                    livro</a>)</span>
+                }
+              </span>
+            </label>
+            <div class="field">
+              <label for="print-bio">Mini biografia</label>
+              <textarea id="print-bio" pTextarea rows="2" [autoResize]="true" maxlength="500"
+                placeholder="Ana escreve para crianças desde 2015. Mora em São Paulo." [ngModel]="backBio()"
+                (ngModelChange)="backBio.set($event)" data-back-bio></textarea>
+            </div>
+            <label class="back-check">
+              <input type="checkbox" [checked]="barcode()" [disabled]="!isbnValid()"
+                (change)="barcode.set($any($event.target).checked)" data-back-barcode />
+              <span>Código de barras do ISBN
+                @if (!isbnValid()) {
+                  <span class="muted small">(informe o ISBN do impresso no <a [routerLink]="['/books', bookId(), 'publicar']">guia
+                    de publicação</a>)</span>
+                }
+              </span>
+            </label>
+          </section>
+          <app-illustration-picker [universeId]="book.universeId" [(visible)]="backPickerOpen"
+            (picked)="pickBackImage($event)" />
           <div class="stage">
             <canvas #canvas role="img" aria-label="Capa aberta: contracapa, lombada e frente"></canvas>
           </div>
