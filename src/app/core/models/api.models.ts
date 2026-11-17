@@ -252,6 +252,12 @@ export interface BookLayout {
   fixedLayout: boolean;
   /** A fonte do texto (id do catálogo, core/fonts/book-fonts). */
   font: string;
+  /** Livro ilustrado: a ilustração de fundo das páginas que o Booksmith gera (créditos, dedicatória…); null = a cor. */
+  pagesImageId: string | null;
+  /** A cor de fundo dessas páginas (#rrggbb). */
+  pagesColor: string;
+  /** Livro ilustrado: o PDF com as páginas lado a lado (o livro aberto numa folha), como muitas gráficas pedem. */
+  spreadSheets: boolean;
 }
 
 /** O resultado da importação do livro pronto em PDF. */
@@ -290,6 +296,18 @@ export interface PrintCheck {
   illustrations: PrintCheckIllustration[];
   /** Há ilustração até a borda (ou dupla) e a diagramação está sem sangria. */
   needsBleed: boolean;
+  /** Livro ilustrado: a conferência das páginas para a gráfica. */
+  pages: PrintPageCheck[];
+  /** Livro ilustrado: quantas páginas o miolo impresso tem. */
+  pageCount: number;
+}
+
+/** Um item da conferência para a gráfica: ok (pronto), warn (falta) ou info (opcional ou como vai sair). */
+export interface PrintPageCheck {
+  key: string;
+  label: string;
+  status: 'ok' | 'warn' | 'info';
+  detail: string;
 }
 
 export interface LayoutPreview {

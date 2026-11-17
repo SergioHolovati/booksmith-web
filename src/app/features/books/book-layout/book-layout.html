@@ -126,6 +126,28 @@
           </div>
         </div>
       }
+      @if (layout().autoPages) {
+        <div class="choice" data-choice="pagesBackground">
+          <span class="choice-label">Fundo das páginas geradas (créditos, dedicatória, sobre o autor…)</span>
+          <div class="chips">
+            <label class="chip color-chip">
+              <input type="color" [value]="layout().pagesColor" (change)="choose('pagesColor', $any($event.target).value)"
+                aria-label="Cor de fundo das páginas geradas" data-pages-color />
+              Cor
+            </label>
+            <button type="button" class="chip" (click)="pickingBackground.set(true)" data-pages-image>
+              <i class="pi pi-image" aria-hidden="true"></i>
+              {{ layout().pagesImageId ? 'Trocar ilustração' : 'Ilustração de fundo' }}
+            </button>
+            @if (layout().pagesImageId) {
+              <button type="button" class="chip" (click)="chooseBackground(null)">Tirar a ilustração</button>
+            }
+          </div>
+        </div>
+        <app-illustration-picker [universeId]="book.universeId" [(visible)]="pickingBackground"
+          (picked)="chooseBackground($event)" />
+      }
+      <app-print-checklist [items]="printPages()" [pageCount]="printPageCount()" />
       <p class="muted small hint" data-picture-layout-hint>Montando todas as páginas, faça a capa ilustrada, os
         créditos (com a ficha catalográfica), a dedicatória e o "sobre o autor" como páginas do livro, com fundo e
         texto livre.</p>

@@ -5,11 +5,12 @@ import { ButtonModule } from 'primeng/button';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { firstValueFrom } from 'rxjs';
 
+import { ExportApi } from '../../../core/api/export.api';
 import { ManuscriptApi } from '../../../core/api/manuscript.api';
 import { problemMessage } from '../../../core/api/problem';
 import { UniverseApi } from '../../../core/api/universe.api';
 import { fontFamilyCss, loadBookFonts } from '../../../core/fonts/book-fonts';
-import { BookDetail, PagePreview } from '../../../core/models/api.models';
+import { BookDetail, PagePreview, PrintPageCheck } from '../../../core/models/api.models';
 import { trimSize } from '../../../core/util/print-geometry';
 import { artStyle, boxView, fitBlocks, previewTextStyle, withBackdrop } from '../../editor/page-designer/page-designer';
 import { BookPreviewComponent } from './book-preview';
@@ -42,7 +43,7 @@ export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
         @if (book(); as b) {
           <p-button label="Visualizar prévia" icon="pi pi-eye" size="small" severity="secondary" [outlined]="true"
             [disabled]="!pages().length" (onClick)="preview.start()" data-organizer-preview />
-          <app-book-preview #preview [bookId]="b.id" [layout]="b.layout" />
+          <app-book-preview #preview [bookId]="b.id" [layout]="b.layout" [checks]="checks()" [checkCount]="checkCount()" />
         }
       </div>
       <p class="muted small">Toque numa página e use as setas para mudar de lugar. No computador, dá para arrastar.
@@ -139,12 +140,16 @@ export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
 })
 export class PageOrganizerComponent {
   private readonly api = inject(ManuscriptApi);
+  private readonly exportApi = inject(ExportApi);
   private readonly universeApi = inject(UniverseApi);
   private readonly toast = inject(MessageService);
 
   readonly bookId = input.required<string>();
 
   readonly book = signal<BookDetail | null>(null);
+  /** A conferência para a gráfica (na prévia). */
+  readonly checks = signal<PrintPageCheck[]>([]);
+  readonly checkCount = signal(0);
   readonly pages = signal<PagePreview[]>([]);
   readonly loading = signal(true);
   readonly saving = signal(false);
@@ -175,6 +180,13 @@ export class PageOrganizerComponent {
         firstValueFrom(this.api.pagePreviews(this.bookId())),
       ]);
       this.book.set(book);
+      firstValueFrom(this.exportApi.printCheck(book.id, book.layout)).then(
+        (check) => {
+          this.checks.set(check.pages ?? []);
+          this.checkCount.set(check.pageCount ?? 0);
+        },
+        () => this.checks.set([]),
+      );
       this.pages.set(pages);
       loadBookFonts([book.layout?.font, ...pages.flatMap((p) => [p.page.font, ...(p.page.boxes ?? []).map((b) => b.font)])]);
       const images = await firstValueFrom(this.universeApi.listImages(book.universeId));

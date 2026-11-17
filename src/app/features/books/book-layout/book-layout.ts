@@ -14,6 +14,9 @@ import { BookDetail, BookLayout, BookTrim } from '../../../core/models/api.model
 import { trimSize } from '../../../core/util/print-geometry';
 import { HasUnsavedChanges } from '../../../core/util/unsaved-changes.guard';
 import { printCheckSummary } from '../print-check';
+import { PrintChecklistComponent } from '../print-checklist';
+import { IllustrationPickerComponent } from '../../editor/illustration/illustration-picker';
+import { PrintPageCheck, UniverseImage } from '../../../core/models/api.models';
 
 export const DEFAULT_LAYOUT: BookLayout = {
   trim: 'a5',
@@ -29,13 +32,24 @@ export const DEFAULT_LAYOUT: BookLayout = {
   pageNumbers: false,
   fixedLayout: false,
   font: 'literata',
+  pagesImageId: null,
+  pagesColor: '#ffffff',
+  spreadSheets: false,
 };
 
 /** Escolhas que só existem no livro ilustrado (infantil). */
 export const PICTURE_CHOICES = [
   {
+    key: 'spreadSheets',
+    label: 'PDF para a gráfica',
+    options: [
+      { value: false, label: 'Uma página por folha' },
+      { value: true, label: 'Páginas lado a lado (o livro aberto)' },
+    ],
+  } as Choice<'spreadSheets'>,
+  {
     key: 'autoPages',
-    label: 'Folha de rosto, créditos e dedicatória',
+    label: 'Folha de rosto, créditos, dedicatória, sobre o autor…',
     options: [
       { value: true, label: 'O Booksmith gera' },
       { value: false, label: 'Eu monto todas as páginas' },
@@ -200,7 +214,8 @@ export function normalizeLayout(layout: Partial<BookLayout> | null | undefined):
  */
 @Component({
   selector: 'app-book-layout',
-  imports: [RouterLink, ButtonModule, MessageModule, ProgressSpinnerModule],
+  imports: [RouterLink, ButtonModule, MessageModule, ProgressSpinnerModule, PrintChecklistComponent,
+    IllustrationPickerComponent],
   templateUrl: './book-layout.html',
   styleUrl: './book-layout.scss',
 })
@@ -227,6 +242,10 @@ export class BookLayoutComponent implements HasUnsavedChanges {
   readonly customMin = CUSTOM_MIN_MM;
   readonly customMax = CUSTOM_MAX_MM;
   readonly book = signal<BookDetail | null>(null);
+  /** Livro ilustrado: a conferência para a gráfica (páginas que o miolo tem e o que falta). */
+  readonly printPages = signal<PrintPageCheck[]>([]);
+  readonly printPageCount = signal(0);
+  readonly pickingBackground = signal(false);
   readonly loadError = signal<string | null>(null);
   readonly layout = signal<BookLayout>(DEFAULT_LAYOUT);
   private readonly saved = signal<BookLayout>(DEFAULT_LAYOUT);
@@ -345,10 +364,17 @@ export class BookLayoutComponent implements HasUnsavedChanges {
           : null;
         const text = [bleed, printCheckSummary(check.illustrations)].filter(Boolean).join(' ');
         this.printWarning.set(text || null);
+        this.printPages.set(check.pages ?? []);
+        this.printPageCount.set(check.pageCount ?? 0);
       }
     } catch {
       // sem a conferência, sem aviso
     }
+  }
+
+  /** O fundo das páginas que o Booksmith gera: uma ilustração da biblioteca do universo, ou só a cor. */
+  chooseBackground(image: UniverseImage | null): void {
+    this.choose('pagesImageId', image?.id ?? null);
   }
 
   go(step: number): void {

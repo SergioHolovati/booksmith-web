@@ -4,7 +4,8 @@ import { firstValueFrom } from 'rxjs';
 
 import { ExportApi } from '../../../core/api/export.api';
 import { problemMessage } from '../../../core/api/problem';
-import { BookLayout } from '../../../core/models/api.models';
+import { BookLayout, PrintPageCheck } from '../../../core/models/api.models';
+import { PrintChecklistComponent } from '../print-checklist';
 
 /**
  * As páginas que um passo da prévia mostra, a partir de 1. No livro aberto (tela larga), a primeira página fica
@@ -29,15 +30,29 @@ export function previewSteps(pageCount: number, open: boolean): number {
  */
 @Component({
   selector: 'app-book-preview',
-  imports: [ProgressSpinnerModule],
+  imports: [ProgressSpinnerModule, PrintChecklistComponent],
   template: `
     @if (visible()) {
       <div class="overlay" role="dialog" aria-modal="true" aria-label="Prévia do livro" data-book-preview>
         <div class="bar">
-          <span class="count" data-preview-count>{{ label() }}</span>
+          <div class="kinds" role="radiogroup" aria-label="Tipo de prévia">
+            <button type="button" class="kind" role="radio" [class.on]="target() === 'print'"
+              [attr.aria-checked]="target() === 'print'" (click)="switchTo('print')" data-preview-print>
+              <i class="pi pi-print" aria-hidden="true"></i> Gráfica</button>
+            <button type="button" class="kind" role="radio" [class.on]="target() === 'ebook'"
+              [attr.aria-checked]="target() === 'ebook'" (click)="switchTo('ebook')" data-preview-ebook>
+              <i class="pi pi-tablet" aria-hidden="true"></i> E-book</button>
+          </div>
+          <span class="count" data-preview-count>{{ kindLabel() }} · {{ label() }}</span>
+          <button type="button" class="close" (click)="showChecks.set(!showChecks())"
+            [attr.aria-pressed]="showChecks()" aria-label="Conferência para a gráfica" data-preview-checks>
+            <i class="pi pi-list-check" aria-hidden="true"></i></button>
           <button type="button" class="close" (click)="visible.set(false)" aria-label="Fechar a prévia" data-preview-close>
             <i class="pi pi-times" aria-hidden="true"></i></button>
         </div>
+        @if (showChecks() && target() === 'print') {
+          <div class="checks"><app-print-checklist [items]="checks()" [pageCount]="checkCount()" /></div>
+        }
         <div class="stage">
           @if (error(); as message) {
             <p class="error" role="alert">{{ message }}</p>
@@ -63,7 +78,13 @@ export function previewSteps(pageCount: number, open: boolean): number {
   styles: `
     .overlay { position: fixed; inset: 0; z-index: 1100; display: flex; flex-direction: column;
       background: rgba(8, 8, 8, .96); padding: env(safe-area-inset-top, 0) 0 env(safe-area-inset-bottom, 0); }
-    .bar { display: flex; align-items: center; justify-content: space-between; padding: .6rem 1rem; }
+    .bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem;
+      padding: .6rem 1rem; }
+    .kinds { display: flex; gap: .3rem; }
+    .kind { min-height: 40px; padding: 0 .8rem; border: 1px solid var(--bs-border); border-radius: 999px;
+      background: var(--bs-surface); color: var(--bs-text-soft); font: inherit; font-size: .85rem; cursor: pointer; }
+    .kind.on { border-color: var(--bs-ember); color: var(--bs-text); background: rgba(242, 140, 56, .15); }
+    .checks { max-height: 40dvh; overflow: auto; padding: 0 1rem .5rem; }
     .count { color: var(--bs-text-soft); font-size: .9rem; }
     .close, .nav-btn { min-width: var(--bs-touch, 44px); min-height: var(--bs-touch, 44px); border: 1px solid var(--bs-border);
       border-radius: 999px; background: var(--bs-surface); color: var(--bs-text); cursor: pointer; }
@@ -83,6 +104,16 @@ export class BookPreviewComponent {
 
   readonly bookId = input.required<string>();
   readonly layout = input.required<BookLayout>();
+  /** A conferência para a gráfica (mostrada sobre a prévia da gráfica). */
+  readonly checks = input<PrintPageCheck[]>([]);
+  readonly checkCount = input(0);
+  /** Gráfica: o PDF de impressão (sangria, número de página, páginas em branco, lado a lado se escolhido); e-book: as
+   * páginas como no ePub de layout fixo. */
+  readonly target = signal<'print' | 'ebook'>('print');
+  readonly showChecks = signal(true);
+  readonly kindLabel = computed(() => (this.target() === 'print'
+    ? (this.layout().spreadSheets ? 'PDF para a gráfica (lado a lado)' : 'PDF para a gráfica')
+    : 'E-book (layout fixo)'));
   readonly visible = model(false);
 
   /** Livro aberto (duas páginas) na tela larga; uma por vez no celular. */
@@ -107,9 +138,19 @@ export class BookPreviewComponent {
     return `Página ${numbers.join('–')} de ${this.pageCount()}`;
   });
 
+  /** Troca o tipo de prévia e volta ao começo. */
+  async switchTo(target: 'print' | 'ebook'): Promise<void> {
+    if (target === this.target()) {
+      return;
+    }
+    this.target.set(target);
+    await this.start();
+  }
+
   /** Abre do começo, no modo da tela. */
   async start(): Promise<void> {
-    this.open.set(window.innerWidth >= 720);
+    // As folhas lado a lado já são o livro aberto: uma por vez
+    this.open.set(window.innerWidth >= 720 && !(this.target() === 'print' && this.layout().spreadSheets));
     this.step.set(0);
     this.images.set({});
     this.error.set(null);
@@ -144,7 +185,7 @@ export class BookPreviewComponent {
   private async fetch(from: number, count: number): Promise<void> {
     this.loading.set(true);
     try {
-      const preview = await firstValueFrom(this.exportApi.preview(this.bookId(), this.layout(), from, count));
+      const preview = await firstValueFrom(this.exportApi.preview(this.bookId(), this.layout(), from, count, this.target()));
       this.pageCount.set(preview.pageCount);
       this.images.update((all) => ({ ...all, ...Object.fromEntries(preview.pages.map((p) => [p.number, p.image])) }));
     } catch (error) {

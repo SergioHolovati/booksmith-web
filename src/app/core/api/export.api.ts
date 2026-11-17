@@ -19,8 +19,8 @@ export class ExportApi {
   private readonly base = environment.apiBaseUrl;
 
   /** Páginas do PDF com a diagramação dada (salva ou não), como imagens; até 4 por pedido. */
-  preview(bookId: string, layout: BookLayout, from: number, count = 2): Observable<LayoutPreview> {
-    return this.http.post<LayoutPreview>(`${this.base}/books/${bookId}/export/preview`, { ...layout, from, count });
+  preview(bookId: string, layout: BookLayout, from: number, count = 2, target: 'print' | 'ebook' = 'print'): Observable<LayoutPreview> {
+    return this.http.post<LayoutPreview>(`${this.base}/books/${bookId}/export/preview`, { ...layout, from, count, target });
   }
 
   /** As ilustrações do texto na diagramação dada (salva ou não): tamanho na página e DPI para impressão. */
