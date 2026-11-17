@@ -11,7 +11,8 @@ import { UniverseApi } from '../../../core/api/universe.api';
 import { fontFamilyCss, loadBookFonts } from '../../../core/fonts/book-fonts';
 import { BookDetail, PagePreview } from '../../../core/models/api.models';
 import { trimSize } from '../../../core/util/print-geometry';
-import { artStyle, previewTextStyle, withBackdrop } from '../../editor/page-designer/page-designer';
+import { artStyle, boxView, fitBlocks, previewTextStyle, withBackdrop } from '../../editor/page-designer/page-designer';
+import { BookPreviewComponent } from './book-preview';
 
 /** A lista com o item de {@code from} levado para {@code to} (os outros andam uma casa). */
 export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
@@ -31,12 +32,19 @@ export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
  */
 @Component({
   selector: 'app-page-organizer',
-  imports: [RouterLink, ButtonModule, ProgressSpinnerModule],
+  imports: [RouterLink, ButtonModule, ProgressSpinnerModule, BookPreviewComponent],
   template: `
     <div class="organizer narrow">
       <a class="back-link" [routerLink]="['/books', bookId()]"><i class="pi pi-arrow-left" aria-hidden="true"></i>
         Voltar ao livro</a>
-      <h1>Organizar páginas</h1>
+      <div class="title-row">
+        <h1>Organizar páginas</h1>
+        @if (book(); as b) {
+          <p-button label="Visualizar prévia" icon="pi pi-eye" size="small" severity="secondary" [outlined]="true"
+            [disabled]="!pages().length" (onClick)="preview.start()" data-organizer-preview />
+          <app-book-preview #preview [bookId]="b.id" [layout]="b.layout" />
+        }
+      </div>
       <p class="muted small">Toque numa página e use as setas para mudar de lugar. No computador, dá para arrastar.
         A ordem é salva na hora.</p>
 
@@ -57,10 +65,9 @@ export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
                   @if (imageUrl(p); as url) {
                     <img class="art" [src]="url" alt="" [style]="art(p)" (load)="imageLoaded(p, $event)" />
                   }
-                  @if (p.page.text !== 'none' && p.paragraphs.length) {
-                    <span class="text" [class]="'text ' + p.page.color + (p.page.band ? ' band' : '') + (p.page.haze ? ' haze' : '') + (p.page.blur ? ' blur' : '')"
-                      [style]="textStyle(p)" [style.font-family]="font(p)">
-                      @for (line of p.paragraphs; track $index) {
+                  @for (box of textBoxes(p); track box.index) {
+                    <span [class]="box.classes" [style]="box.style" [style.font-family]="box.font">
+                      @for (line of box.lines; track $index) {
                         <span class="line">{{ line }}</span>
                       }
                     </span>
@@ -90,6 +97,7 @@ export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
     .narrow { max-width: 960px; margin: 0 auto; padding: 1rem 1rem 7rem; }
     .back-link { display: inline-flex; align-items: center; gap: .4rem; min-height: var(--bs-touch); color: var(--bs-ember); font-size: .9rem; }
     h1 { margin: .4rem 0; font-size: 1.4rem; }
+    .title-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; }
     .center { display: flex; justify-content: center; padding: 3rem 0; }
     .error { color: var(--bs-danger, #e5484d); }
     .grid { list-style: none; margin: 1rem 0 0; padding: 0; display: grid; gap: .8rem;
@@ -111,11 +119,13 @@ export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
     .text.band.light { background: rgba(0, 0, 0, .6); padding: .5em .7em; border-radius: .5em; }
     .text.haze { padding: 1em 1.3em; background-size: 100% 100%; background-repeat: no-repeat; }
     .text.blur { z-index: 1; }
-    .text.blur::before { content: ''; position: absolute; inset: -.9em -1.2em; z-index: -1; pointer-events: none;
+    .text.blur::before { content: ''; position: absolute; inset: calc(-.9em * var(--bh, 1)) -1.2em; z-index: -1;
+      pointer-events: none;
       backdrop-filter: blur(var(--blur, 4px)); -webkit-backdrop-filter: blur(var(--blur, 4px));
       background: rgba(255, 255, 255, .25);
       mask-image: linear-gradient(to right, transparent, #000 1.2em, #000 calc(100% - 1.2em), transparent),
-        linear-gradient(to bottom, transparent, #000 .9em, #000 calc(100% - .9em), transparent);
+        linear-gradient(to bottom, transparent, #000 calc(.9em * var(--bh, 1)),
+          #000 calc(100% - .9em * var(--bh, 1)), transparent);
       mask-composite: intersect; -webkit-mask-composite: source-in; }
     .text.blur.light::before { background: rgba(0, 0, 0, .25); }
     .caption { font-size: .8rem; color: var(--bs-text-soft); text-align: left; overflow: hidden; text-overflow: ellipsis;
@@ -166,7 +176,7 @@ export class PageOrganizerComponent {
       ]);
       this.book.set(book);
       this.pages.set(pages);
-      loadBookFonts([book.layout?.font, ...pages.map((p) => p.page.font)]);
+      loadBookFonts([book.layout?.font, ...pages.flatMap((p) => [p.page.font, ...(p.page.boxes ?? []).map((b) => b.font)])]);
       const images = await firstValueFrom(this.universeApi.listImages(book.universeId));
       this.images.set(Object.fromEntries(images.map((image) => [image.id, image.url])));
     } catch (error) {
@@ -197,12 +207,20 @@ export class PageOrganizerComponent {
     return artStyle(p.page, (p.page.spread ? 2 * w : w) / h, this.imageRatios()[p.page.imageId ?? ''] ?? 1);
   }
 
-  textStyle(p: PagePreview): Record<string, string> {
-    return withBackdrop(p.page, previewTextStyle(p.page, this.trim()), this.trim()[0]);
-  }
-
-  font(p: PagePreview): string {
-    return fontFamilyCss(p.page.font ?? this.book()?.layout?.font);
+  /** Os blocos de texto da miniatura, cada um com o desenho dele (como no desenho da página). */
+  textBoxes(p: PagePreview): { index: number; lines: string[]; style: Record<string, string>; font: string; classes: string }[] {
+    const [trimW] = this.trim();
+    return fitBlocks(p.page, p.blocks ?? [p.paragraphs])
+      .map((lines, index) => {
+        const view = boxView(p.page, index);
+        return {
+          index, lines, view,
+          style: withBackdrop(view, previewTextStyle(view, this.trim()), trimW),
+          font: fontFamilyCss(view.font ?? this.book()?.layout?.font),
+          classes: 'text ' + view.color + (view.band ? ' band' : '') + (view.haze ? ' haze' : '') + (view.blur ? ' blur' : ''),
+        };
+      })
+      .filter((box) => box.lines.length > 0 && box.view.text !== 'none');
   }
 
   select(id: string): void {

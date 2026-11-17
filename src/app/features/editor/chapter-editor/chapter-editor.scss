@@ -480,3 +480,15 @@
 
 /* O botão da nota de rodapé mostra um "¹" */
 .tool-text { font-size: 1.15rem; font-weight: 700; line-height: 1; }
+
+// Livro ilustrado: a quebra separa os blocos de texto da página
+.editor-scroll.picture ::ng-deep .scene-break {
+  font-size: 0;
+  letter-spacing: 0;
+  border-top: 1px dashed var(--bs-sand);
+}
+
+.editor-scroll.picture ::ng-deep .scene-break::after {
+  content: 'Próximo bloco de texto';
+  font-size: .75rem;
+}

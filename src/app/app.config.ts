@@ -1,6 +1,6 @@
 import { ApplicationConfig, inject, isDevMode, provideAppInitializer, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { RouteReuseStrategy, provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideServiceWorker } from '@angular/service-worker';
 import { providePrimeNG } from 'primeng/config';
@@ -9,6 +9,7 @@ import { definePreset } from '@primeuix/themes';
 import Aura from '@primeuix/themes/aura';
 
 import { routes } from './app.routes';
+import { EditorReuseStrategy } from './core/router/editor-reuse';
 import { authInterceptor } from './core/auth/auth.interceptor';
 import { AuthService } from './core/auth/auth.service';
 import { AppUpdates } from './core/pwa/app-updates';
@@ -45,6 +46,8 @@ export const appConfig: ApplicationConfig = {
       },
     }),
     provideRouter(routes, withComponentInputBinding()),
+    // Próxima página do livro ilustrado: outro capítulo no editor é outra tela
+    { provide: RouteReuseStrategy, useClass: EditorReuseStrategy },
     provideAnimationsAsync(),
     provideHttpClient(withInterceptors([authInterceptor, timeZoneInterceptor, uploadBypassInterceptor, errorTrailInterceptor])),
     // Desde o início, para o pedido de suporte saber a tela de onde a pessoa veio

@@ -1,7 +1,7 @@
 import { Component, ElementRef, computed, input, output, signal, viewChild } from '@angular/core';
 
 import { BOOK_FONTS, bookFont, fontFamilyCss, loadBookFonts } from '../../../core/fonts/book-fonts';
-import { PageDesign } from '../../../core/models/api.models';
+import { PageDesign, TextBox } from '../../../core/models/api.models';
 import { hazeBackground } from '../../../core/util/haze';
 
 /** Corpo da letra de cada tamanho, em pontos (o mesmo do PageDesign no servidor). */
@@ -80,6 +80,40 @@ export function previewTextStyle(page: PageDesign, trimMm: [number, number]): Re
   return { ...style, left: `${left}%`, width: `${parseFloat(style['width']) / 2}%`, 'font-size': font };
 }
 
+const BOX_KEYS = ['x', 'y', 'w', 'size', 'align', 'color', 'font', 'band', 'haze', 'blur', 'backdropHeight'] as const;
+
+/** O desenho do bloco {@code index} (0 = o primeiro, a própria página; os outros ficam onde o autor arrastou). */
+export function boxView(page: PageDesign, index: number): PageDesign {
+  const box = index > 0 ? page.boxes?.[index - 1] : undefined;
+  return box ? { ...page, ...box, text: 'free' } : page;
+}
+
+/** Muda o bloco {@code index}: no primeiro, a página; nos outros, só os campos do bloco. */
+export function withBoxChange(page: PageDesign, index: number, change: Partial<PageDesign>): PageDesign {
+  const box = index > 0 ? page.boxes?.[index - 1] : undefined;
+  if (!box) {
+    return { ...page, ...change };
+  }
+  const own = Object.fromEntries(Object.entries(change).filter(([key]) => (BOX_KEYS as readonly string[]).includes(key)));
+  const boxes = [...(page.boxes ?? [])];
+  boxes[index - 1] = { ...box, ...own } as TextBox;
+  return { ...page, boxes };
+}
+
+/** Os blocos de texto para os blocos desenhados: trecho a mais (mais quebras do que blocos) vai junto no último. */
+export function fitBlocks(page: PageDesign, blocks: string[][]): string[][] {
+  const count = 1 + (page.boxes?.length ?? 0);
+  return blocks.length <= count ? blocks : [...blocks.slice(0, count - 1), blocks.slice(count - 1).flat()];
+}
+
+/** Um bloco novo, no jeito do bloco de onde ele veio, mais para baixo da página. */
+export function newTextBox(from: PageDesign): TextBox {
+  return {
+    x: 10, y: 60, w: 80, size: from.size, align: from.align, color: from.color, font: from.font ?? null,
+    band: from.band, haze: from.haze ?? false, blur: from.blur ?? false, backdropHeight: from.backdropHeight ?? 1,
+  };
+}
+
 /** Desfoque do PDF: 2,5 mm de desvio (BlurPatch no servidor). */
 const BLUR_MM = 2.45;
 
@@ -88,10 +122,24 @@ const BLUR_MM = 2.45;
  * tamanho do borrado proporcional à página (o ::before da caixa desfoca o que está atrás).
  */
 export function withBackdrop(page: PageDesign, style: Record<string, string>, trimWidthMm: number): Record<string, string> {
+  const height = page.backdropHeight ?? 1;
   if (page.blur) {
-    return { ...style, '--blur': `${(BLUR_MM / (page.spread ? 2 * trimWidthMm : trimWidthMm)) * 100}cqw` };
+    return { ...style, '--blur': `${(BLUR_MM / (page.spread ? 2 * trimWidthMm : trimWidthMm)) * 100}cqw`, '--bh': `${height}` };
   }
-  return page.haze ? { ...style, 'background-image': hazeBackground(page.color === 'dark') } : style;
+  if (!page.haze) {
+    return style;
+  }
+  const haze: Record<string, string> = { ...style, 'background-image': hazeBackground(page.color === 'dark') };
+  if (height !== 1) {
+    // Névoa mais alta: mais folga em cima e embaixo, e a margem negativa mantém o texto no lugar (como o PDF)
+    haze['padding-top'] = haze['padding-bottom'] = `${height}em`;
+    if (page.text === 'bottom') {
+      haze['margin-bottom'] = `${1 - height}em`;
+    } else if (page.text !== 'middle') {
+      haze['margin-top'] = `${1 - height}em`;
+    }
+  }
+  return haze;
 }
 
 /** A posição da caixa de texto na página, em % (a mesma conta do PDF). */
@@ -142,13 +190,13 @@ export function textBoxStyle(page: PageDesign, trimMm: [number, number]): Record
               (pointerdown)="startArtDrag($event)" (pointermove)="moveDrag($event)" (pointerup)="endDrag($event)"
               (pointercancel)="endDrag($event)" title="Arraste para enquadrar a ilustração" data-page-art />
           }
-          @if (shown().text !== 'none' && paragraphs().length) {
-            <div class="text draggable" [class]="'text draggable ' + shown().color + (shown().band ? ' band' : '') + (shown().haze ? ' haze' : '') + (shown().blur ? ' blur' : '')
-              + (dragging() ? ' dragging' : '')" [style]="boxStyle()" data-page-text
-              (pointerdown)="startDrag($event)" (pointermove)="moveDrag($event)" (pointerup)="endDrag($event)"
-              (pointercancel)="endDrag($event)" title="Arraste para mudar o texto de lugar"
-              [style.font-family]="textFont()">
-              @for (p of paragraphs(); track $index) {
+          @for (box of textBoxes(); track box.index) {
+            <div [class]="box.classes + (box.index === sel() && blockCount() > 1 ? ' selected' : '')
+              + (dragging() ? ' dragging' : '')" [style]="box.style" [style.font-family]="box.font"
+              [attr.data-page-text]="box.index === 0 ? '' : null" [attr.data-page-block]="box.index + 1"
+              (pointerdown)="startDrag($event, box.index)" (pointermove)="moveDrag($event)" (pointerup)="endDrag($event)"
+              (pointercancel)="endDrag($event)" title="Arraste para mudar o texto de lugar">
+              @for (p of box.lines; track $index) {
                 <p>{{ p }}</p>
               }
             </div>
@@ -182,40 +230,58 @@ export function textBoxStyle(page: PageDesign, trimMm: [number, number]): Record
               Enquadrar</button>
           </div>
         }
-        <div class="row" role="radiogroup" aria-label="Onde fica o texto">
-          <span class="label">Texto</span>
-          @for (t of texts; track t.value) {
-            <button type="button" class="chip" role="radio" [class.on]="page().text === t.value"
-              [attr.aria-checked]="page().text === t.value" (click)="set({ text: t.value })">{{ t.label }}</button>
+        <div class="row" data-page-blocks>
+          <span class="label">Blocos</span>
+          @if (blockCount() > 1) {
+            @for (n of blockNumbers(); track n) {
+              <button type="button" class="chip" [class.on]="sel() === n - 1" [attr.aria-pressed]="sel() === n - 1"
+                [attr.aria-label]="'Bloco de texto ' + n" (click)="selected.set(n - 1)" [attr.data-page-pick-block]="n">
+                {{ n }}</button>
+            }
+          }
+          <button type="button" class="chip" (click)="addBlock.emit()" [disabled]="blockCount() > maxBoxes"
+            data-page-add-block><i class="pi pi-plus" aria-hidden="true"></i> Bloco de texto</button>
+          @if (sel() > 0) {
+            <button type="button" class="chip" (click)="removeBlock.emit(sel())" data-page-remove-block>
+              Tirar o bloco {{ sel() + 1 }}</button>
           }
         </div>
-        @if (page().text === 'free') {
+        @if (sel() === 0) {
+          <div class="row" role="radiogroup" aria-label="Onde fica o texto">
+            <span class="label">Texto</span>
+            @for (t of texts; track t.value) {
+              <button type="button" class="chip" role="radio" [class.on]="page().text === t.value"
+                [attr.aria-checked]="page().text === t.value" (click)="set({ text: t.value })">{{ t.label }}</button>
+            }
+          </div>
+        }
+        @if (current().text === 'free') {
           <div class="row">
             <span class="label">Largura</span>
-            <input type="range" min="15" max="100" step="1" [value]="shown().w" aria-label="Largura da caixa de texto"
+            <input type="range" min="15" max="100" step="1" [value]="shownBox().w" aria-label="Largura da caixa de texto"
               (input)="previewWidth($any($event.target).value)" (change)="commitWidth($any($event.target).value)"
               data-page-width />
             <span class="muted small">Arraste o texto na página para mudar de lugar.</span>
           </div>
         }
-        @if (page().text !== 'none') {
+        @if (current().text !== 'none') {
           <div class="row">
             <span class="label">Letra</span>
             @for (s of sizes; track s.value) {
-              <button type="button" class="chip" [class.on]="page().size === s.value" [attr.aria-pressed]="page().size === s.value"
-                [attr.aria-label]="'Letra ' + s.label" (click)="set({ size: s.value })">{{ s.label }}</button>
+              <button type="button" class="chip" [class.on]="current().size === s.value" [attr.aria-pressed]="current().size === s.value"
+                [attr.aria-label]="'Letra ' + s.label" (click)="setBox({ size: s.value })">{{ s.label }}</button>
             }
             @for (a of aligns; track a.value) {
-              <button type="button" class="chip icon" [class.on]="page().align === a.value" [attr.aria-label]="a.label"
-                [attr.aria-pressed]="page().align === a.value" (click)="set({ align: a.value })">
+              <button type="button" class="chip icon" [class.on]="current().align === a.value" [attr.aria-label]="a.label"
+                [attr.aria-pressed]="current().align === a.value" (click)="setBox({ align: a.value })">
                 <i class="pi" [class]="'pi ' + a.icon" aria-hidden="true"></i>
               </button>
             }
           </div>
           <div class="row">
             <label class="label" for="page-font">Fonte</label>
-            <select id="page-font" class="font-select" [value]="page().font ?? ''" data-page-font
-              (change)="set({ font: $any($event.target).value || null })">
+            <select id="page-font" class="font-select" [value]="current().font ?? ''" data-page-font
+              (change)="setBox({ font: $any($event.target).value || null })">
               <option value="">A do livro ({{ bookFontName() }})</option>
               @for (f of fonts; track f.id) {
                 <option [value]="f.id">{{ f.family }}{{ f.children ? ' (infantil)' : '' }}</option>
@@ -224,20 +290,30 @@ export function textBoxStyle(page: PageDesign, trimMm: [number, number]): Record
           </div>
           <div class="row">
             <span class="label">Cor</span>
-            <button type="button" class="chip" [class.on]="page().color === 'dark'" (click)="set({ color: 'dark' })">Escura</button>
-            <button type="button" class="chip" [class.on]="page().color === 'light'" (click)="set({ color: 'light' })">Clara</button>
+            <button type="button" class="chip" [class.on]="current().color === 'dark'" (click)="setBox({ color: 'dark' })">Escura</button>
+            <button type="button" class="chip" [class.on]="current().color === 'light'" (click)="setBox({ color: 'light' })">Clara</button>
           </div>
           <div class="row">
             <span class="label" title="O que fica atrás do texto">Atrás</span>
-            <button type="button" class="chip" [class.on]="page().band" [attr.aria-pressed]="page().band"
-              (click)="set({ band: !page().band, haze: false, blur: false })" data-page-band>Faixa</button>
-            <button type="button" class="chip" [class.on]="page().haze" [attr.aria-pressed]="!!page().haze"
-              (click)="set({ haze: !page().haze, band: false, blur: false })" data-page-haze
+            <button type="button" class="chip" [class.on]="current().band" [attr.aria-pressed]="current().band"
+              (click)="setBox({ band: !current().band, haze: false, blur: false })" data-page-band>Faixa</button>
+            <button type="button" class="chip" [class.on]="current().haze" [attr.aria-pressed]="!!current().haze"
+              (click)="setBox({ haze: !current().haze, band: false, blur: false })" data-page-haze
               title="A ilustração clareia atrás do texto, com a borda esfumada">Névoa</button>
-            <button type="button" class="chip" [class.on]="page().blur" [attr.aria-pressed]="!!page().blur"
-              (click)="set({ blur: !page().blur, band: false, haze: false })" data-page-blur
+            <button type="button" class="chip" [class.on]="current().blur" [attr.aria-pressed]="!!current().blur"
+              (click)="setBox({ blur: !current().blur, band: false, haze: false })" data-page-blur
               title="A ilustração fica desfocada atrás do texto, com a borda esfumada">Desfoque</button>
           </div>
+          @if (current().haze || current().blur) {
+            <div class="row">
+              <span class="label">Altura</span>
+              <input type="range" min="50" max="400" step="10" [value]="round((shownBox().backdropHeight ?? 1) * 100)"
+                [attr.aria-label]="'Altura da ' + (current().blur ? 'área desfocada' : 'névoa')"
+                (input)="previewHeight($any($event.target).value)" (change)="commitHeight($any($event.target).value)"
+                data-page-backdrop-height />
+              <span class="muted small zoom-value">{{ round((shownBox().backdropHeight ?? 1) * 100) }}%</span>
+            </div>
+          }
         }
         <div class="row">
           <span class="label">Página</span>
@@ -273,17 +349,20 @@ export function textBoxStyle(page: PageDesign, trimMm: [number, number]): Record
     .text.band.light { background: rgba(0, 0, 0, .6); padding: .5em .7em; border-radius: .5em; }
     .text.haze { padding: 1em 1.3em; background-size: 100% 100%; background-repeat: no-repeat; }
     .text.blur { z-index: 1; }
-    .text.blur::before { content: ''; position: absolute; inset: -.9em -1.2em; z-index: -1; pointer-events: none;
+    .text.blur::before { content: ''; position: absolute; inset: calc(-.9em * var(--bh, 1)) -1.2em; z-index: -1;
+      pointer-events: none;
       backdrop-filter: blur(var(--blur, 4px)); -webkit-backdrop-filter: blur(var(--blur, 4px));
       background: rgba(255, 255, 255, .25);
       mask-image: linear-gradient(to right, transparent, #000 1.2em, #000 calc(100% - 1.2em), transparent),
-        linear-gradient(to bottom, transparent, #000 .9em, #000 calc(100% - .9em), transparent);
+        linear-gradient(to bottom, transparent, #000 calc(.9em * var(--bh, 1)),
+          #000 calc(100% - .9em * var(--bh, 1)), transparent);
       mask-composite: intersect; -webkit-mask-composite: source-in; }
     .text.blur.light::before { background: rgba(0, 0, 0, .25); }
     .text { box-sizing: border-box; }
     .text.draggable { cursor: grab; touch-action: none; user-select: none; outline: 1px dashed transparent; }
     .text.draggable:hover, .text.dragging { outline-color: rgba(242, 140, 56, .9); }
     .text.dragging { cursor: grabbing; }
+    .text.selected { outline: 1px dashed rgba(242, 140, 56, .9); }
     input[type='range'] { flex: 1 1 8rem; min-width: 8rem; accent-color: var(--bs-ember); }
     .controls { display: flex; flex-direction: column; gap: .45rem; }
     .row { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; }
@@ -305,8 +384,8 @@ export class PageDesignerComponent {
   readonly page = input.required<PageDesign>();
   /** Endereço da ilustração de fundo (null = sem imagem, ou ainda carregando). */
   readonly imageUrl = input<string | null>(null);
-  /** O texto da página, um item por parágrafo. */
-  readonly paragraphs = input<string[]>([]);
+  /** O texto da página: os parágrafos de cada bloco (a quebra de bloco separa um do outro). */
+  readonly blocks = input<string[][]>([]);
   /** Largura e altura do corte do livro, em mm (a diagramação). */
   readonly trimMm = input<[number, number]>([200, 200]);
   /** O aviso de DPI da ilustração de fundo, se já dá para saber. */
@@ -317,17 +396,44 @@ export class PageDesignerComponent {
 
   readonly pageChange = output<PageDesign>();
   readonly pickImage = output<void>();
+  /** Pede um bloco de texto novo (o editor põe a quebra no texto e o bloco no desenho). */
+  readonly addBlock = output<void>();
+  /** Tira o bloco (o texto dele volta para o bloco anterior). */
+  readonly removeBlock = output<number>();
+
+  readonly maxBoxes = 8;
+  /** O bloco escolhido para mudar (0 = o primeiro). */
+  readonly selected = signal(0);
+  readonly blockCount = computed(() => 1 + (this.page().boxes?.length ?? 0));
+  readonly sel = computed(() => Math.min(this.selected(), this.blockCount() - 1));
+  readonly blockNumbers = computed(() => Array.from({ length: this.blockCount() }, (_, i) => i + 1));
+  /** O bloco escolhido, salvo e na prévia (durante o arraste). */
+  readonly current = computed(() => boxView(this.page(), this.sel()));
+  readonly shownBox = computed(() => boxView(this.shown(), this.sel()));
 
   readonly texts = TEXTS;
   readonly aligns = ALIGNS;
   readonly sizes = SIZES;
   readonly fonts = BOOK_FONTS;
   readonly bookFontName = computed(() => bookFont(this.bookFont()).family);
-  /** A fonte do texto na prévia: a da página, senão a do livro (carregada sob demanda). */
-  readonly textFont = computed(() => {
-    const id = this.shown().font ?? this.bookFont();
-    loadBookFonts([id]);
-    return fontFamilyCss(id);
+  /** Os blocos de texto na prévia: o texto de cada um e o desenho dele (fonte carregada sob demanda). */
+  readonly textBoxes = computed(() => {
+    const page = this.shown();
+    const [trimW] = this.trimMm();
+    return fitBlocks(page, this.blocks())
+      .map((lines, index) => {
+        const view = boxView(page, index);
+        const fontId = view.font ?? this.bookFont();
+        loadBookFonts([fontId]);
+        return {
+          index, lines, view,
+          style: withBackdrop(view, previewTextStyle(view, this.trimMm()), trimW),
+          font: fontFamilyCss(fontId),
+          classes: 'text draggable ' + view.color + (view.band ? ' band' : '') + (view.haze ? ' haze' : '')
+            + (view.blur ? ' blur' : ''),
+        };
+      })
+      .filter((box) => box.lines.length > 0 && box.view.text !== 'none');
   });
 
   /** Proporção da prévia: a página, ou o livro aberto na dupla. */
@@ -341,7 +447,7 @@ export class PageDesignerComponent {
   readonly dragging = signal(false);
   readonly shown = computed(() => this.draft() ?? this.page());
   private readonly previewRef = viewChild<ElementRef<HTMLElement>>('preview');
-  private start: { pointerX: number; pointerY: number; x: number; y: number; w: number; mode: 'text' | 'art' } | null = null;
+  private start: { pointerX: number; pointerY: number; x: number; y: number; w: number; mode: 'text' | 'art'; box: number } | null = null;
   /** Largura ÷ altura da ilustração de fundo (para cobrir a página como o PDF). */
   private readonly imageRatio = signal(1);
 
@@ -363,7 +469,7 @@ export class PageDesignerComponent {
   startArtDrag(event: PointerEvent): void {
     (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
     const page = this.page();
-    this.start = { pointerX: event.clientX, pointerY: event.clientY, x: page.imageX, y: page.imageY, w: 0, mode: 'art' };
+    this.start = { pointerX: event.clientX, pointerY: event.clientY, x: page.imageX, y: page.imageY, w: 0, mode: 'art', box: 0 };
     this.dragging.set(true);
     event.preventDefault();
   }
@@ -377,15 +483,27 @@ export class PageDesignerComponent {
     this.pageChange.emit({ ...this.page(), zoom: Number(value) / 100 });
   }
 
-  readonly boxStyle = computed(() =>
-    withBackdrop(this.shown(), previewTextStyle(this.shown(), this.trimMm()), this.trimMm()[0]));
-
   set(change: Partial<PageDesign>): void {
     this.pageChange.emit({ ...this.page(), ...change });
   }
 
+  /** Muda o bloco escolhido (letra, cor, fonte, fundo, largura). */
+  setBox(change: Partial<PageDesign>): void {
+    this.pageChange.emit(withBoxChange(this.page(), this.sel(), change));
+  }
+
+  previewHeight(value: string): void {
+    this.draft.set(withBoxChange(this.page(), this.sel(), { backdropHeight: Number(value) / 100 }));
+  }
+
+  commitHeight(value: string): void {
+    this.draft.set(null);
+    this.setBox({ backdropHeight: Number(value) / 100 });
+  }
+
   /** Pega a caixa de texto: guarda onde ela está, em % do contêiner (no modo fixo, onde ela aparece agora). */
-  startDrag(event: PointerEvent): void {
+  startDrag(event: PointerEvent, index = 0): void {
+    this.selected.set(index);
     const preview = this.previewRef()?.nativeElement;
     const box = event.currentTarget as HTMLElement;
     if (!preview) {
@@ -401,6 +519,7 @@ export class PageDesignerComponent {
       y: ((rect.top - area.top) / area.height) * 100,
       w: (rect.width / area.width) * 100,
       mode: 'text',
+      box: index,
     };
     this.dragging.set(true);
     event.preventDefault();
@@ -420,7 +539,7 @@ export class PageDesignerComponent {
       return;
     }
     const box = clampBox(this.start.x + dx, this.start.y + dy, this.start.w);
-    this.draft.set({ ...this.page(), text: 'free', ...box });
+    this.draft.set(withBoxChange(this.page(), this.start.box, { text: 'free', ...box }));
   }
 
   /** Solta: salva uma vez, no lugar novo. */
@@ -439,13 +558,13 @@ export class PageDesignerComponent {
   }
 
   previewWidth(value: string): void {
-    const page = this.page();
-    this.draft.set({ ...page, ...clampBox(page.x, page.y, Number(value)) });
+    const box = this.current();
+    this.draft.set(withBoxChange(this.page(), this.sel(), clampBox(box.x, box.y, Number(value))));
   }
 
   commitWidth(value: string): void {
-    const page = this.page();
+    const box = this.current();
     this.draft.set(null);
-    this.pageChange.emit({ ...page, ...clampBox(page.x, page.y, Number(value)) });
+    this.setBox(clampBox(box.x, box.y, Number(value)));
   }
 }

@@ -41,7 +41,7 @@ import { IllustrationPanelComponent } from '../illustration/illustration-panel';
 import { ILLUSTRATIONS_LOADED } from '../schema/illustration';
 import { PrintGeometry, dpiHint, printDpi, printGeometry, trimSize } from '../../../core/util/print-geometry';
 import { BookGenre, BookLayout, PageDesign } from '../../../core/models/api.models';
-import { DEFAULT_PAGE, PageDesignerComponent } from '../page-designer/page-designer';
+import { DEFAULT_PAGE, PageDesignerComponent, boxView, newTextBox } from '../page-designer/page-designer';
 import { FootnotePanelComponent } from '../footnote/footnote-panel';
 import { CALLOUT_KINDS, CalloutKind } from '../schema/callout';
 import { NodeSelection } from '@tiptap/pm/state';
@@ -86,7 +86,7 @@ const LORE_HINT: Record<string, string> = {
   selector: 'app-chapter-editor',
   imports: [FormsModule, ButtonModule, DialogModule, ProgressSpinnerModule, ChapterHistoryComponent, ChapterNotesComponent, ChapterReviewComponent, ProofreadPanelComponent, IllustrationPickerComponent, IllustrationPanelComponent, PageDesignerComponent, FootnotePanelComponent],
   templateUrl: './chapter-editor.html',
-  styleUrl: './chapter-editor.scss',
+  styleUrls: ['./chapter-editor.scss', './page-nav.scss'],
   host: {
     '[style.--keyboard-offset.px]': 'keyboardOffset()',
     '(window:beforeunload)': 'onBeforeUnload($event)',
@@ -151,12 +151,67 @@ export class ChapterEditorComponent {
 
   // ===== Livro ilustrado (infantil): cada capítulo é uma página =====
   readonly genre = signal<BookGenre | null>(null);
+  /** Livro ilustrado: as páginas do livro, na ordem (para a anterior e a próxima). */
+  readonly pageIds = signal<string[]>([]);
+  readonly pageNumber = computed(() => this.pageIds().indexOf(this.chapterId()) + 1);
+  readonly previousPageId = computed(() => this.pageIds()[this.pageNumber() - 2] ?? null);
+  readonly nextPageId = computed(() => (this.pageNumber() ? (this.pageIds()[this.pageNumber()] ?? null) : null));
+  readonly changingPage = signal(false);
+
+  /** Vai para a página anterior ou a próxima, depois de salvar o que falta. */
+  async goToPage(id: string | null): Promise<void> {
+    if (!id || this.changingPage()) {
+      return;
+    }
+    this.changingPage.set(true);
+    try {
+      await this.flushSave();
+      await this.router.navigate(['/write', id]);
+    } finally {
+      this.changingPage.set(false);
+    }
+  }
+
+  /** Volta para a tela de organizar as páginas (salva antes). */
+  async openOrganizer(): Promise<void> {
+    const bookId = this.bookId();
+    if (!bookId || this.changingPage()) {
+      return;
+    }
+    this.changingPage.set(true);
+    try {
+      await this.flushSave();
+      await this.router.navigate(['/books', bookId, 'paginas']);
+    } finally {
+      this.changingPage.set(false);
+    }
+  }
+
+  /** Na última página: cria a próxima e abre. */
+  async newPageAfter(): Promise<void> {
+    const bookId = this.bookId();
+    if (!bookId || this.changingPage()) {
+      return;
+    }
+    this.changingPage.set(true);
+    try {
+      await this.flushSave();
+      const chapter = await firstValueFrom(this.api.createChapter(bookId));
+      await this.router.navigate(['/write', chapter.id]);
+    } catch (error) {
+      this.toast.add({ severity: 'error', summary: problemMessage(error, 'Não foi possível criar a página.'), life: 5000 });
+    } finally {
+      this.changingPage.set(false);
+    }
+  }
+
   readonly pictureBook = computed(() => this.genre() === 'CHILDREN' || this.fixedPages());
   /** O livro pronto em PDF (modo páginas), em qualquer gênero. */
   private readonly fixedPages = signal(false);
   readonly page = signal<PageDesign>(DEFAULT_PAGE);
   /** O texto da página, um item por parágrafo, para a prévia. */
-  readonly pageParagraphs = signal<string[]>([]);
+  /** Livro ilustrado: os parágrafos de cada bloco de texto da página (a quebra de bloco separa um do outro). */
+  readonly pageBlocks = signal<string[][]>([]);
   protected readonly bookLayout = signal<BookLayout | null>(null);
   readonly trimMm = computed<[number, number]>(() => {
     const layout = this.bookLayout();
@@ -539,21 +594,59 @@ export class ChapterEditorComponent {
     img.src = url;
   }
 
+  /**
+   * Livro ilustrado: um bloco de texto novo. A quebra de bloco vai para o fim do texto (o cursor fica depois dela,
+   * para escrever o bloco) e o bloco entra no desenho, no jeito do último.
+   */
+  addTextBlock(): void {
+    if (!this.editor) {
+      return;
+    }
+    const page = this.page();
+    const last = boxView(page, page.boxes?.length ?? 0);
+    this.editor.chain().focus('end').insertContent([{ type: 'sceneBreak' }, { type: 'paragraph' }]).run();
+    this.setPage({ ...page, boxes: [...(page.boxes ?? []), newTextBox(last)] });
+  }
+
+  /** Tira o bloco {@code index} (a partir de 1): a quebra antes dele some e o texto dele volta para o anterior. */
+  removeTextBlock(index: number): void {
+    if (!this.editor || index < 1) {
+      return;
+    }
+    let seen = 0;
+    let at: { from: number; to: number } | null = null;
+    this.editor.state.doc.forEach((node, offset) => {
+      if (node.type.name === 'sceneBreak' && ++seen === index && !at) {
+        at = { from: offset, to: offset + node.nodeSize };
+      }
+    });
+    const found = at as { from: number; to: number } | null;
+    if (found) {
+      this.editor.view.dispatch(this.editor.state.tr.delete(found.from, found.to));
+    }
+    const page = this.page();
+    const boxes = [...(page.boxes ?? [])];
+    boxes.splice(index - 1, 1);
+    this.setPage({ ...page, boxes });
+  }
+
   /** Os parágrafos do texto, para a prévia da página. */
   private refreshPageText(): void {
     if (!this.pictureBook() || !this.editor) {
       return;
     }
-    const paragraphs: string[] = [];
+    const blocks: string[][] = [[]];
     this.editor.state.doc.forEach((node) => {
-      if (node.type.name === 'paragraph' || node.type.name === 'heading') {
+      if (node.type.name === 'sceneBreak') {
+        blocks.push([]);
+      } else if (node.type.name === 'paragraph' || node.type.name === 'heading') {
         const text = node.textContent.trim();
         if (text) {
-          paragraphs.push(text);
+          blocks[blocks.length - 1].push(text);
         }
       }
     });
-    this.pageParagraphs.set(paragraphs);
+    this.pageBlocks.set(blocks);
   }
 
   setIllustrationCaption(caption: string): void {
@@ -760,6 +853,7 @@ export class ChapterEditorComponent {
       this.universeId.set(universeId);
       this.printGeometry = printGeometry(book.layout);
       this.bookLayout.set(book.layout);
+      this.pageIds.set(book.chapters.map((c) => c.id));
       void this.loadImageUrls(universeId);
       const [characters, places, lore] = await Promise.all([
         firstValueFrom(this.universeApi.listCharacters(universeId)),

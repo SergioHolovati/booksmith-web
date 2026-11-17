@@ -1,4 +1,4 @@
-import { DEFAULT_PAGE, artStyle, clampBox, previewTextStyle, textBoxStyle } from './page-designer';
+import { DEFAULT_PAGE, artStyle, boxView, clampBox, fitBlocks, newTextBox, previewTextStyle, textBoxStyle, withBackdrop, withBoxChange } from './page-designer';
 
 describe('desenho da página do livro ilustrado', () => {
   it('a caixa de texto fica na área segura (12 mm do corte) e a letra é proporcional à página', () => {
@@ -46,5 +46,45 @@ describe('desenho da página do livro ilustrado', () => {
     expect(parseFloat(zoomed['height'])).toBe(200);
     expect(parseFloat(zoomed['left'])).toBeCloseTo(25 - 141.18, 1);
     expect(parseFloat(zoomed['top'])).toBe(-50);
+  });
+});
+
+describe('blocos de texto da página', () => {
+  const page = { ...DEFAULT_PAGE, text: 'top' as const, color: 'dark' as const };
+  const box = { x: 10, y: 70, w: 50, size: 's' as const, align: 'left' as const, color: 'light' as const, band: false,
+    haze: true, blur: false, backdropHeight: 2 };
+
+  it('o bloco a mais fica onde o autor arrastou, com o desenho dele', () => {
+    const view = boxView({ ...page, boxes: [box] }, 1);
+    expect(view.text).toBe('free');
+    expect(view.y).toBe(70);
+    expect(view.color).toBe('light');
+    expect(boxView({ ...page, boxes: [box] }, 0)).toEqual({ ...page, boxes: [box] });
+  });
+
+  it('mudar um bloco não mexe na página nem nos outros', () => {
+    const changed = withBoxChange({ ...page, boxes: [box] }, 1, { size: 'xl', imageId: 'x' } as never);
+    expect(changed.boxes?.[0].size).toBe('xl');
+    expect(changed.imageId).toBeNull();
+    expect(changed.size).toBe(page.size);
+    expect(withBoxChange(page, 0, { size: 'xl' }).size).toBe('xl');
+  });
+
+  it('a sobra de texto vai para o último bloco', () => {
+    expect(fitBlocks(page, [['a'], ['b'], ['c']])).toEqual([['a', 'b', 'c']]);
+    expect(fitBlocks({ ...page, boxes: [box] }, [['a'], ['b'], ['c']])).toEqual([['a'], ['b', 'c']]);
+    expect(fitBlocks({ ...page, boxes: [box] }, [['a']])).toEqual([['a']]);
+  });
+
+  it('o bloco novo vem no jeito do anterior, mais para baixo', () => {
+    expect(newTextBox({ ...page, size: 'm', haze: true })).toMatchObject({ y: 60, size: 'm', haze: true });
+  });
+
+  it('névoa mais alta: mais folga e o texto no mesmo lugar', () => {
+    const style = withBackdrop({ ...page, haze: true, backdropHeight: 3 }, {}, 200);
+    expect(style['padding-top']).toBe('3em');
+    expect(style['margin-top']).toBe('-2em');
+    expect(withBackdrop({ ...page, text: 'bottom', haze: true, backdropHeight: 3 }, {}, 200)['margin-bottom']).toBe('-2em');
+    expect(withBackdrop({ ...page, blur: true, backdropHeight: 2 }, {}, 200)['--bh']).toBe('2');
   });
 });

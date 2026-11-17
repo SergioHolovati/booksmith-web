@@ -61,10 +61,36 @@
       <div class="error-banner">{{ message }}</div>
     }
 
-    <main class="editor-scroll">
+    <main class="editor-scroll" [class.picture]="pictureBook()">
+      @if (pictureBook() && pageNumber()) {
+        <nav class="page-nav" aria-label="Páginas do livro" data-page-nav>
+          <button type="button" class="page-nav-btn" [disabled]="!previousPageId() || changingPage()"
+            (click)="goToPage(previousPageId())" data-page-prev aria-label="Página anterior">
+            <i class="pi pi-chevron-left" aria-hidden="true"></i><span>Anterior</span>
+          </button>
+          <button type="button" class="page-nav-count" (click)="openOrganizer()" [disabled]="changingPage()"
+            aria-label="Organizar as páginas" title="Organizar as páginas" data-page-organize>
+            <i class="pi pi-th-large" aria-hidden="true"></i>
+            <span data-page-count>Página {{ pageNumber() }} de {{ pageIds().length }}</span>
+          </button>
+          @if (nextPageId(); as next) {
+            <button type="button" class="page-nav-btn" [disabled]="changingPage()" (click)="goToPage(next)"
+              data-page-next aria-label="Próxima página">
+              <span>Próxima</span><i class="pi pi-chevron-right" aria-hidden="true"></i>
+            </button>
+          } @else {
+            <button type="button" class="page-nav-btn new" [disabled]="changingPage()" (click)="newPageAfter()"
+              data-page-new>
+              <i class="pi pi-plus" aria-hidden="true"></i><span>Nova página</span>
+            </button>
+          }
+        </nav>
+      }
       @if (pictureBook()) {
-        <app-page-designer [page]="page()" [imageUrl]="backgroundUrl()" [paragraphs]="pageParagraphs()"
-          [trimMm]="trimMm()" [dpiHint]="backgroundDpi()" [bookFont]="bookLayout()?.font ?? 'literata'" (pageChange)="setPage($event)" (pickImage)="openBackgroundPicker()" />
+        <app-page-designer [page]="page()" [imageUrl]="backgroundUrl()" [blocks]="pageBlocks()"
+          [trimMm]="trimMm()" [dpiHint]="backgroundDpi()" [bookFont]="bookLayout()?.font ?? 'literata'"
+          (pageChange)="setPage($event)" (pickImage)="openBackgroundPicker()" (addBlock)="addTextBlock()"
+          (removeBlock)="removeTextBlock($event)" />
       }
       <div #editorHost class="editor-host"></div>
     </main>

@@ -34,6 +34,25 @@ export interface PageDesign {
   haze?: boolean;
   /** Desfoque: a arte borrada atrás do texto, com a borda esfumada (no lugar da faixa e da névoa). */
   blur?: boolean;
+  /** Altura da névoa ou do desfoque: 1 (padrão) a 4 vezes, para cima e para baixo do texto. */
+  backdropHeight?: number;
+  /** Os blocos de texto a mais (o primeiro é a própria página); no texto, a quebra de bloco separa um do outro. */
+  boxes?: TextBox[];
+}
+
+/** Um bloco de texto a mais na página: sempre onde o autor arrastou, com letra, cor, fonte e fundo próprios. */
+export interface TextBox {
+  x: number;
+  y: number;
+  w: number;
+  size: PageDesign['size'];
+  align: PageDesign['align'];
+  color: PageDesign['color'];
+  font?: string | null;
+  band: boolean;
+  haze?: boolean;
+  blur?: boolean;
+  backdropHeight?: number;
 }
 
 /** Uma página do livro ilustrado, para organizar vendo as miniaturas. */
@@ -42,6 +61,8 @@ export interface PagePreview {
   title: string;
   page: PageDesign;
   paragraphs: string[];
+  /** Os parágrafos de cada bloco de texto. */
+  blocks?: string[][];
 }
 export type BookStatus = 'DRAFT' | 'WRITING' | 'COMPLETE';
 /** Tag BCP 47 do idioma do livro (orienta o corretor ortográfico do navegador). */

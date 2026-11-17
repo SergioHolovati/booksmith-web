@@ -1,0 +1,47 @@
+// Livro ilustrado: página anterior e próxima, em cima do desenho da página
+.page-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  margin: 0 0 .8rem;
+}
+
+.page-nav-count {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-height: 44px;
+  border: 0;
+  background: none;
+  color: var(--bs-text-soft);
+  font: inherit;
+  font-size: .85rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.page-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  min-height: var(--bs-touch, 44px);
+  padding: 0 .9rem;
+  border: 1px solid var(--bs-border);
+  border-radius: 999px;
+  background: var(--bs-surface);
+  color: var(--bs-text);
+  font-family: var(--bs-font-ui, inherit);
+  font-size: .9rem;
+  cursor: pointer;
+}
+
+.page-nav-btn:disabled {
+  opacity: .4;
+  cursor: default;
+}
+
+.page-nav-btn.new {
+  border-color: var(--bs-ember);
+  color: var(--bs-ember);
+}
