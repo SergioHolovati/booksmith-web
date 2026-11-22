@@ -7,7 +7,23 @@
       <p class="page-subtitle">O que vem antes e depois da história. Saem no ePub, no PDF e no Word; o que ficar em
         branco não aparece.</p>
     </div>
+    @if (book(); as b) {
+      <p-button label="Ver como fica" icon="pi pi-eye" severity="secondary" [outlined]="true" size="small"
+        [disabled]="dirty()" (onClick)="preview.start()" data-pages-preview />
+      <app-book-preview #preview [bookId]="b.id" [layout]="b.layout" />
+    }
   </div>
+  @if (book()) {
+    <p class="template-hint glass-card" [class.done]="!pendingTotal()" data-pages-pending>
+      <i class="pi" [class]="pendingTotal() ? 'pi pi-pencil' : 'pi pi-check-circle'" aria-hidden="true"></i>
+      @if (pendingTotal()) {
+        O livro já vem com o modelo das páginas. Complete o que está <strong>entre colchetes</strong>, como
+        [nome de quem revisou]: até lá, essa linha não sai no livro. Faltam {{ pendingTotal() }}.
+      } @else {
+        Nenhum campo do modelo por completar.
+      }
+    </p>
+  }
 
   @if (loadError(); as message) {
     <div class="glass-card empty-state">
@@ -28,14 +44,24 @@
     </section>
 
     <section class="glass-card page-card" data-page="credits">
+      <div class="card-head"><strong>Créditos</strong><span class="status" [class]="'status ' + status('credits')" [attr.data-status]="status('credits')">{{ statusLabel('credits', true) }}</span></div>
+      <div class="credit-grid" data-credit-roles>
+        @for (r of creditRoles; track r.role) {
+          <label class="credit-field">
+            <span>{{ r.role }}</span>
+            <input pInputText maxlength="200" [placeholder]="r.hint" [ngModel]="credit(r.role)"
+              (ngModelChange)="setCredit(r.role, $event, r.hint)" [attr.data-credit]="r.role" />
+          </label>
+        }
+      </div>
       <div class="field">
-        <label for="credits">Créditos</label>
+        <label for="credits">Texto dos créditos</label>
         <textarea id="credits" pTextarea rows="3" [autoResize]="true" maxlength="3000" [placeholder]="creditsHint()"
           [ngModel]="draft().credits" (ngModelChange)="set('credits', $event)"></textarea>
         <small class="field-hint">Verso da folha de rosto: direitos, quem fez a capa, as ilustrações, a revisão.</small>
       </div>
       <div class="field">
-        <label for="catalog-card">Ficha catalográfica</label>
+        <label for="catalog-card">Ficha catalográfica <span class="status" [class]="'status ' + status('catalogCard')" [attr.data-status]="status('catalogCard')">{{ statusLabel('catalogCard', true) }}</span></label>
         <textarea id="catalog-card" pTextarea rows="4" [autoResize]="true" maxlength="3000" class="mono"
           placeholder="Dados Internacionais de Catalogação na Publicação (CIP)…" [ngModel]="draft().catalogCard"
           (ngModelChange)="set('catalogCard', $event)"></textarea>
@@ -51,7 +77,7 @@
 
     <section class="glass-card page-card" data-page="dedication">
       <div class="field">
-        <label for="dedication">Dedicatória</label>
+        <label for="dedication">Dedicatória <span class="status" [class]="'status ' + status('dedication')" [attr.data-status]="status('dedication')">{{ statusLabel('dedication', false) }}</span></label>
         <textarea id="dedication" pTextarea rows="2" [autoResize]="true" maxlength="2000"
           placeholder="Para quem me ensinou a ler." [ngModel]="draft().dedication"
           (ngModelChange)="set('dedication', $event)"></textarea>
@@ -60,7 +86,7 @@
 
     <section class="glass-card page-card" data-page="epigraph">
       <div class="field">
-        <label for="epigraph">Epígrafe</label>
+        <label for="epigraph">Epígrafe <span class="status" [class]="'status ' + status('epigraph')" [attr.data-status]="status('epigraph')">{{ statusLabel('epigraph', false) }}</span></label>
         <textarea id="epigraph" pTextarea rows="2" [autoResize]="true" maxlength="2000"
           placeholder="Uma frase que abre o livro." [ngModel]="draft().epigraph"
           (ngModelChange)="set('epigraph', $event)"></textarea>
@@ -76,7 +102,7 @@
 
     <section class="glass-card page-card" data-page="acknowledgments">
       <div class="field">
-        <label for="acknowledgments">Agradecimentos</label>
+        <label for="acknowledgments">Agradecimentos <span class="status" [class]="'status ' + status('acknowledgments')" [attr.data-status]="status('acknowledgments')">{{ statusLabel('acknowledgments', false) }}</span></label>
         <textarea id="acknowledgments" pTextarea rows="4" [autoResize]="true" maxlength="20000"
           placeholder="Quem esteve com você enquanto o livro nascia." [ngModel]="draft().acknowledgments"
           (ngModelChange)="set('acknowledgments', $event)"></textarea>
@@ -109,20 +135,29 @@
         <small class="field-hint">Sobre a autora, Sobre o autor, Sobre mim… Em branco, vai o seu nome.</small>
       </div>
       <div class="field">
-        <label for="about">Sobre você</label>
+        <label for="about">Sobre você <span class="status" [class]="'status ' + status('aboutAuthor')" [attr.data-status]="status('aboutAuthor')">{{ statusLabel('aboutAuthor', true) }}</span></label>
         <textarea id="about" pTextarea rows="4" [autoResize]="true" maxlength="5000"
           placeholder="Onde vive, o que escreve, onde encontrar você." [ngModel]="draft().aboutAuthor"
           (ngModelChange)="set('aboutAuthor', $event)"></textarea>
+        @if (!draft().aboutAuthor.trim()) {
+          <button type="button" class="link-button" (click)="useTemplate('aboutAuthor', aboutTemplate)"
+            data-about-template>Usar o modelo</button>
+        }
       </div>
     </section>
 
     <section class="glass-card page-card" data-page="colophon">
       <div class="field">
-        <label for="colophon">Colofão</label>
+        <label for="colophon">Colofão <span class="status" [class]="'status ' + status('colophon')" [attr.data-status]="status('colophon')">{{ statusLabel('colophon', false) }}</span></label>
         <textarea id="colophon" pTextarea rows="2" [autoResize]="true" maxlength="2000"
           placeholder="Composto em Literata, impresso em papel pólen 80 g, em novembro de 2026." [ngModel]="draft().colophon"
           (ngModelChange)="set('colophon', $event)"></textarea>
-        <small class="field-hint">A última página do livro: letra, papel, gráfica, data.</small>
+        <small class="field-hint">A última página do livro: letra, papel, gráfica, data.
+          @if (!draft().colophon.trim()) {
+            <button type="button" class="link-button" (click)="useTemplate('colophon', colophonTemplate)"
+              data-colophon-template>Usar o modelo</button>
+          }
+        </small>
       </div>
     </section>
 

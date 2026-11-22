@@ -16,6 +16,8 @@ import { BookDetail, BookPages, UniverseImage } from '../../../core/models/api.m
 import { UniverseApi } from '../../../core/api/universe.api';
 import { IllustrationPickerComponent } from '../../editor/illustration/illustration-picker';
 import { HasUnsavedChanges } from '../../../core/util/unsaved-changes.guard';
+import { BookPreviewComponent } from '../page-organizer/book-preview';
+import { ABOUT_TEMPLATE, COLOPHON_TEMPLATE, CREDIT_ROLES, creditValue, pageStatus, pendingLines, withCredit } from './page-templates';
 
 export const EMPTY_PAGES: BookPages = {
   credits: null,
@@ -60,10 +62,16 @@ export function toPages(draft: PagesDraft): BookPages {
   return { ...pages, halfTitle: draft.halfTitle };
 }
 
-/** Quantas páginas extras o livro vai ter (a epígrafe sem texto não conta). */
+/** O texto que sai no livro: sem as linhas do modelo ainda por completar (entre colchetes). */
+export function printable(text: string | null | undefined): string {
+  return (text ?? '').split('\n').filter((line) => !/\[[^\]\n]{1,120}\]/.test(line)).join('\n').trim();
+}
+
+/** Quantas páginas extras o livro vai ter (a epígrafe sem texto e o modelo por completar não contam). */
 export function pageCount(pages: BookPages): number {
-  const text = [pages.credits ?? pages.catalogCard, pages.dedication, pages.epigraph, pages.acknowledgments,
-    pages.aboutAuthor, pages.colophon].filter((value) => !!value?.trim()).length;
+  const credits = printable(pages.credits) || printable(pages.catalogCard);
+  const text = [credits, pages.dedication, pages.epigraph, pages.acknowledgments, pages.aboutAuthor, pages.colophon]
+    .filter((value) => !!printable(value)).length;
   return text + (pages.halfTitle ? 1 : 0);
 }
 
@@ -100,6 +108,7 @@ export function catalogCardTemplate(title: string, author: string, year: number)
     ProgressSpinnerModule,
     TextareaModule,
     IllustrationPickerComponent,
+    BookPreviewComponent,
   ],
   templateUrl: './book-pages.html',
   styleUrl: './book-pages.scss',
@@ -196,6 +205,47 @@ export class BookPagesComponent implements HasUnsavedChanges {
     const draft = toDraft(pages);
     this.draft.set(draft);
     this.saved.set(JSON.stringify(draft));
+  }
+
+  readonly creditRoles = CREDIT_ROLES;
+  readonly aboutTemplate = ABOUT_TEMPLATE;
+  readonly colophonTemplate = COLOPHON_TEMPLATE;
+  /** Quantos campos do modelo ainda faltam completar, somando todas as páginas. */
+  readonly pendingTotal = computed(() => {
+    const d = this.draft();
+    return [d.credits, d.catalogCard, d.dedication, d.epigraph, d.acknowledgments, d.aboutAuthor, d.colophon]
+      .reduce((total, text) => total + pendingLines(text).length, 0);
+  });
+
+  /** Pronta, por completar (tem campo do modelo entre colchetes) ou vazia. */
+  status(key: TextKey): string {
+    return pageStatus(this.draft()[key]);
+  }
+
+  statusLabel(key: TextKey, required: boolean): string {
+    const lines = pendingLines(this.draft()[key]).length;
+    if (lines) {
+      return lines === 1 ? 'Falta completar 1 linha' : `Falta completar ${lines} linhas`;
+    }
+    if (this.draft()[key].trim()) {
+      return 'Pronta';
+    }
+    return required ? 'Falta' : 'Opcional';
+  }
+
+  credit(role: string): string {
+    return creditValue(this.draft().credits, role);
+  }
+
+  setCredit(role: string, value: string, hint: string): void {
+    this.set('credits', withCredit(this.draft().credits, role, value, hint));
+  }
+
+  /** Preenche com o modelo (só se estiver vazio). */
+  useTemplate(key: TextKey, template: string): void {
+    if (!this.draft()[key].trim()) {
+      this.set(key, template);
+    }
   }
 
   set(key: TextKey, value: string): void {

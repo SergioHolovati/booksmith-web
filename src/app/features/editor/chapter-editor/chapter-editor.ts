@@ -181,7 +181,7 @@ export class ChapterEditorComponent {
     this.changingPage.set(true);
     try {
       await this.flushSave();
-      await this.router.navigate(['/books', bookId, 'paginas']);
+      await this.router.navigate(['/books', bookId, 'organizar']);
     } finally {
       this.changingPage.set(false);
     }
