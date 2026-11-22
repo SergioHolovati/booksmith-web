@@ -9,11 +9,14 @@ import { ExportApi } from '../../../core/api/export.api';
 import { ManuscriptApi } from '../../../core/api/manuscript.api';
 import { problemMessage } from '../../../core/api/problem';
 import { UniverseApi } from '../../../core/api/universe.api';
+import { AuthService } from '../../../core/auth/auth.service';
 import { fontFamilyCss, loadBookFonts } from '../../../core/fonts/book-fonts';
-import { BookDetail, PagePreview, PrintPageCheck } from '../../../core/models/api.models';
+import { BookDetail, ExtraPage, PagePreview, PrintPageCheck, UniverseImage } from '../../../core/models/api.models';
 import { trimSize } from '../../../core/util/print-geometry';
 import { artStyle, boxView, fitBlocks, previewTextStyle, withBackdrop } from '../../editor/page-designer/page-designer';
+import { IllustrationPickerComponent } from '../../editor/illustration/illustration-picker';
 import { BookPreviewComponent } from './book-preview';
+import { EXTRA_TITLES, OrganizerItem, buildItems, extraBackground, extraLines, placedExtras } from './organizer-items';
 
 /** A lista com o item de {@code from} levado para {@code to} (os outros andam uma casa). */
 export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
@@ -28,12 +31,12 @@ export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
 
 /**
  * Livro ilustrado: organizar as páginas vendo as miniaturas (a ilustração, o texto e a fonte, como no desenho da
- * página). No celular, toque na página e use as setas; no computador, dá também para arrastar. Cada mudança salva a
+ * página), junto com as que o Booksmith gera (folha de rosto, créditos, dedicatória…), que mudam de lugar e de fundo. No celular, toque na página e use as setas; no computador, dá também para arrastar. Cada mudança salva a
  * ordem na hora.
  */
 @Component({
   selector: 'app-page-organizer',
-  imports: [RouterLink, ButtonModule, ProgressSpinnerModule, BookPreviewComponent],
+  imports: [RouterLink, ButtonModule, ProgressSpinnerModule, BookPreviewComponent, IllustrationPickerComponent],
   template: `
     <div class="organizer narrow">
       <a class="back-link" [routerLink]="['/books', bookId()]"><i class="pi pi-arrow-left" aria-hidden="true"></i>
@@ -48,6 +51,15 @@ export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
       </div>
       <p class="muted small">Toque numa página e use as setas para mudar de lugar. No computador, dá para arrastar.
         A ordem é salva na hora.</p>
+      @if (generates()) {
+        <p class="muted small extras-hint" data-organizer-extras-hint>
+          <i class="pi pi-bookmark" aria-hidden="true"></i>
+          As páginas com a marca <strong>Gerada</strong> (folha de rosto, créditos, dedicatória…) o Booksmith monta
+          com o que você escreveu em
+          <a [routerLink]="['/books', bookId(), 'paginas']" data-organizer-book-pages>Páginas do livro</a>. Toque
+          numa delas para mudar o fundo.
+        </p>
+      }
 
       @if (error(); as message) {
         <p class="error" role="alert">{{ message }}</p>
@@ -56,25 +68,47 @@ export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
         <div class="center"><p-progress-spinner strokeWidth="4" /></div>
       } @else {
         <ol class="grid" data-page-organizer>
-          @for (p of pages(); track p.id; let i = $index) {
-            <li [class.spread]="p.page.spread" [class.selected]="selected() === p.id" [class.over]="dragOver() === i">
-              <button type="button" class="card" (click)="select(p.id)" [attr.aria-pressed]="selected() === p.id"
-                [attr.aria-label]="'Página ' + (i + 1) + ': ' + p.title" [attr.data-organizer-page]="i + 1"
+          @for (item of items(); track item.id; let i = $index) {
+            <li [class.spread]="item.kind === 'story' && item.page.page.spread" [class.selected]="selected() === item.id"
+              [class.over]="dragOver() === i" [class.extra]="item.kind === 'extra'">
+              <button type="button" class="card" (click)="select(item.id)" [attr.aria-pressed]="selected() === item.id"
+                [attr.aria-label]="'Página ' + (i + 1) + ': ' + title(item)" [attr.data-organizer-page]="i + 1"
+                [attr.data-organizer-extra]="item.kind === 'extra' ? item.extra.key : null"
                 draggable="true" (dragstart)="dragStart(i, $event)" (dragover)="dragOverAt(i, $event)"
                 (dragleave)="dragOver.set(null)" (drop)="drop(i, $event)" (dragend)="dragOver.set(null)">
-                <span class="thumb" [style.aspect-ratio]="ratio(p)" [style.background-color]="p.page.background">
-                  @if (imageUrl(p); as url) {
-                    <img class="art" [src]="url" alt="" [style]="art(p)" (load)="imageLoaded(p, $event)" />
-                  }
-                  @for (box of textBoxes(p); track box.index) {
-                    <span [class]="box.classes" [style]="box.style" [style.font-family]="box.font">
-                      @for (line of box.lines; track $index) {
-                        <span class="line">{{ line }}</span>
-                      }
-                    </span>
-                  }
-                </span>
-                <span class="caption"><strong>{{ i + 1 }}</strong> {{ p.title }}@if (p.page.spread) { · dupla }</span>
+                @if (item.kind === 'story') {
+                  @let p = item.page;
+                  <span class="thumb" [style.aspect-ratio]="ratio(p)" [style.background-color]="p.page.background">
+                    @if (imageUrl(p); as url) {
+                      <img class="art" [src]="url" alt="" [style]="art(p)" (load)="imageLoaded(p, $event)" />
+                    }
+                    @for (box of textBoxes(p); track box.index) {
+                      <span [class]="box.classes" [style]="box.style" [style.font-family]="box.font">
+                        @for (line of box.lines; track $index) {
+                          <span class="line">{{ line }}</span>
+                        }
+                      </span>
+                    }
+                  </span>
+                  <span class="caption"><strong>{{ i + 1 }}</strong> {{ p.title }}@if (p.page.spread) { · dupla }</span>
+                } @else {
+                  @let x = item.extra;
+                  <span class="thumb" [style.aspect-ratio]="singleRatio()" [style.background-color]="extraColor(x)"
+                    [attr.data-extra-background]="extraColor(x)">
+                    @if (extraImage(x); as url) {
+                      <img class="cover-art" [src]="url" alt="" />
+                    }
+                    @if (!(x.key === 'cover' && book()?.coverUrl)) {
+                      <span class="extra-text" [class]="'extra-text k-' + x.key" [style.font-family]="bookFont()">
+                        @for (line of lines(item); track $index) {
+                          <span class="line">{{ line }}</span>
+                        }
+                      </span>
+                    }
+                  </span>
+                  <span class="caption"><strong>{{ i + 1 }}</strong> {{ title(item) }}
+                    <span class="tag">Gerada</span></span>
+                }
               </button>
             </li>
           }
@@ -86,11 +120,27 @@ export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
             <p-button icon="pi pi-arrow-left" label="Antes" severity="secondary" [outlined]="true" size="small"
               [disabled]="index === 1 || saving()" (onClick)="moveSelected(-1)" data-organizer-before />
             <p-button icon="pi pi-arrow-right" iconPos="right" label="Depois" severity="secondary" [outlined]="true"
-              size="small" [disabled]="index === pages().length || saving()" (onClick)="moveSelected(1)"
+              size="small" [disabled]="index === items().length || saving()" (onClick)="moveSelected(1)"
               data-organizer-after />
-            <p-button icon="pi pi-pencil" label="Abrir" size="small" [routerLink]="['/write', selected()]" />
+            @if (selectedExtra(); as x) {
+              <label class="color-pick" title="Cor de fundo desta página">
+                <input type="color" [value]="extraColor(x)" (change)="setExtraColor($any($event.target).value)"
+                  aria-label="Cor de fundo desta página" data-extra-color />
+              </label>
+              <p-button icon="pi pi-image" label="Ilustração" severity="secondary" [outlined]="true" size="small"
+                [disabled]="saving() || !book()?.universeId" (onClick)="pickingImage.set(true)" data-extra-image />
+              @if (x.imageId || x.color) {
+                <p-button icon="pi pi-undo" label="Fundo padrão" severity="secondary" [text]="true" size="small"
+                  [disabled]="saving()" (onClick)="resetExtraBackground()" data-extra-reset />
+              }
+              <p-button icon="pi pi-pencil" label="Texto" size="small" [routerLink]="['/books', bookId(), 'paginas']" />
+            } @else {
+              <p-button icon="pi pi-pencil" label="Abrir" size="small" [routerLink]="['/write', selected()]" />
+            }
           </div>
         }
+        <app-illustration-picker [universeId]="book()?.universeId ?? null" [(visible)]="pickingImage"
+          (picked)="pickExtraImage($event)" />
       }
     </div>
   `,
@@ -132,6 +182,19 @@ export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
     .caption { font-size: .8rem; color: var(--bs-text-soft); text-align: left; overflow: hidden; text-overflow: ellipsis;
       white-space: nowrap; }
     .caption strong { color: var(--bs-text); margin-right: .25rem; }
+    .tag { margin-left: .3rem; padding: 0 .4rem; border-radius: 999px; font-size: .68rem; font-weight: 600;
+      color: var(--bs-ember); background: rgba(242, 140, 56, .14); }
+    .extras-hint .pi { margin-right: .3rem; font-size: .8rem; }
+    .extras-hint a { color: var(--bs-ember); }
+    .cover-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+    .extra-text { position: absolute; left: 12%; right: 12%; top: 30%; color: #1a1a1a; text-align: center;
+      font-size: 5cqw; line-height: 1.3; pointer-events: none; overflow: hidden; max-height: 60%; }
+    .extra-text .line:first-child { font-weight: 700; }
+    .extra-text.k-cover .line:first-child, .extra-text.k-title .line:first-child { font-size: 9cqw; }
+    .extra-text.k-credits { top: 8%; font-size: 4cqw; }
+    .extra-text.k-colophon { top: 62%; font-size: 4cqw; }
+    .color-pick input { width: 2.4rem; height: 2.2rem; padding: 0; border: 1px solid var(--bs-border, #444);
+      border-radius: 6px; background: none; cursor: pointer; }
     .toolbar { position: fixed; left: 50%; transform: translateX(-50%);
       bottom: calc(env(safe-area-inset-bottom, 0px) + 4.8rem); z-index: 20; display: flex; flex-wrap: wrap;
       align-items: center; justify-content: center; gap: .5rem; padding: .6rem .8rem; width: max-content;
@@ -143,6 +206,7 @@ export class PageOrganizerComponent {
   private readonly exportApi = inject(ExportApi);
   private readonly universeApi = inject(UniverseApi);
   private readonly toast = inject(MessageService);
+  private readonly auth = inject(AuthService);
 
   readonly bookId = input.required<string>();
 
@@ -150,7 +214,11 @@ export class PageOrganizerComponent {
   /** A conferência para a gráfica (na prévia). */
   readonly checks = signal<PrintPageCheck[]>([]);
   readonly checkCount = signal(0);
-  readonly pages = signal<PagePreview[]>([]);
+  /** As páginas da história e as geradas, na ordem do livro. */
+  readonly items = signal<OrganizerItem[]>([]);
+  readonly pages = computed(() =>
+    this.items().flatMap((item) => (item.kind === 'story' ? [item.page] : [])));
+  readonly pickingImage = signal(false);
   readonly loading = signal(true);
   readonly saving = signal(false);
   readonly error = signal<string | null>(null);
@@ -161,7 +229,15 @@ export class PageOrganizerComponent {
   private dragFrom: number | null = null;
 
   /** A posição da página escolhida, a partir de 1 (0 = nenhuma). */
-  readonly selectedIndex = computed(() => this.pages().findIndex((p) => p.id === this.selected()) + 1);
+  readonly selectedIndex = computed(() => this.items().findIndex((item) => item.id === this.selected()) + 1);
+  /** A página gerada escolhida (para mudar o fundo). */
+  readonly selectedExtra = computed(() => {
+    const item = this.items().find((i) => i.id === this.selected());
+    return item?.kind === 'extra' ? item.extra : null;
+  });
+  /** O livro tem páginas geradas (a diagramação não desligou). */
+  readonly generates = computed(() => this.book()?.layout?.autoPages !== false);
+  readonly bookFont = computed(() => fontFamilyCss(this.book()?.layout?.font));
   private readonly trim = computed<[number, number]>(() => {
     const layout = this.book()?.layout;
     return layout ? trimSize(layout) : [200, 200];
@@ -175,9 +251,10 @@ export class PageOrganizerComponent {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const [book, pages] = await Promise.all([
+      const [book, pages, extras] = await Promise.all([
         firstValueFrom(this.api.getBook(this.bookId())),
         firstValueFrom(this.api.pagePreviews(this.bookId())),
+        firstValueFrom(this.api.extraPages(this.bookId())).catch(() => [] as ExtraPage[]),
       ]);
       this.book.set(book);
       firstValueFrom(this.exportApi.printCheck(book.id, book.layout)).then(
@@ -187,7 +264,7 @@ export class PageOrganizerComponent {
         },
         () => this.checks.set([]),
       );
-      this.pages.set(pages);
+      this.items.set(buildItems(pages, book.layout?.autoPages === false ? [] : extras));
       loadBookFonts([book.layout?.font, ...pages.flatMap((p) => [p.page.font, ...(p.page.boxes ?? []).map((b) => b.font)])]);
       const images = await firstValueFrom(this.universeApi.listImages(book.universeId));
       this.images.set(Object.fromEntries(images.map((image) => [image.id, image.url])));
@@ -195,6 +272,69 @@ export class PageOrganizerComponent {
       this.error.set(problemMessage(error, 'Não foi possível abrir as páginas.'));
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  singleRatio(): string {
+    const [w, h] = this.trim();
+    return `${w} / ${h}`;
+  }
+
+  title(item: OrganizerItem): string {
+    if (item.kind === 'story') {
+      return item.page.title;
+    }
+    return item.extra.key === 'about' ? (this.book()?.pages?.aboutAuthorTitle || EXTRA_TITLES.about) : EXTRA_TITLES[item.extra.key];
+  }
+
+  lines(item: OrganizerItem): string[] {
+    const book = this.book();
+    if (item.kind !== 'extra' || !book) {
+      return [];
+    }
+    return extraLines(item.extra.key, book.pages, book.title, this.auth.user()?.displayName ?? '');
+  }
+
+  extraColor(extra: ExtraPage): string {
+    return extraBackground(extra, this.book()?.layout).color;
+  }
+
+  extraImage(extra: ExtraPage): string | null {
+    if (extra.key === 'cover' && this.book()?.coverUrl) {
+      return this.book()?.coverUrl ?? null;
+    }
+    const id = extraBackground(extra, this.book()?.layout).imageId;
+    return id ? (this.images()[id] ?? null) : null;
+  }
+
+  setExtraColor(color: string): void {
+    void this.changeExtra({ color, imageId: null });
+  }
+
+  pickExtraImage(image: UniverseImage): void {
+    this.images.update((images) => ({ ...images, [image.id]: image.url }));
+    void this.changeExtra({ imageId: image.id, color: null });
+  }
+
+  resetExtraBackground(): void {
+    void this.changeExtra({ imageId: null, color: null });
+  }
+
+  /** Troca o fundo da página gerada escolhida e salva (volta como estava se a API recusar). */
+  private async changeExtra(change: Partial<ExtraPage>): Promise<void> {
+    const id = this.selected();
+    const before = this.items();
+    const after = before.map((item) => (item.kind === 'extra' && item.id === id
+      ? { ...item, extra: { ...item.extra, ...change } } : item));
+    this.items.set(after);
+    this.saving.set(true);
+    try {
+      await firstValueFrom(this.api.updateExtraPages(this.bookId(), placedExtras(after)));
+    } catch (error) {
+      this.items.set(before);
+      this.toast.add({ severity: 'error', summary: problemMessage(error, 'Não foi possível mudar o fundo.'), life: 5000 });
+    } finally {
+      this.saving.set(false);
     }
   }
 
@@ -260,24 +400,32 @@ export class PageOrganizerComponent {
     const from = this.dragFrom;
     this.dragFrom = null;
     if (from !== null) {
-      this.selected.set(this.pages()[from]?.id ?? null);
+      this.selected.set(this.items()[from]?.id ?? null);
       await this.move(from, index);
     }
   }
 
   /** Muda na tela na hora e salva; se a API recusar, volta como estava. */
   private async move(from: number, to: number): Promise<void> {
-    const before = this.pages();
+    const before = this.items();
     const after = moveItem(before, from, to);
-    if (after.every((p, i) => p.id === before[i].id)) {
+    if (after.every((item, i) => item.id === before[i].id)) {
       return;
     }
-    this.pages.set(after);
+    this.items.set(after);
     this.saving.set(true);
+    const order = (list: OrganizerItem[]) => list.filter((i) => i.kind === 'story').map((i) => i.id);
+    const places = (list: OrganizerItem[]) => JSON.stringify(placedExtras(list));
     try {
-      await firstValueFrom(this.api.reorderChapters(this.bookId(), after.map((p) => p.id)));
+      // Primeiro as páginas da história (se mudaram de ordem), depois o lugar das geradas
+      if (order(after).join() !== order(before).join()) {
+        await firstValueFrom(this.api.reorderChapters(this.bookId(), order(after)));
+      }
+      if (places(after) !== places(before)) {
+        await firstValueFrom(this.api.updateExtraPages(this.bookId(), placedExtras(after)));
+      }
     } catch (error) {
-      this.pages.set(before);
+      this.items.set(before);
       this.toast.add({ severity: 'error', summary: problemMessage(error, 'Não foi possível mudar a ordem.'), life: 5000 });
     } finally {
       this.saving.set(false);

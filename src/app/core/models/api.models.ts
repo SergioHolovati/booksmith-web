@@ -56,6 +56,20 @@ export interface TextBox {
 }
 
 /** Uma página do livro ilustrado, para organizar vendo as miniaturas. */
+/**
+ * Livro ilustrado: uma página que o Booksmith gera (folha de rosto, créditos, dedicatória, sobre o autor…), com o
+ * lugar entre as páginas da história ('start', 'end' ou o id da página que vem antes) e o fundo só dela.
+ */
+export interface ExtraPage {
+  key: ExtraPageKey;
+  after: string | null;
+  imageId: string | null;
+  color: string | null;
+}
+
+export type ExtraPageKey =
+  | 'cover' | 'credits' | 'title' | 'dedication' | 'epigraph' | 'acknowledgments' | 'about' | 'colophon';
+
 export interface PagePreview {
   id: string;
   title: string;
