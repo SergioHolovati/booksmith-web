@@ -51,6 +51,11 @@
       } @else {
         <p class="muted small">Envie a frente (página em pé) ou a capa aberta (deitada: contracapa, lombada e
           frente). A frente também vira a capa do livro no app, no ePub e no PDF.</p>
+        @if (spec()) {
+          <p-button label="Baixar o modelo da capa, nas medidas deste livro" icon="pi pi-download" severity="secondary"
+            [text]="true" size="small" [loading]="downloadingTemplate()" (onClick)="downloadTemplate()"
+            data-cover-template-top />
+        }
       }
       <details class="cover-spec" [open]="!coverPdf()">
         <summary>Especificações da capa</summary>
@@ -98,13 +103,7 @@
       }
     </section>
 
-    @if (!canUse()) {
-      <div class="glass-card empty-state">
-        <i class="pi pi-image"></i>
-        <p>Ou monte e salve a frente da capa aqui no app; a capa aberta usa o mesmo desenho.</p>
-        <p-button label="Montar a capa" [routerLink]="['/books', book.id, 'capa']" />
-      </div>
-    } @else if (book.chapters.length === 0) {
+    @if (book.chapters.length === 0) {
       <div class="glass-card empty-state">
         <i class="pi pi-file"></i>
         <p>Escreva o primeiro capítulo: a lombada depende do número de páginas.</p>
@@ -155,9 +154,14 @@
           <span>capa aberta <strong>{{ mm(spec.widthMm) }} × {{ mm(spec.heightMm) }} mm</strong></span>
         </div>
         <div class="template">
+          <p-button label="Baixar modelo da capa (PDF)" icon="pi pi-download" severity="secondary" [outlined]="true"
+            size="small" [loading]="downloadingTemplate()" (onClick)="downloadTemplate()" data-cover-template />
+          <span class="muted small">Gabarito no tamanho exato: contracapa, lombada e frente, com corte, sangria, dobras,
+            área segura e o lugar do código de barras. Desenhe por cima (ou mande a quem for fazer) e importe o PDF
+            acima.</span>
           <p-button [label]="copied() ? 'Copiado!' : 'Copiar modelo de especificação'" icon="pi pi-copy"
             severity="secondary" [text]="true" size="small" (onClick)="copyTemplate()" />
-          <span class="muted small">As medidas deste livro, para mandar a quem for fazer a capa.</span>
+          <span class="muted small">As medidas deste livro em texto, para mandar a quem for fazer a capa.</span>
         </div>
         @if (spec.imported === 'wrap' && spec.importedFits) {
           <p-message severity="success" styleClass="block-message fits"
@@ -167,6 +171,13 @@
           <p-message severity="warn" [text]="warning" styleClass="block-message" />
         }
 
+        @if (!canUse()) {
+          <div class="glass-card empty-state">
+            <i class="pi pi-image"></i>
+            <p>Ou monte e salve a frente da capa aqui no app; a capa aberta usa o mesmo desenho.</p>
+            <p-button label="Montar a capa" [routerLink]="['/books', book.id, 'capa']" />
+          </div>
+        } @else {
         @if (spec.imported !== 'wrap') {
           @if (!spec.spineText) {
             <p class="muted small">Lombada fina demais para texto: ela sai só com a cor.</p>
@@ -253,6 +264,7 @@
             }
           }
         </p>
+        }
       } @else if (loadingSpec()) {
         <div class="center"><p-progress-spinner strokeWidth="4" /></div>
       }

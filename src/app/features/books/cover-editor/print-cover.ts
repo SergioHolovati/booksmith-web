@@ -119,6 +119,8 @@ export class PrintCoverComponent {
   readonly specText = signal('');
   readonly specRead = signal<string | null>(null);
   readonly copied = signal(false);
+  /** Baixando o modelo da capa em PDF. */
+  readonly downloadingTemplate = signal(false);
   readonly changingTrim = signal(false);
   /** A capa importada foi feita para outro tamanho de livro que o da diagramação. */
   readonly trimMismatch = computed(() => {
@@ -214,7 +216,8 @@ export class PrintCoverComponent {
         this.loadImage(url(book.pages?.authorPhotoId), this.authorPhoto);
       }
       this.loadImage(book.coverPdf ? book.coverUrl : null, this.frontImage);
-      if ((book.coverDesign || book.coverPdf) && book.chapters.length > 0) {
+      // As medidas valem mesmo sem capa: o modelo da capa sai delas
+      if (book.chapters.length > 0) {
         void this.fetchSpec();
       }
     } catch (error) {
@@ -331,16 +334,27 @@ export class PrintCoverComponent {
     setTimeout(() => this.copied.set(false), 3000);
   }
 
+  /** O modelo da capa em PDF, nas medidas deste livro e deste destino, para desenhar a capa por cima. */
+  async downloadTemplate(): Promise<void> {
+    const custom = this.profile() === 'custom';
+    this.downloadingTemplate.set(true);
+    this.specError.set(null);
+    try {
+      saveFile(await firstValueFrom(this.exportApi.printCoverTemplate(this.bookId(), this.profile(),
+        custom ? this.spineMm() : null, custom ? this.bleedMm() : null, custom ? this.flapMm() : null)));
+    } catch (error) {
+      this.specError.set(problemMessage(error, 'Não foi possível baixar o modelo. Tente de novo.'));
+    } finally {
+      this.downloadingTemplate.set(false);
+    }
+  }
+
   async removePdf(): Promise<void> {
     try {
       await firstValueFrom(this.api.removeCoverPdf(this.bookId()));
       this.book.update((book) => (book ? { ...book, coverPdf: null } : book));
       this.frontImage.set(null);
-      if (this.book()?.coverDesign) {
-        void this.fetchSpec();
-      } else {
-        this.spec.set(null);
-      }
+      void this.fetchSpec();
     } catch (error) {
       this.importError.set(problemMessage(error, 'Não foi possível tirar o PDF.'));
     }

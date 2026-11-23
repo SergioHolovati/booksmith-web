@@ -234,7 +234,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     title: 'Capa para gráfica: lombada e contracapa',
     summary: 'A capa aberta nas medidas do KDP ou da sua gráfica, em PDF.',
     topic: 'livros',
-    keywords: ['lombada', 'contracapa', 'capa aberta', 'gráfica', 'kdp', 'amazon', 'clube de autores', 'uiclap', 'sangria', 'impressão', 'livro impresso', 'marcas de corte', 'especificação', 'pdf'],
+    keywords: ['lombada', 'contracapa', 'capa aberta', 'gráfica', 'kdp', 'amazon', 'clube de autores', 'uiclap', 'sangria', 'impressão', 'livro impresso', 'marcas de corte', 'especificação', 'pdf', 'modelo', 'gabarito', 'template'],
     body: [
       { steps: ['Monte e salve a frente em **Capa**, e escreva o **texto da contracapa** ali mesmo.', 'Toque em **Capa para gráfica**.', 'Escolha onde vai imprimir.', 'Confira as medidas e toque em **Baixar o PDF da capa**.'] },
       { p: 'No **KDP** (Amazon), a lombada é calculada pelo número de páginas do seu PDF e pelo papel (branco, creme ou colorido premium), com 3,2 mm de sangria. O KDP aceita A5 e 6×9 e livros a partir de 24 páginas; a lombada só leva texto a partir de 80 páginas.' },
@@ -244,6 +244,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
       { p: 'A prévia mostra o corte (vermelho) e as dobras da lombada (azul). O PDF sai em 300 DPI, em cores de tela; confira no gabarito da gráfica antes de mandar imprimir. Mudou a diagramação? O número de páginas muda, e a lombada junto.' },
       { p: '**Já tem a capa pronta em PDF?** Toque em **Importar capa em PDF**. Se for só a frente (página em pé), ela vira a capa do livro e entra sem perder qualidade, com a lombada e a contracapa daqui. Se for a capa aberta (deitada), conferimos as medidas: se a lombada não bate, dizemos quanto falta ou sobra; se bate, você baixa o seu próprio arquivo, conferido.' },
       { p: 'Antes de importar, abra **Especificações da capa** e diga para qual tamanho de livro ela foi feita (e, se souber, a lombada e a sangria). Pode também **colar a especificação** que o designer mandou e tocar em **Ler a especificação**. Assim o Booksmith acha o corte mesmo com marcas de corte em volta, recorta a frente certinha e entrega à gráfica a capa sem a margem das marcas. Se a capa for de outro tamanho que a diagramação, aparece o botão para diagramar no tamanho dela.' },
+      { p: '**Vai fazer a capa fora do app?** Escolha onde vai imprimir e toque em **Baixar modelo da capa (PDF)**: sai um gabarito no tamanho exato do seu livro, com a contracapa, a lombada e a frente, a linha de corte, a sangria (o fundo vai até a borda), as dobras, a área segura para o texto e o lugar do código de barras, cada parte com as medidas. A página 2 é só a frente, para quem faz só a frente. Desenhe por cima no seu programa (ou mande para quem for fazer), apague as guias e exporte em PDF, uma página, no mesmo tamanho. Depois, **Importar capa em PDF**: o modelo já diz onde é o corte, e o Booksmith confere a lombada.' },
       { p: 'Vai encomendar a capa? Toque em **Copiar modelo de especificação**: sai um texto com as medidas certas do seu livro (tamanho, páginas, lombada, sangria, capa aberta e e-book) para mandar a quem for fazer.' },
     ],
   },

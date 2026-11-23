@@ -172,7 +172,8 @@
   width: 100%;
 }
 
-.print-link {
+.print-link,
+.ready-pdf {
   display: inline-flex;
   align-items: center;
   gap: .45rem;

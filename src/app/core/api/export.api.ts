@@ -59,6 +59,27 @@ export class ExportApi {
     return this.http.get<PrintCoverSpec>(`${this.base}/books/${bookId}/export/print-cover`, { params });
   }
 
+  /** Modelo da capa em PDF (corte, dobras, área segura e medidas deste livro), para fazer a capa fora do app. */
+  printCoverTemplate(
+    bookId: string,
+    profile: PrintProfile,
+    spineMm?: number | null,
+    bleedMm?: number | null,
+    flapMm?: number | null,
+  ): Observable<ExportedFile> {
+    const params = new URLSearchParams({ profile });
+    if (spineMm !== null && spineMm !== undefined) {
+      params.set('spineMm', String(spineMm));
+    }
+    if (bleedMm !== null && bleedMm !== undefined) {
+      params.set('bleedMm', String(bleedMm));
+    }
+    if (flapMm) {
+      params.set('flapMm', String(flapMm));
+    }
+    return this.file(`${this.base}/books/${bookId}/export/print-cover/template?${params}`, 'modelo-capa.pdf');
+  }
+
   /** PDF da capa aberta, a partir da imagem desenhada no aparelho. */
   printCover(
     bookId: string,
