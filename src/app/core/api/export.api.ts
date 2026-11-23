@@ -5,7 +5,8 @@ import { Observable, catchError, from, map, switchMap, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { BookLayout, LayoutPreview, PageMap, PrintCheck, PrintCoverSpec, PrintProfile } from '../models/api.models';
 
-export type ExportFormat = 'epub' | 'pdf' | 'docx';
+/** {@code pdfx}: o PDF para gráfica (CMYK, PDF/X-1a). */
+export type ExportFormat = 'epub' | 'pdf' | 'pdfx' | 'docx';
 
 export interface ExportedFile {
   filename: string;
@@ -83,7 +84,7 @@ export class ExportApi {
   /** PDF da capa aberta, a partir da imagem desenhada no aparelho. */
   printCover(
     bookId: string,
-    request: { profile: PrintProfile; spineMm: number | null; bleedMm: number | null; flapMm?: number | null; image: string },
+    request: { profile: PrintProfile; spineMm: number | null; bleedMm: number | null; flapMm?: number | null; image: string; cmyk?: boolean },
   ): Observable<ExportedFile> {
     return this.http
       .post(`${this.base}/books/${bookId}/export/print-cover`, request, { observe: 'response', responseType: 'blob' })
@@ -97,7 +98,7 @@ export class ExportApi {
   }
 
   download(bookId: string, format: ExportFormat): Observable<ExportedFile> {
-    return this.file(`${this.base}/books/${bookId}/export/${format}`, `livro.${format}`);
+    return this.file(`${this.base}/books/${bookId}/export/${format}`, format === 'pdfx' ? 'livro-grafica.pdf' : `livro.${format}`);
   }
 
   /** "Baixar tudo": um .zip com livros (Word, texto e dados), universos com imagens, conta e pedidos de suporte. */

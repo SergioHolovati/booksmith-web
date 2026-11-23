@@ -248,6 +248,14 @@
           </p>
         }
 
+        @if (!spec.imported) {
+          <label class="back-check cmyk-check">
+            <input type="checkbox" [checked]="cmyk()" (change)="cmyk.set($any($event.target).checked)" data-cover-cmyk />
+            <span>Cores de impressão (CMYK, PDF/X-1a)
+              <span class="muted small">O padrão das gráficas. Desligado, sai em cores de tela (RGB).</span>
+            </span>
+          </label>
+        }
         @if (generateError(); as message) {
           <p-message severity="error" [text]="message" styleClass="block-message" />
         }
@@ -258,7 +266,8 @@
           @if (spec.imported === 'wrap') {
             A capa sai como você fez. Se a lombada não bate, refaça no seu programa com a medida acima.
           } @else {
-            Em cores de tela (RGB), 300 DPI. Confira as medidas no gabarito da gráfica antes de mandar imprimir.
+            {{ spec.imported ? 'Com as cores do seu PDF na frente' : cmyk() ? 'Em cores de impressão (CMYK, PDF/X-1a)' : 'Em cores de tela (RGB)' }}, 300 DPI. Confira as medidas
+            no gabarito da gráfica antes de mandar imprimir.
             @if (spec.imported !== 'front') {
               O texto da contracapa e as cores mudam na <a [routerLink]="['/books', book.id, 'capa']">capa</a>.
             }

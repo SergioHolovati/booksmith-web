@@ -81,7 +81,8 @@
         }
       </ul>
       <p class="muted small hint">
-        PDF para gráfica (com sangria e cores de impressão) e capa completa chegam depois.
+        A capa (frente, lombada e contracapa) sai em <a [routerLink]="['/books', book.id, 'capa', 'grafica']">Capa para
+        gráfica</a>. Nas cores de impressão, a tela mostra as cores um pouco mais apagadas: é o que a tinta alcança no papel.
       </p>
     }
   } @else {

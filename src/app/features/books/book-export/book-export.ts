@@ -34,6 +34,13 @@ const FORMATS: FormatOption[] = [
     description: 'Páginas de livro, com sumário, na diagramação que você escolher. Bom para leitores beta ou imprimir em casa.',
   },
   {
+    format: 'pdfx',
+    title: 'PDF para gráfica',
+    icon: 'pi pi-print',
+    description:
+      'O miolo para imprimir: PDF/X-1a em cores de impressão (CMYK, perfil FOGRA39), o padrão que gráficas e o KDP aceitam. O texto preto sai só na tinta preta. Imagem até a borda? Ligue a sangria na Diagramação.',
+  },
+  {
     format: 'docx',
     title: 'Word',
     icon: 'pi pi-file-word',

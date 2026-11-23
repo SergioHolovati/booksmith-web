@@ -119,6 +119,8 @@ export class PrintCoverComponent {
   readonly specText = signal('');
   readonly specRead = signal<string | null>(null);
   readonly copied = signal(false);
+  /** A capa em cores de impressão (CMYK, PDF/X-1a), como o miolo para gráfica. */
+  readonly cmyk = signal(true);
   /** Baixando o modelo da capa em PDF. */
   readonly downloadingTemplate = signal(false);
   readonly changingTrim = signal(false);
@@ -454,6 +456,7 @@ export class PrintCoverComponent {
           bleedMm: custom ? this.bleedMm() : null,
           flapMm: custom ? this.flapMm() : null,
           image: canvas.toDataURL('image/jpeg', 0.92),
+          cmyk: this.cmyk() && !spec.imported,
         }),
       );
       saveFile(file);

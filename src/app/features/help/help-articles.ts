@@ -185,19 +185,21 @@ export const HELP_ARTICLES: HelpArticle[] = [
   },
   {
     slug: 'exportar',
-    title: 'Baixar o livro em ePub, PDF ou Word',
+    title: 'Baixar o livro em ePub, PDF, PDF para gráfica ou Word',
     summary: 'Para ler no Kindle ou celular, imprimir ou mandar para revisão.',
     topic: 'livros',
-    keywords: ['exportar', 'epub', 'pdf', 'word', 'kindle', 'baixar', 'download', 'imprimir'],
+    keywords: ['exportar', 'epub', 'pdf', 'word', 'kindle', 'baixar', 'download', 'imprimir', 'gráfica', 'cmyk', 'pdf/x', 'cores de impressão'],
     body: [
       { p: 'Abra o livro e toque em **Baixar** (aparece quando o livro tem capítulos). Você escolhe:' },
       {
         list: [
           '**ePub:** para leitores digitais e apps de leitura.',
           '**PDF:** para ler ou imprimir, em tamanho de livro (A5). Gerar o PDF é pesado para o servidor, por isso cada pessoa gera até **2 PDFs do livro por dia** (ePub e Word não têm limite).',
+          '**PDF para gráfica:** o miolo para imprimir, em **PDF/X-1a** com **cores de impressão (CMYK)** e o perfil ISO Coated v2 (FOGRA39), o padrão que as gráficas e o KDP aceitam. O texto preto sai só na tinta preta, para a letra não borrar. Conta no mesmo limite de 2 PDFs por dia.',
           '**Word:** no formato de manuscrito, para revisão. Volta igual se você importar de novo.',
         ],
       },
+      { p: '**Cores de impressão ficam um pouco mais apagadas na tela.** É o que a tinta alcança no papel: o PDF de leitura (em cores de tela) parece mais vivo, mas a gráfica imprimiria assim de qualquer jeito. A **capa para gráfica** também sai em cores de impressão (dá para desligar). Capa importada em PDF sai com as cores do seu arquivo.' },
       { p: 'O arquivo é gerado na hora, com a versão mais recente do texto.' },
     ],
   },
