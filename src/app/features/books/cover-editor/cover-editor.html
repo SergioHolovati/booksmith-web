@@ -17,11 +17,27 @@
     </div>
   } @else if (book(); as book) {
     @if (book.coverPdf; as pdf) {
-      <p class="glass-card pdf-note small" data-pdf-note>
-        <i class="pi pi-file-pdf" aria-hidden="true"></i>
-        <span>A capa do livro veio do seu PDF (<strong>{{ pdf.fileName }}</strong>). Usar o desenho daqui substitui
-          o PDF, inclusive na <a [routerLink]="['/books', book.id, 'capa', 'grafica']">capa para gráfica</a>.</span>
-      </p>
+      <section class="glass-card pdf-cover" data-pdf-cover aria-label="Capa em PDF">
+        @if (book.coverUrl) {
+          <img [src]="book.coverUrl" alt="Capa do livro" class="pdf-thumb" />
+        }
+        <div class="pdf-info">
+          <p class="small"><i class="pi pi-file-pdf" aria-hidden="true"></i> A capa do livro é o seu PDF
+            (<strong>{{ pdf.fileName }}</strong>){{ pdf.kind === 'wrap' ? ', capa aberta' : '' }}.</p>
+          <a class="print-link" [routerLink]="['/books', book.id, 'capa', 'grafica']">
+            <i class="pi pi-print" aria-hidden="true"></i> Lombada e medidas: capa para gráfica</a>
+          <div class="pdf-actions">
+            <label class="p-button p-button-secondary p-button-outlined p-button-sm ready-upload" [class.p-disabled]="importingPdf()">
+              <input type="file" accept="application/pdf,.pdf" hidden (change)="importPdf($event)"
+                [disabled]="importingPdf()" />
+              <i class="pi pi-upload" aria-hidden="true"></i> Trocar o PDF
+            </label>
+            <p-button label="Tirar o PDF" severity="secondary" [text]="true" size="small" [disabled]="importingPdf()"
+              (onClick)="removePdf()" data-pdf-remove />
+          </div>
+          <small class="muted">Ou desenhe a capa abaixo: usar o desenho substitui o PDF.</small>
+        </div>
+      </section>
     }
     <div class="stage">
       <canvas #canvas [width]="width" height="2560" role="img"
@@ -47,9 +63,13 @@
             aria-hidden="true"></i>
           Enviar a capa pronta (imagem)
         </label>
-        <a class="ready-pdf" [routerLink]="['/books', bookId(), 'capa', 'grafica']" data-ready-pdf>
-          <i class="pi pi-file-pdf" aria-hidden="true"></i> ou em PDF
-        </a>
+        <label class="p-button p-button-secondary p-button-outlined ready-upload" [class.p-disabled]="importingPdf()">
+          <input type="file" accept="application/pdf,.pdf" hidden (change)="importPdf($event)"
+            [disabled]="importingPdf()" data-cover-pdf />
+          <i class="pi" [class.pi-file-pdf]="!importingPdf()" [class.pi-spin]="importingPdf()"
+            [class.pi-spinner]="importingPdf()" aria-hidden="true"></i>
+          Usar um PDF como capa
+        </label>
       </div>
       @if (!frontText()) {
         <small class="muted" data-front-text-hint>A frente fica só com a imagem, sem texto por cima. O título e o autor

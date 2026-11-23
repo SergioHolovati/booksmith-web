@@ -211,7 +211,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
       { steps: ['Abra o livro e toque em **Capa**.', 'Escolha o modelo (**Clássica**, **Faixa** ou **Minimalista**), o fundo e, se quiser, uma imagem da biblioteca do universo.', 'Ajuste título, subtítulo, autor, letra e cores.', 'Toque em **Usar como capa**.'] },
       { p: 'A capa sai em 1600 × 2560, o tamanho recomendado para e-book, e vale no app, no ePub e no PDF. O desenho fica guardado: dá para voltar e mudar quando quiser.' },
       { p: 'Para usar uma foto ou um desenho seu como fundo, envie primeiro para a **biblioteca do universo**. Se preferir uma capa pronta, envie a imagem em **Editar** livro.' },
-      { p: '**A capa já vem com o título?** Toque em **Enviar a capa pronta (imagem)**: ela vira a frente inteira, na proporção dela, sem nada escrito por cima. Para qualquer imagem, **Sem título (a imagem já tem)** tira o título, o subtítulo e o autor da frente; eles continuam na lombada da capa para gráfica. Capa pronta em PDF: toque em **ou em PDF**.' },
+      { p: '**A capa já vem com o título?** Toque em **Enviar a capa pronta (imagem)**: ela vira a frente inteira, na proporção dela, sem nada escrito por cima. Para qualquer imagem, **Sem título (a imagem já tem)** tira o título, o subtítulo e o autor da frente; eles continuam na lombada da capa para gráfica. Capa pronta em PDF: toque em **Usar um PDF como capa** (só a frente, em pé, ou a capa aberta, deitada); ela vira a capa do livro na hora, e a lombada e as medidas ficam em **Capa para gráfica**.' },
     ],
   },
   {

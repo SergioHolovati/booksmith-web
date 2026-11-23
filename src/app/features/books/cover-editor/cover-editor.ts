@@ -91,6 +91,8 @@ export class CoverEditorComponent implements HasUnsavedChanges {
   readonly saving = signal(false);
   /** Enviando a imagem da capa pronta. */
   readonly uploading = signal(false);
+  /** Importando (ou tirando) a capa pronta em PDF. */
+  readonly importingPdf = signal(false);
   /** Título, subtítulo e autor escritos na frente (não, quando a imagem já traz o título). */
   readonly frontText = computed(() => this.design().frontText !== false);
   readonly fontsReady = signal(false);
@@ -221,6 +223,48 @@ export class CoverEditorComponent implements HasUnsavedChanges {
       this.toast.add({ severity: 'error', summary: problemMessage(error, 'Não foi possível enviar a imagem.'), life: 6000 });
     } finally {
       this.uploading.set(false);
+    }
+  }
+
+  /**
+   * A capa pronta em PDF vira a capa do livro (a frente, no app, no ePub e no PDF; a capa aberta fica para a
+   * gráfica). O tamanho do livro é o da diagramação: com ele, a importação acha o corte.
+   */
+  async importPdf(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    const book = this.book();
+    if (!file || !book) {
+      return;
+    }
+    this.importingPdf.set(true);
+    try {
+      const result = await firstValueFrom(
+        this.api.importCoverPdf(book.id, file, { trim: book.layout.trim, spineMm: null, bleedMm: null }),
+      );
+      this.book.update((current) => (current ? { ...current, coverUrl: result.coverUrl, coverPdf: result.coverPdf } : current));
+      this.toast.add({ severity: 'success', summary: 'Capa importada', life: 4000,
+        detail: result.coverPdf.kind === 'wrap'
+          ? 'A frente virou a capa do livro; confira a lombada em Capa para gráfica.'
+          : 'Já vale no livro e nos arquivos baixados.' });
+    } catch (error) {
+      this.toast.add({ severity: 'error', summary: problemMessage(error, 'Não foi possível importar o PDF.'), life: 6000 });
+    } finally {
+      this.importingPdf.set(false);
+    }
+  }
+
+  /** Tira o PDF: a capa do livro continua a imagem da frente até salvar um desenho. */
+  async removePdf(): Promise<void> {
+    this.importingPdf.set(true);
+    try {
+      await firstValueFrom(this.api.removeCoverPdf(this.bookId()));
+      this.book.update((book) => (book ? { ...book, coverPdf: null } : book));
+    } catch (error) {
+      this.toast.add({ severity: 'error', summary: problemMessage(error, 'Não foi possível tirar o PDF.'), life: 6000 });
+    } finally {
+      this.importingPdf.set(false);
     }
   }
 

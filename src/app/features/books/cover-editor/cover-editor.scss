@@ -172,8 +172,7 @@
   width: 100%;
 }
 
-.print-link,
-.ready-pdf {
+.print-link {
   display: inline-flex;
   align-items: center;
   gap: .45rem;
@@ -182,12 +181,35 @@
   font-size: .9rem;
 }
 
-.pdf-note {
+.pdf-cover {
   display: flex;
   align-items: flex-start;
-  gap: .5rem;
+  gap: .9rem;
   margin: 0 0 1rem;
-  padding: .75rem 1rem;
+  padding: .9rem 1rem;
+}
+
+.pdf-thumb {
+  flex: none;
+  width: 84px;
+  border-radius: 3px;
+  box-shadow: 0 4px 14px rgb(0 0 0 / .45);
+}
+
+.pdf-info {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  min-width: 0;
+
+  p { margin: 0; overflow-wrap: anywhere; }
+}
+
+.pdf-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .25rem .5rem;
 }
 
 // Botão do Estúdio Visual (arte da capa com IA)
