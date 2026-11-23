@@ -81,6 +81,13 @@
         <textarea id="dedication" pTextarea rows="2" [autoResize]="true" maxlength="2000"
           placeholder="Para quem me ensinou a ler." [ngModel]="draft().dedication"
           (ngModelChange)="set('dedication', $event)"></textarea>
+        @if (!draft().dedication.trim()) {
+          <button type="button" class="link-button" (click)="useTemplate('dedication', dedicationTemplate)"
+            data-dedication-template>Usar o modelo</button>
+        } @else if (status('dedication') === 'pending') {
+          <button type="button" class="link-button" (click)="removePage('dedication')" data-dedication-remove>Tirar do
+            livro</button>
+        }
       </div>
     </section>
 
@@ -90,6 +97,13 @@
         <textarea id="epigraph" pTextarea rows="2" [autoResize]="true" maxlength="2000"
           placeholder="Uma frase que abre o livro." [ngModel]="draft().epigraph"
           (ngModelChange)="set('epigraph', $event)"></textarea>
+        @if (!draft().epigraph.trim()) {
+          <button type="button" class="link-button" (click)="useTemplate('epigraph', epigraphTemplate)"
+            data-epigraph-template>Usar o modelo</button>
+        } @else if (status('epigraph') === 'pending') {
+          <button type="button" class="link-button" (click)="removePage('epigraph')" data-epigraph-remove>Tirar do
+            livro</button>
+        }
       </div>
       <div class="field">
         <label for="epigraph-source">De quem é</label>
@@ -106,6 +120,13 @@
         <textarea id="acknowledgments" pTextarea rows="4" [autoResize]="true" maxlength="20000"
           placeholder="Quem esteve com você enquanto o livro nascia." [ngModel]="draft().acknowledgments"
           (ngModelChange)="set('acknowledgments', $event)"></textarea>
+        @if (!draft().acknowledgments.trim()) {
+          <button type="button" class="link-button" (click)="useTemplate('acknowledgments', acknowledgmentsTemplate)"
+            data-acknowledgments-template>Usar o modelo</button>
+        } @else if (status('acknowledgments') === 'pending') {
+          <button type="button" class="link-button" (click)="removePage('acknowledgments')" data-acknowledgments-remove>Tirar do
+            livro</button>
+        }
       </div>
     </section>
 

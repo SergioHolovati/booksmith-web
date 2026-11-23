@@ -16,7 +16,7 @@ import { trimSize } from '../../../core/util/print-geometry';
 import { artStyle, boxView, fitBlocks, previewTextStyle, withBackdrop } from '../../editor/page-designer/page-designer';
 import { IllustrationPickerComponent } from '../../editor/illustration/illustration-picker';
 import { BookPreviewComponent } from './book-preview';
-import { EXTRA_TITLES, OrganizerItem, buildItems, extraBackground, extraLines, placedExtras } from './organizer-items';
+import { EXTRA_TITLES, OrganizerItem, buildItems, extraBackground, extraLines, extraPending, placedExtras } from './organizer-items';
 
 /** A lista com o item de {@code from} levado para {@code to} (os outros andam uma casa). */
 export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
@@ -57,7 +57,8 @@ export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
           As páginas com a marca <strong>Gerada</strong> (folha de rosto, créditos, dedicatória…) o Booksmith monta
           com o que você escreveu em
           <a [routerLink]="['/books', bookId(), 'paginas']" data-organizer-book-pages>Páginas do livro</a>. Toque
-          numa delas para mudar o fundo.
+          numa delas para mudar o fundo. As com <strong>Completar</strong> ainda têm só o modelo e não saem no
+          livro até você escrever o texto (ou tirar a página).
         </p>
       }
 
@@ -98,6 +99,11 @@ export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
                     @if (extraImage(x); as url) {
                       <img class="cover-art" [src]="url" alt="" />
                     }
+                    @if (pending(item)) {
+                      <span class="tag pending" data-extra-pending>Completar</span>
+                    } @else {
+                      <span class="tag">Gerada</span>
+                    }
                     @if (!(x.key === 'cover' && book()?.coverUrl)) {
                       <span class="extra-text" [class]="'extra-text k-' + x.key" [style.font-family]="bookFont()">
                         @for (line of lines(item); track $index) {
@@ -106,8 +112,7 @@ export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
                       </span>
                     }
                   </span>
-                  <span class="caption"><strong>{{ i + 1 }}</strong> {{ title(item) }}
-                    <span class="tag">Gerada</span></span>
+                  <span class="caption"><strong>{{ i + 1 }}</strong> {{ title(item) }}</span>
                 }
               </button>
             </li>
@@ -182,8 +187,9 @@ export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
     .caption { font-size: .8rem; color: var(--bs-text-soft); text-align: left; overflow: hidden; text-overflow: ellipsis;
       white-space: nowrap; }
     .caption strong { color: var(--bs-text); margin-right: .25rem; }
-    .tag { margin-left: .3rem; padding: 0 .4rem; border-radius: 999px; font-size: .68rem; font-weight: 600;
-      color: var(--bs-ember); background: rgba(242, 140, 56, .14); }
+    .tag { position: absolute; top: 4px; left: 4px; z-index: 2; padding: .05rem .45rem; border-radius: 999px;
+      font-size: .68rem; font-weight: 600; color: #fff; background: rgba(242, 140, 56, .92); pointer-events: none; }
+    .tag.pending { background: rgba(176, 106, 20, .95); }
     .extras-hint .pi { margin-right: .3rem; font-size: .8rem; }
     .extras-hint a { color: var(--bs-ember); }
     .cover-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
@@ -293,6 +299,11 @@ export class PageOrganizerComponent {
       return [];
     }
     return extraLines(item.extra.key, book.pages, book.title, this.auth.user()?.displayName ?? '');
+  }
+
+  /** Só com o modelo: não sai no livro até completar em Páginas do livro. */
+  pending(item: OrganizerItem): boolean {
+    return item.kind === 'extra' && extraPending(item.extra.key, this.book()?.pages);
   }
 
   extraColor(extra: ExtraPage): string {

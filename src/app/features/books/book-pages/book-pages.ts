@@ -17,7 +17,10 @@ import { UniverseApi } from '../../../core/api/universe.api';
 import { IllustrationPickerComponent } from '../../editor/illustration/illustration-picker';
 import { HasUnsavedChanges } from '../../../core/util/unsaved-changes.guard';
 import { BookPreviewComponent } from '../page-organizer/book-preview';
-import { ABOUT_TEMPLATE, COLOPHON_TEMPLATE, CREDIT_ROLES, creditValue, pageStatus, pendingLines, withCredit } from './page-templates';
+import {
+  ABOUT_TEMPLATE, ACKNOWLEDGMENTS_TEMPLATE, COLOPHON_TEMPLATE, CREDIT_ROLES, DEDICATION_TEMPLATE, EPIGRAPH_SOURCE_TEMPLATE,
+  EPIGRAPH_TEMPLATE, creditValue, pageStatus, pendingLines, withCredit,
+} from './page-templates';
 
 export const EMPTY_PAGES: BookPages = {
   credits: null,
@@ -210,6 +213,9 @@ export class BookPagesComponent implements HasUnsavedChanges {
   readonly creditRoles = CREDIT_ROLES;
   readonly aboutTemplate = ABOUT_TEMPLATE;
   readonly colophonTemplate = COLOPHON_TEMPLATE;
+  readonly dedicationTemplate = DEDICATION_TEMPLATE;
+  readonly epigraphTemplate = EPIGRAPH_TEMPLATE;
+  readonly acknowledgmentsTemplate = ACKNOWLEDGMENTS_TEMPLATE;
   /** Quantos campos do modelo ainda faltam completar, somando todas as páginas. */
   readonly pendingTotal = computed(() => {
     const d = this.draft();
@@ -245,6 +251,17 @@ export class BookPagesComponent implements HasUnsavedChanges {
   useTemplate(key: TextKey, template: string): void {
     if (!this.draft()[key].trim()) {
       this.set(key, template);
+      if (key === 'epigraph' && !this.draft().epigraphSource.trim()) {
+        this.set('epigraphSource', EPIGRAPH_SOURCE_TEMPLATE);
+      }
+    }
+  }
+
+  /** Tira a página opcional do livro (apaga o texto; na epígrafe, também de quem é). */
+  removePage(key: TextKey): void {
+    this.set(key, '');
+    if (key === 'epigraph') {
+      this.set('epigraphSource', '');
     }
   }
 

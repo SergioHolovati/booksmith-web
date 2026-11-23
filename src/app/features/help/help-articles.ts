@@ -270,6 +270,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     body: [
       { steps: ['Abra o livro e toque em **Páginas** (ou, em **Baixar**, em **Páginas do livro**).', 'Escreva o que quiser; cada linha vira um parágrafo.', 'Toque em **Salvar**.'] },
       { p: 'Antes da história saem a **falsa folha de rosto** (se ligar: uma página só com o título), os **créditos** (no verso da folha de rosto) com a **ficha catalográfica**, a **dedicatória** e a **epígrafe**. Depois do último capítulo, os **agradecimentos**, a página **sobre você** (com a **sua foto**) e o **colofão**, a última página do livro.' },
+      { p: '**O livro já vem com todas as páginas em modelo:** créditos, dedicatória, epígrafe, agradecimentos, sobre você e colofão. Complete o que está entre colchetes; enquanto só tiver o modelo, a página não sai no livro. Não quer uma das opcionais? Toque em **Tirar do livro** (e em **Usar o modelo** para trazer de volta).' },
       { p: 'A **ficha catalográfica** é feita por bibliotecária(o) com registro no CRB (muitas gráficas e a Câmara Brasileira do Livro oferecem). Toque em **Usar o modelo** para ver o que ela costuma ter; ela sai em quadro, no fim dos créditos.' },
       { p: 'A página sobre você leva o título que você escolher ("Sobre a autora", "Sobre mim"); em branco, vai o seu nome. O que ficar vazio não aparece no livro.' },
       { p: 'No Word, essas páginas não viram capítulos se você importar o arquivo de novo.' },

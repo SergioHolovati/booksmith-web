@@ -1,5 +1,5 @@
 import { ExtraPage, PagePreview } from '../../../core/models/api.models';
-import { buildItems, extraBackground, placedExtras } from './organizer-items';
+import { buildItems, extraBackground, extraLines, extraPending, placedExtras } from './organizer-items';
 import { moveItem } from './page-organizer';
 
 const page = (id: string): PagePreview => ({ id, title: id, page: {} as PagePreview['page'], paragraphs: [] });
@@ -35,5 +35,13 @@ describe('organização das páginas geradas', () => {
     expect(extraBackground(extra('credits', 'start'), layout)).toEqual({ color: '#eeeeee', imageId: 'img' });
     expect(extraBackground(extra('credits', 'start', '#123456'), layout)).toEqual({ color: '#123456', imageId: null });
     expect(extraBackground({ ...extra('credits', 'start'), imageId: 'own' }, layout).imageId).toBe('own');
+  });
+
+  it('a página só com o modelo aparece, marcada para completar, mostrando o modelo', () => {
+    const pages = { dedication: '[Para quem é este livro?]', colophon: 'Composto em Andika.' } as never;
+    expect(extraPending('dedication', pages)).toBe(true);
+    expect(extraPending('colophon', pages)).toBe(false);
+    expect(extraPending('credits', pages)).toBe(false);
+    expect(extraLines('dedication', pages, 'T', 'A')).toEqual(['[Para quem é este livro?]']);
   });
 });

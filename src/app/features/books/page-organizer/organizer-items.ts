@@ -56,6 +56,18 @@ export function placedExtras(items: readonly OrganizerItem[]): ExtraPage[] {
   return result;
 }
 
+/** A página gerada ainda só com o modelo (não sai no livro até completar): as de texto, sem nada fora dos colchetes. */
+export function extraPending(key: ExtraPageKey, pages: BookPages | null | undefined): boolean {
+  const text: Partial<Record<ExtraPageKey, string | null | undefined>> = {
+    dedication: pages?.dedication,
+    epigraph: pages?.epigraph,
+    acknowledgments: pages?.acknowledgments,
+    about: pages?.aboutAuthor,
+    colophon: pages?.colophon,
+  };
+  return key in text && !printable(text[key]);
+}
+
 /** O fundo da miniatura: o próprio da página; sem ele, o das páginas geradas na diagramação. */
 export function extraBackground(extra: ExtraPage, layout: BookLayout | null | undefined): { color: string; imageId: string | null } {
   return {
@@ -66,7 +78,9 @@ export function extraBackground(extra: ExtraPage, layout: BookLayout | null | un
 
 /** Umas linhas do texto da página, para a miniatura (o título e o autor nas de rosto). */
 export function extraLines(key: ExtraPageKey, pages: BookPages | null | undefined, title: string, author: string): string[] {
-  const lines = (text: string | null | undefined) => printable(text).split('\n').map((l) => l.trim()).filter(Boolean);
+  // O que sai no livro; se só tem o modelo, o modelo (a miniatura mostra o que falta completar)
+  const lines = (text: string | null | undefined) =>
+    (printable(text) || (text ?? '')).split('\n').map((l) => l.trim()).filter(Boolean);
   switch (key) {
     case 'cover':
     case 'title':

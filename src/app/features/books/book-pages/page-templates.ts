@@ -13,6 +13,11 @@ export const CREDIT_ROLES = [
 export const ABOUT_TEMPLATE =
   '[Conte em poucas linhas quem você é: onde vive, o que faz, o que escreve e por que escreveu este livro.]';
 
+export const DEDICATION_TEMPLATE = '[Para quem é este livro? Ex.: Para a Lia, que me ensinou a ver cores.]';
+export const EPIGRAPH_TEMPLATE = '[Uma frase que abre o livro, de um livro, música ou pessoa]';
+export const EPIGRAPH_SOURCE_TEMPLATE = '[De quem é a frase]';
+export const ACKNOWLEDGMENTS_TEMPLATE = '[A quem você quer agradecer: quem leu antes, revisou, ilustrou, apoiou.]';
+
 export const COLOPHON_TEMPLATE =
   'Este livro foi composto em [fonte] e impresso em [papel] pela [gráfica], em [mês e ano].';
 
