@@ -35,10 +35,39 @@
             <p-button label="Tirar o PDF" severity="secondary" [text]="true" size="small" [disabled]="importingPdf()"
               (onClick)="removePdf()" data-pdf-remove />
           </div>
-          <small class="muted">Ou desenhe a capa abaixo: usar o desenho substitui o PDF.</small>
         </div>
       </section>
+      @if (!replacing()) {
+        <section class="glass-card other-cover" data-other-cover aria-labelledby="other-title">
+          <h2 id="other-title">Fazer outra capa</h2>
+          <p class="muted small">A nova capa substitui o PDF quando você tocar em <strong>Usar como capa</strong>.</p>
+          <div class="other-actions">
+            <p-button label="Criar capa com IA" icon="pi pi-sparkles" severity="secondary" [outlined]="true"
+              [disabled]="!bookComplete()" (onClick)="studioOpen.set(true)" data-pdf-studio />
+            <label class="p-button p-button-secondary p-button-outlined ready-upload" [class.p-disabled]="uploading()">
+              <input type="file" accept="image/png,image/jpeg,image/webp" hidden (change)="uploadCover($event)"
+                [disabled]="uploading()" data-pdf-image-upload />
+              <i class="pi" [class.pi-image]="!uploading()" [class.pi-spin]="uploading()" [class.pi-spinner]="uploading()"
+                aria-hidden="true"></i>
+              Enviar capa por imagem
+            </label>
+          </div>
+          @if (!bookComplete()) {
+            <small class="muted">A capa com IA fica disponível quando o livro estiver marcado como
+              <strong>Concluído</strong>.</small>
+          }
+        </section>
+      } @else {
+        <p class="glass-card replacing-note small" data-replacing>
+          <span>Nova capa: ao tocar em <strong>Usar como capa</strong>, ela substitui o PDF.</span>
+          <p-button label="Cancelar" severity="secondary" [text]="true" size="small" (onClick)="cancelReplace()" />
+        </p>
+      }
     }
+    <app-illustration-studio kind="cover" [universeId]="book.universeId" [bookId]="book.id" [bookTitle]="book.title"
+      [(visible)]="studioOpen" (generated)="onArtwork($event)" />
+
+    @if (showEditor()) {
     <div class="stage">
       <canvas #canvas [width]="width" height="2560" role="img"
         [attr.aria-label]="'Capa: ' + design().title"></canvas>
@@ -63,13 +92,15 @@
             aria-hidden="true"></i>
           Enviar a capa pronta (imagem)
         </label>
-        <label class="p-button p-button-secondary p-button-outlined ready-upload" [class.p-disabled]="importingPdf()">
-          <input type="file" accept="application/pdf,.pdf" hidden (change)="importPdf($event)"
-            [disabled]="importingPdf()" data-cover-pdf />
-          <i class="pi" [class.pi-file-pdf]="!importingPdf()" [class.pi-spin]="importingPdf()"
-            [class.pi-spinner]="importingPdf()" aria-hidden="true"></i>
-          Usar um PDF como capa
-        </label>
+        @if (!book.coverPdf) {
+          <label class="p-button p-button-secondary p-button-outlined ready-upload" [class.p-disabled]="importingPdf()">
+            <input type="file" accept="application/pdf,.pdf" hidden (change)="importPdf($event)"
+              [disabled]="importingPdf()" data-cover-pdf />
+            <i class="pi" [class.pi-file-pdf]="!importingPdf()" [class.pi-spin]="importingPdf()"
+              [class.pi-spinner]="importingPdf()" aria-hidden="true"></i>
+            Usar um PDF como capa
+          </label>
+        }
       </div>
       @if (!frontText()) {
         <small class="muted" data-front-text-hint>A frente fica só com a imagem, sem texto por cima. O título e o autor
@@ -131,8 +162,6 @@
           <small class="muted">Disponível quando o livro estiver marcado como <strong>Concluído</strong> na tela do livro.</small>
         }
       </div>
-      <app-illustration-studio kind="cover" [universeId]="book.universeId" [bookId]="book.id" [bookTitle]="book.title"
-        [(visible)]="studioOpen" (generated)="onArtwork($event)" />
       @if (images().length) {
         <div class="thumbs" role="radiogroup" aria-label="Imagem de fundo">
           <button type="button" class="thumb none" role="radio" [class.on]="!design().imageId"
@@ -213,9 +242,6 @@
       <a class="print-link" [routerLink]="['/books', bookId(), 'capa', 'grafica']">
         <i class="pi pi-print" aria-hidden="true"></i> Capa para gráfica (frente, lombada e contracapa)
       </a>
-      <a class="print-link" [routerLink]="['/books', bookId(), 'capa', 'grafica']" data-import-link>
-        <i class="pi pi-file-pdf" aria-hidden="true"></i> Já tem a capa pronta em PDF? Importe aqui
-      </a>
     </section>
 
     <div class="save-bar" role="region" aria-label="Usar a capa">
@@ -223,6 +249,7 @@
       <p-button label="Usar como capa" icon="pi pi-check" [loading]="saving()" [disabled]="!canSave() || applied()"
         (onClick)="save()" />
     </div>
+    }
   } @else {
     <div class="center"><p-progress-spinner strokeWidth="4" /></div>
   }

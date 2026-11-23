@@ -93,6 +93,10 @@ export class CoverEditorComponent implements HasUnsavedChanges {
   readonly uploading = signal(false);
   /** Importando (ou tirando) a capa pronta em PDF. */
   readonly importingPdf = signal(false);
+  /** Com capa em PDF: fazendo outra (com IA ou imagem), que substitui o PDF ao salvar. */
+  readonly replacing = signal(false);
+  /** Com capa em PDF, o editor só aparece para fazer outra capa. */
+  readonly showEditor = computed(() => !this.book()?.coverPdf || this.replacing());
   /** Título, subtítulo e autor escritos na frente (não, quando a imagem já traz o título). */
   readonly frontText = computed(() => this.design().frontText !== false);
   readonly fontsReady = signal(false);
@@ -101,7 +105,7 @@ export class CoverEditorComponent implements HasUnsavedChanges {
 
   readonly dirty = computed(() => this.saved() !== '' && JSON.stringify(this.design()) !== this.saved());
   /** A capa do livro já é este desenho (salvo e sem mudanças). */
-  readonly applied = computed(() => !!this.book()?.coverDesign && !this.dirty());
+  readonly applied = computed(() => !!this.book()?.coverDesign && !this.book()?.coverPdf && !this.dirty());
   readonly canSave = computed(() => this.design().title.trim() !== '' && this.fontsReady());
 
   constructor() {
@@ -193,7 +197,18 @@ export class CoverEditorComponent implements HasUnsavedChanges {
         // a lista antiga continua valendo; a imagem nova ainda assim é escolhida abaixo
       }
     }
-    this.design.update((design) => ({ ...design, imageId: result.imageId }));
+    // A arte da IA vem sem letras: o título volta a ser escrito por cima
+    this.design.update((design) => ({ ...design, imageId: result.imageId, frontText: true, shade: design.shade || 30 }));
+    this.replacing.set(true);
+  }
+
+  /** Desiste da capa nova: volta para a capa em PDF (e o desenho salvo). */
+  cancelReplace(): void {
+    const saved = this.saved();
+    if (saved) {
+      this.design.set(JSON.parse(saved) as CoverDesign);
+    }
+    this.replacing.set(false);
   }
 
   /**
@@ -219,6 +234,7 @@ export class CoverEditorComponent implements HasUnsavedChanges {
       const image = await firstValueFrom(this.universeApi.uploadImage(universeId, art.dataUrl, `Capa: ${pageTitle(file.name)}`, []));
       this.images.update((list) => [image, ...list]);
       this.design.update((design) => ({ ...design, imageId: image.id, frontText: false, shade: 0 }));
+      this.replacing.set(true);
     } catch (error) {
       this.toast.add({ severity: 'error', summary: problemMessage(error, 'Não foi possível enviar a imagem.'), life: 6000 });
     } finally {
@@ -244,6 +260,7 @@ export class CoverEditorComponent implements HasUnsavedChanges {
         this.api.importCoverPdf(book.id, file, { trim: book.layout.trim, spineMm: null, bleedMm: null }),
       );
       this.book.update((current) => (current ? { ...current, coverUrl: result.coverUrl, coverPdf: result.coverPdf } : current));
+      this.cancelReplace();
       this.toast.add({ severity: 'success', summary: 'Capa importada', life: 4000,
         detail: result.coverPdf.kind === 'wrap'
           ? 'A frente virou a capa do livro; confira a lombada em Capa para gráfica.'
@@ -297,6 +314,7 @@ export class CoverEditorComponent implements HasUnsavedChanges {
       const image = canvas.toDataURL('image/jpeg', 0.9);
       const result = await firstValueFrom(this.api.saveCover(this.bookId(), this.design(), image));
       this.book.update((book) => (book ? { ...book, coverUrl: result.coverUrl, coverDesign: result.design, coverPdf: null } : book));
+      this.replacing.set(false);
       this.saved.set(JSON.stringify(this.design()));
       this.toast.add({ severity: 'success', summary: 'Capa salva', detail: 'Já vale no livro e nos arquivos baixados.', life: 3000 });
     } catch (error) {

@@ -238,3 +238,28 @@
   min-height: var(--bs-touch);
   cursor: pointer;
 }
+
+.other-cover {
+  margin: 0 0 1rem;
+  padding: .9rem 1rem;
+
+  h2 { margin: 0 0 .25rem; font-size: 1rem; }
+  p { margin: 0 0 .6rem; }
+}
+
+.other-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-bottom: .3rem;
+}
+
+.replacing-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .25rem .5rem;
+  margin: 0 0 1rem;
+  padding: .6rem 1rem;
+}
