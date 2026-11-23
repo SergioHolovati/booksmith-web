@@ -153,9 +153,9 @@ export const routes: Routes = [
         canDeactivate: [unsavedChangesGuard],
       },
       {
-        // Livro ilustrado: organizar as páginas vendo as miniaturas ("/paginas" é a tela das páginas do livro)
+        // Organizar as páginas vendo as miniaturas, em qualquer livro ("/paginas" é a tela das páginas do livro)
         path: 'books/:bookId/organizar',
-        loadComponent: () => import('./features/books/page-organizer/page-organizer').then((c) => c.PageOrganizerComponent),
+        loadComponent: () => import('./features/books/page-organizer/organizer-page').then((c) => c.OrganizerPageComponent),
       },
       {
         path: 'books/:bookId/diagramacao',

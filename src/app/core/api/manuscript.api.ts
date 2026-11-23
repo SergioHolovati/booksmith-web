@@ -9,6 +9,7 @@ import {
   BookLayout,
   BookPages,
   BookRequest,
+  ArtPage,
   ExtraPage,
   BookSummary,
   Chapter,
@@ -126,12 +127,13 @@ export class ManuscriptApi {
   }
 
   /** Livro ilustrado: as páginas geradas que o livro tem, na ordem, com o lugar e o fundo de cada uma. */
-  extraPages(bookId: string): Observable<ExtraPage[]> {
-    return this.http.get<ExtraPage[]>(`${this.base}/books/${bookId}/extra-pages`);
+  extraPages(bookId: string): Observable<(ExtraPage | ArtPage)[]> {
+    return this.http.get<(ExtraPage | ArtPage)[]>(`${this.base}/books/${bookId}/extra-pages`);
   }
 
-  updateExtraPages(bookId: string, pages: ExtraPage[]): Observable<ExtraPage[]> {
-    return this.http.put<ExtraPage[]>(`${this.base}/books/${bookId}/extra-pages`, pages);
+  /** Troca as páginas geradas e (no livro de texto) as páginas de ilustração; a lista vai inteira. */
+  updateExtraPages(bookId: string, pages: (ExtraPage | ArtPage)[]): Observable<(ExtraPage | ArtPage)[]> {
+    return this.http.put<(ExtraPage | ArtPage)[]>(`${this.base}/books/${bookId}/extra-pages`, pages);
   }
 
   reorderChapters(bookId: string, chapterIds: string[]): Observable<ChapterSummary[]> {

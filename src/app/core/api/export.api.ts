@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, from, map, switchMap, throwError } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { BookLayout, LayoutPreview, PrintCheck, PrintCoverSpec, PrintProfile } from '../models/api.models';
+import { BookLayout, LayoutPreview, PageMap, PrintCheck, PrintCoverSpec, PrintProfile } from '../models/api.models';
 
 export type ExportFormat = 'epub' | 'pdf' | 'docx';
 
@@ -21,6 +21,16 @@ export class ExportApi {
   /** Páginas do PDF com a diagramação dada (salva ou não), como imagens; até 4 por pedido. */
   preview(bookId: string, layout: BookLayout, from: number, count = 2, target: 'print' | 'ebook' = 'print'): Observable<LayoutPreview> {
     return this.http.post<LayoutPreview>(`${this.base}/books/${bookId}/export/preview`, { ...layout, from, count, target });
+  }
+
+  /** Miniaturas pequenas das páginas do PDF (a tela de organizar o livro de texto); até 16 por pedido. */
+  thumbnails(bookId: string, layout: BookLayout, from: number, count: number): Observable<LayoutPreview> {
+    return this.http.post<LayoutPreview>(`${this.base}/books/${bookId}/export/preview`, { ...layout, from, count, thumbs: true });
+  }
+
+  /** Livro de texto: em que página começa cada trecho (capa, folha de rosto, sumário, capítulos, ilustrações…). */
+  pageMap(bookId: string, layout: BookLayout): Observable<PageMap> {
+    return this.http.post<PageMap>(`${this.base}/books/${bookId}/export/page-map`, layout);
   }
 
   /** As ilustrações do texto na diagramação dada (salva ou não): tamanho na página e DPI para impressão. */

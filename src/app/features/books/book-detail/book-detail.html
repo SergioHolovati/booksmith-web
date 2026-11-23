@@ -216,6 +216,10 @@
             <i class="pi pi-th-large" aria-hidden="true"></i> Organizar páginas vendo as miniaturas</a>
         }
       }
+      @if (!pictureBook() && book.chapters.length > 0) {
+        <a class="organize-link" [routerLink]="['/books', book.id, 'organizar']" data-organize-pages>
+          <i class="pi pi-th-large" aria-hidden="true"></i> Organizar páginas e ilustrações</a>
+      }
       @if (book.chapters.length === 0 && pictureBook()) {
         <p class="muted">Nenhuma página ainda. Toque em <strong>Nova página</strong> para começar.</p>
       } @else if (book.chapters.length === 0) {

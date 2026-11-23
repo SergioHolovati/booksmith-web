@@ -70,6 +70,35 @@ export interface ExtraPage {
 export type ExtraPageKey =
   | 'cover' | 'credits' | 'title' | 'dedication' | 'epigraph' | 'acknowledgments' | 'about' | 'colophon';
 
+/**
+ * Livro de texto: página só com uma ilustração. Lugar: 'start' (antes da folha de rosto), 'front' (antes do primeiro
+ * capítulo), o id do capítulo que vem antes, ou 'end' (no fim do livro).
+ */
+export interface ArtPage {
+  key: 'illustration';
+  id: string;
+  after: string;
+  imageId: string;
+  color: null;
+  /** Até a borda (cobre a página); senão inteira dentro das margens. */
+  bleed: boolean;
+}
+
+/** Um trecho do livro de texto no PDF: onde começa e quantas páginas tem. */
+export interface PageMapBlock {
+  kind: 'cover' | 'title' | 'front' | 'toc' | 'chapter' | 'illustration' | 'back';
+  /** A página ('dedication', 'about-author'…), o id do capítulo ou o da página de ilustração. */
+  ref: string | null;
+  title: string;
+  firstPage: number;
+  pageCount: number;
+}
+
+export interface PageMap {
+  pageCount: number;
+  blocks: PageMapBlock[];
+}
+
 export interface PagePreview {
   id: string;
   title: string;

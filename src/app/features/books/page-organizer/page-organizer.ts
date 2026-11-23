@@ -286,7 +286,10 @@ export class PageOrganizerComponent {
       const [book, pages, extras] = await Promise.all([
         firstValueFrom(this.api.getBook(this.bookId())),
         firstValueFrom(this.api.pagePreviews(this.bookId())),
-        firstValueFrom(this.api.extraPages(this.bookId())).catch(() => [] as ExtraPage[]),
+        firstValueFrom(this.api.extraPages(this.bookId()))
+          // As páginas de ilustração soltas são do livro de texto
+          .then((all) => all.filter((e): e is ExtraPage => e.key !== 'illustration'))
+          .catch(() => [] as ExtraPage[]),
       ]);
       this.book.set(book);
       firstValueFrom(this.exportApi.printCheck(book.id, book.layout)).then(
