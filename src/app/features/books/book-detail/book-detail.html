@@ -181,6 +181,18 @@
             [outlined]="true" [loading]="creatingChapter()" (onClick)="newChapter()" />
         </div>
       </div>
+      @if (pagesSummary(); as summary) {
+        <a class="pages-summary glass-card" data-book-pages-summary
+          [routerLink]="['/books', book.id, pictureBook() ? 'organizar' : 'paginas']">
+          <i class="pi pi-bookmark" aria-hidden="true"></i>
+          <span>Páginas do livro: <strong>{{ summary.total }}</strong>
+            @if (summary.pending) {
+              · <span class="pending" data-book-pages-pending>{{ summary.pending }} para completar</span>
+            }
+          </span>
+          <i class="pi pi-angle-right muted" aria-hidden="true"></i>
+        </a>
+      }
       @if (importing(); as progress) {
         <div class="import-progress glass-card" role="status" data-import-progress>
           <p-progress-spinner strokeWidth="5" styleClass="import-spin" />

@@ -28,6 +28,7 @@ import { KIND_LABEL, LANGUAGE_LABEL, STATUS_LABEL, hasCast, hasPlotTools, isPict
 import { AskBookComponent } from '../ask-book/ask-book';
 import { BookTextsComponent } from '../book-texts/book-texts';
 import { PlotIdeasComponent } from '../plot-ideas/plot-ideas';
+import { bookPagesSummary } from '../page-organizer/organizer-items';
 
 /**
  * Páginas impressas do livro ilustrado: a folha de rosto, cada página e a dupla (2). A dupla começa numa página par
@@ -86,6 +87,14 @@ export class BookDetailComponent {
   /** Livro infantil ilustrado: os capítulos são as páginas. */
   readonly pictureBook = computed(() => this.book()?.pictureBook ?? isPictureBook(this.book()?.genre));
   readonly printedPages = computed(() => printedPages(this.book()?.chapters ?? []));
+  /** As páginas antes e depois da história (folha de rosto, dedicatória…): quantas e quantas faltam completar. */
+  readonly pagesSummary = computed(() => {
+    const book = this.book();
+    if (!book || (this.pictureBook() && book.layout?.autoPages === false)) {
+      return null;
+    }
+    return bookPagesSummary(book.pages);
+  });
   readonly titleChapter = signal<ChapterSummary | null>(null);
   readonly titleDraft = signal('');
   readonly savingTitle = signal(false);

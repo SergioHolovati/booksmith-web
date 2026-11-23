@@ -359,3 +359,19 @@
   opacity: 0;
   pointer-events: none;
 }
+
+.pages-summary {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  min-height: var(--bs-touch);
+  margin: 0 0 .8rem;
+  padding: .55rem .9rem;
+  color: var(--bs-text);
+  text-decoration: none;
+  font-size: .92rem;
+
+  span { flex: 1; }
+  .pi-bookmark { color: var(--bs-ember); }
+  .pending { color: #e0a24a; font-weight: 600; }
+}

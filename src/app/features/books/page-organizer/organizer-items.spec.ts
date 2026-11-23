@@ -1,5 +1,7 @@
 import { ExtraPage, PagePreview } from '../../../core/models/api.models';
-import { buildItems, extraBackground, extraLines, extraPending, placedExtras } from './organizer-items';
+import {
+  bookPagesSummary, buildItems, extraBackground, extraLines, extraPending, insertIndex, placedExtras, withoutPage,
+} from './organizer-items';
 import { moveItem } from './page-organizer';
 
 const page = (id: string): PagePreview => ({ id, title: id, page: {} as PagePreview['page'], paragraphs: [] });
@@ -43,5 +45,26 @@ describe('organização das páginas geradas', () => {
     expect(extraPending('colophon', pages)).toBe(false);
     expect(extraPending('credits', pages)).toBe(false);
     expect(extraLines('dedication', pages, 'T', 'A')).toEqual(['[Para quem é este livro?]']);
+  });
+
+  it('a página nova entra depois da escolhida; sem escolha, antes das geradas do fim', () => {
+    const items = buildItems(pages, extras);
+    expect(insertIndex(items, 'extra:cover')).toBe(1);
+    expect(insertIndex(items, null)).toBe(4);
+    expect(insertIndex(buildItems([], [extra('cover', 'start'), extra('colophon', 'end')]), null)).toBe(1);
+  });
+
+  it('tirar do livro apaga o texto (a epígrafe leva junto de quem é)', () => {
+    const all = { dedication: 'Para a Lia.', epigraph: 'Frase', epigraphSource: 'Alguém' } as never;
+    expect(withoutPage(all, 'dedication')).toEqual({ dedication: '', epigraph: 'Frase', epigraphSource: 'Alguém' });
+    expect(withoutPage(all, 'epigraph')).toEqual({ dedication: 'Para a Lia.', epigraph: '', epigraphSource: '' });
+    expect(withoutPage(all, 'cover')).toBe(all);
+  });
+
+  it('o resumo conta as de rosto e as de texto, e quais faltam completar', () => {
+    const pages = { dedication: '[Para quem?]', epigraph: '', acknowledgments: null, aboutAuthor: 'Sou eu.',
+      colophon: '[fonte]' } as never;
+    expect(bookPagesSummary(pages)).toEqual({ total: 6, pending: 2 });
+    expect(bookPagesSummary(null)).toEqual({ total: 3, pending: 0 });
   });
 });

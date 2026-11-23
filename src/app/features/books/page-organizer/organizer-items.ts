@@ -99,3 +99,48 @@ export function extraLines(key: ExtraPageKey, pages: BookPages | null | undefine
       return lines(pages?.colophon).slice(0, 3);
   }
 }
+
+/** As geradas que o autor pode tirar do livro (as de texto); voltam com "Usar o modelo" em Páginas do livro. */
+export const REMOVABLE: readonly ExtraPageKey[] = ['dedication', 'epigraph', 'acknowledgments', 'about', 'colophon'];
+
+/** As páginas do livro sem a página {@code key} (texto vazio tira do livro; na epígrafe, também de quem é). */
+export function withoutPage(pages: BookPages, key: ExtraPageKey): BookPages {
+  switch (key) {
+    case 'dedication':
+      return { ...pages, dedication: '' };
+    case 'epigraph':
+      return { ...pages, epigraph: '', epigraphSource: '' };
+    case 'acknowledgments':
+      return { ...pages, acknowledgments: '' };
+    case 'about':
+      return { ...pages, aboutAuthor: '' };
+    case 'colophon':
+      return { ...pages, colophon: '' };
+    default:
+      return pages;
+  }
+}
+
+/**
+ * Onde entra a página nova: logo depois da escolhida; sem escolha, depois da última página da história (antes das
+ * geradas do fim, que continuam no fim).
+ */
+export function insertIndex(items: readonly OrganizerItem[], selectedId: string | null): number {
+  const selected = items.findIndex((i) => i.id === selectedId);
+  if (selected >= 0) {
+    return selected + 1;
+  }
+  const lastStory = items.map((i) => i.kind).lastIndexOf('story');
+  return lastStory >= 0 ? lastStory + 1 : items.filter((i) => i.kind === 'extra' && i.extra.after !== 'end').length;
+}
+
+/** O resumo das páginas do livro para a lista de capítulos: quantas o livro tem e quantas faltam completar. */
+export function bookPagesSummary(pages: BookPages | null | undefined): { total: number; pending: number } {
+  const text: [ExtraPageKey, string | null | undefined][] = [
+    ['dedication', pages?.dedication], ['epigraph', pages?.epigraph], ['acknowledgments', pages?.acknowledgments],
+    ['about', pages?.aboutAuthor], ['colophon', pages?.colophon],
+  ];
+  const present = text.filter(([, value]) => !!value?.trim());
+  // Folha de rosto, créditos e página de rosto sempre entram
+  return { total: 3 + present.length, pending: present.filter(([key]) => extraPending(key, pages)).length };
+}

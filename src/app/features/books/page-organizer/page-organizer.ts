@@ -16,7 +16,11 @@ import { trimSize } from '../../../core/util/print-geometry';
 import { artStyle, boxView, fitBlocks, previewTextStyle, withBackdrop } from '../../editor/page-designer/page-designer';
 import { IllustrationPickerComponent } from '../../editor/illustration/illustration-picker';
 import { BookPreviewComponent } from './book-preview';
-import { EXTRA_TITLES, OrganizerItem, buildItems, extraBackground, extraLines, extraPending, placedExtras } from './organizer-items';
+import { DEFAULT_PAGE } from '../../editor/page-designer/page-designer';
+import {
+  EXTRA_TITLES, OrganizerItem, REMOVABLE, buildItems, extraBackground, extraLines, extraPending, insertIndex, placedExtras,
+  withoutPage,
+} from './organizer-items';
 
 /** A lista com o item de {@code from} levado para {@code to} (os outros andam uma casa). */
 export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
@@ -27,6 +31,11 @@ export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
   const [item] = result.splice(from, 1);
   result.splice(to, 0, item);
   return result;
+}
+
+/** A ordem das páginas da história. */
+function storyOrder(list: readonly OrganizerItem[]): string[] {
+  return list.filter((i) => i.kind === 'story').map((i) => i.id);
 }
 
 /**
@@ -119,6 +128,15 @@ export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
           }
         </ol>
 
+        <div class="add-row" data-organizer-add>
+          <span class="small muted">{{ selected() ? 'Nova página depois da escolhida:' : 'Nova página:' }}</span>
+          <p-button icon="pi pi-plus" label="Com texto" severity="secondary" [outlined]="true" size="small"
+            [disabled]="saving()" (onClick)="addTextPage()" data-organizer-add-text />
+          <p-button icon="pi pi-image" label="Só ilustração" severity="secondary" [outlined]="true" size="small"
+            [disabled]="saving() || !book()?.universeId" (onClick)="pickFor.set('new'); pickingImage.set(true)"
+            data-organizer-add-art />
+        </div>
+
         @if (selectedIndex(); as index) {
           <div class="toolbar glass-card" data-organizer-toolbar>
             <span class="small">Página {{ index }}</span>
@@ -133,10 +151,15 @@ export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
                   aria-label="Cor de fundo desta página" data-extra-color />
               </label>
               <p-button icon="pi pi-image" label="Ilustração" severity="secondary" [outlined]="true" size="small"
-                [disabled]="saving() || !book()?.universeId" (onClick)="pickingImage.set(true)" data-extra-image />
+                [disabled]="saving() || !book()?.universeId" (onClick)="pickFor.set('extra'); pickingImage.set(true)"
+                data-extra-image />
               @if (x.imageId || x.color) {
                 <p-button icon="pi pi-undo" label="Fundo padrão" severity="secondary" [text]="true" size="small"
                   [disabled]="saving()" (onClick)="resetExtraBackground()" data-extra-reset />
+              }
+              @if (removable(x)) {
+                <p-button icon="pi pi-times" label="Tirar do livro" severity="danger" [text]="true" size="small"
+                  [disabled]="saving()" (onClick)="removeExtra()" data-extra-remove />
               }
               <p-button icon="pi pi-pencil" label="Texto" size="small" [routerLink]="['/books', bookId(), 'paginas']" />
             } @else {
@@ -145,7 +168,7 @@ export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
           </div>
         }
         <app-illustration-picker [universeId]="book()?.universeId ?? null" [(visible)]="pickingImage"
-          (picked)="pickExtraImage($event)" />
+          (picked)="picked($event)" />
       }
     </div>
   `,
@@ -201,6 +224,7 @@ export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
     .extra-text.k-colophon { top: 62%; font-size: 4cqw; }
     .color-pick input { width: 2.4rem; height: 2.2rem; padding: 0; border: 1px solid var(--bs-border, #444);
       border-radius: 6px; background: none; cursor: pointer; }
+    .add-row { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-top: 1rem; }
     .toolbar { position: fixed; left: 50%; transform: translateX(-50%);
       bottom: calc(env(safe-area-inset-bottom, 0px) + 4.8rem); z-index: 20; display: flex; flex-wrap: wrap;
       align-items: center; justify-content: center; gap: .5rem; padding: .6rem .8rem; width: max-content;
@@ -225,6 +249,8 @@ export class PageOrganizerComponent {
   readonly pages = computed(() =>
     this.items().flatMap((item) => (item.kind === 'story' ? [item.page] : [])));
   readonly pickingImage = signal(false);
+  /** Para que é a ilustração escolhida: o fundo da gerada ou uma página nova só de ilustração. */
+  readonly pickFor = signal<'extra' | 'new'>('extra');
   readonly loading = signal(true);
   readonly saving = signal(false);
   readonly error = signal<string | null>(null);
@@ -320,6 +346,76 @@ export class PageOrganizerComponent {
 
   setExtraColor(color: string): void {
     void this.changeExtra({ color, imageId: null });
+  }
+
+  picked(image: UniverseImage): void {
+    if (this.pickFor() === 'new') {
+      void this.addPage(image);
+    } else {
+      this.pickExtraImage(image);
+    }
+  }
+
+  addTextPage(): void {
+    void this.addPage(null);
+  }
+
+  /**
+   * Cria a página da história logo depois da escolhida (sem escolha, depois da última da história). Com ilustração, é
+   * página só de ilustração: a imagem de fundo e sem texto.
+   */
+  private async addPage(image: UniverseImage | null): Promise<void> {
+    const before = this.items();
+    const at = insertIndex(before, this.selected());
+    this.saving.set(true);
+    try {
+      const title = image ? (image.caption?.trim() || 'Ilustração').slice(0, 200) : undefined;
+      const chapter = await firstValueFrom(this.api.createChapter(this.bookId(), title));
+      let page = { ...DEFAULT_PAGE };
+      if (image) {
+        page = { ...DEFAULT_PAGE, imageId: image.id, text: 'none' };
+        this.images.update((images) => ({ ...images, [image.id]: image.url }));
+        await firstValueFrom(this.api.setChapterPage(chapter.id, page));
+      }
+      const preview = { id: chapter.id, title: chapter.title, page, paragraphs: [] };
+      const item: OrganizerItem = { kind: 'story', id: chapter.id, page: preview };
+      const after = [...before.slice(0, at), item, ...before.slice(at)];
+      this.items.set(after);
+      // No servidor a página nova está no fim da história
+      await this.saveOrder(before, after, [...storyOrder(before), chapter.id]);
+      this.selected.set(chapter.id);
+    } catch (error) {
+      this.toast.add({ severity: 'error', summary: problemMessage(error, 'Não foi possível criar a página.'), life: 5000 });
+      await this.load();
+    } finally {
+      this.saving.set(false);
+    }
+  }
+
+  removable(extra: ExtraPage): boolean {
+    return REMOVABLE.includes(extra.key);
+  }
+
+  /** Tira a gerada escolhida do livro (apaga o texto); volta com "Usar o modelo" em Páginas do livro. */
+  async removeExtra(): Promise<void> {
+    const extra = this.selectedExtra();
+    const book = this.book();
+    if (!extra || !book?.pages) {
+      return;
+    }
+    this.saving.set(true);
+    try {
+      const pages = await firstValueFrom(this.api.updatePages(book.id, withoutPage(book.pages, extra.key)));
+      this.book.set({ ...book, pages });
+      this.items.update((items) => items.filter((i) => i.id !== 'extra:' + extra.key));
+      this.selected.set(null);
+      this.toast.add({ severity: 'success', summary: EXTRA_TITLES[extra.key] + ' saiu do livro.',
+        detail: 'Para voltar, use o modelo em Páginas do livro.', life: 5000 });
+    } catch (error) {
+      this.toast.add({ severity: 'error', summary: problemMessage(error, 'Não foi possível tirar a página.'), life: 5000 });
+    } finally {
+      this.saving.set(false);
+    }
   }
 
   pickExtraImage(image: UniverseImage): void {
@@ -425,21 +521,25 @@ export class PageOrganizerComponent {
     }
     this.items.set(after);
     this.saving.set(true);
-    const order = (list: OrganizerItem[]) => list.filter((i) => i.kind === 'story').map((i) => i.id);
-    const places = (list: OrganizerItem[]) => JSON.stringify(placedExtras(list));
     try {
-      // Primeiro as páginas da história (se mudaram de ordem), depois o lugar das geradas
-      if (order(after).join() !== order(before).join()) {
-        await firstValueFrom(this.api.reorderChapters(this.bookId(), order(after)));
-      }
-      if (places(after) !== places(before)) {
-        await firstValueFrom(this.api.updateExtraPages(this.bookId(), placedExtras(after)));
-      }
+      await this.saveOrder(before, after);
     } catch (error) {
       this.items.set(before);
       this.toast.add({ severity: 'error', summary: problemMessage(error, 'Não foi possível mudar a ordem.'), life: 5000 });
     } finally {
       this.saving.set(false);
+    }
+  }
+
+  /** Salva o que mudou: primeiro a ordem das páginas da história, depois o lugar das geradas. */
+  private async saveOrder(before: readonly OrganizerItem[], after: readonly OrganizerItem[],
+    saved: readonly string[] = storyOrder(before)): Promise<void> {
+    const places = (list: readonly OrganizerItem[]) => JSON.stringify(placedExtras(list));
+    if (storyOrder(after).join() !== saved.join()) {
+      await firstValueFrom(this.api.reorderChapters(this.bookId(), storyOrder(after)));
+    }
+    if (places(after) !== places(before)) {
+      await firstValueFrom(this.api.updateExtraPages(this.bookId(), placedExtras(after)));
     }
   }
 }
