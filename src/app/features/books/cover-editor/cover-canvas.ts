@@ -10,6 +10,18 @@ export function fontFamily(font: CoverDesign['font']): string {
   return font === 'sans' ? 'Inter, sans-serif' : 'Literata, Georgia, serif';
 }
 
+/**
+ * Altura da capa: 2560 (1:1,6); sem texto na frente, a da própria imagem (a capa pronta não é cortada), entre
+ * 1:1 e 1:2.
+ */
+export function coverHeight(design: CoverDesign, image: { naturalWidth: number; naturalHeight: number } | null): number {
+  if (design.frontText !== false || !image?.naturalWidth || !image.naturalHeight) {
+    return COVER_HEIGHT;
+  }
+  const ratio = Math.min(2, Math.max(1, image.naturalHeight / image.naturalWidth));
+  return Math.round(COVER_WIDTH * ratio);
+}
+
 /** Quebra o texto em linhas que cabem em {@code maxWidth}; palavra maior que a linha fica sozinha. */
 export function wrapText(measure: (text: string) => number, text: string, maxWidth: number): string[] {
   const lines: string[] = [];
@@ -97,7 +109,22 @@ export function drawCover(
   ctx.restore();
 }
 
+/** A capa sem texto: a imagem (a capa pronta, feita fora do app) ocupa a frente toda. */
+function drawImageOnly(ctx: CanvasRenderingContext2D, design: CoverDesign, image: HTMLImageElement | null, W: number, H: number): void {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = design.backgroundColor;
+  ctx.fillRect(0, 0, W, H);
+  if (image) {
+    cover(ctx, image, { x: 0, y: 0, w: W, h: H });
+    shade(ctx, design.shade, { x: 0, y: 0, w: W, h: H });
+  }
+}
+
 function drawFront(ctx: CanvasRenderingContext2D, design: CoverDesign, image: HTMLImageElement | null, W: number, H: number): void {
+  if (design.frontText === false) {
+    drawImageOnly(ctx, design, image, W, H);
+    return;
+  }
   // Medidas fixas pensadas para 1600 de largura, proporcionais ao tamanho de verdade
   const s = W / COVER_WIDTH;
   const family = fontFamily(design.font);

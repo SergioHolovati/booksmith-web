@@ -24,13 +24,40 @@
       </p>
     }
     <div class="stage">
-      <canvas #canvas [width]="width" [height]="height" role="img"
+      <canvas #canvas [width]="width" height="2560" role="img"
         [attr.aria-label]="'Capa: ' + design().title"></canvas>
       @if (!fontsReady()) {
         <p-progress-spinner strokeWidth="4" styleClass="spinner" />
       }
     </div>
 
+    <div class="group" data-group="front-text">
+      <span class="group-label" id="g-front-text">Título na capa</span>
+      <div class="chips" role="radiogroup" aria-labelledby="g-front-text">
+        <button type="button" class="chip" role="radio" [class.on]="frontText()" [attr.aria-checked]="frontText()"
+          (click)="setFrontText(true)" data-front-text="on">Escrever título e autor</button>
+        <button type="button" class="chip" role="radio" [class.on]="!frontText()" [attr.aria-checked]="!frontText()"
+          (click)="setFrontText(false)" data-front-text="off">Sem título (a imagem já tem)</button>
+      </div>
+      <div class="ready-cover">
+        <label class="p-button p-button-secondary p-button-outlined ready-upload" [class.p-disabled]="uploading()">
+          <input type="file" accept="image/png,image/jpeg,image/webp" hidden (change)="uploadCover($event)"
+            [disabled]="uploading()" data-cover-upload />
+          <i class="pi" [class.pi-upload]="!uploading()" [class.pi-spin]="uploading()" [class.pi-spinner]="uploading()"
+            aria-hidden="true"></i>
+          Enviar a capa pronta (imagem)
+        </label>
+        <a class="print-link" [routerLink]="['/books', bookId(), 'capa', 'grafica']">
+          <i class="pi pi-file-pdf" aria-hidden="true"></i> ou em PDF
+        </a>
+      </div>
+      @if (!frontText()) {
+        <small class="muted" data-front-text-hint>A frente fica só com a imagem, sem texto por cima. O título e o autor
+          continuam valendo na lombada e nos dados do livro.</small>
+      }
+    </div>
+
+    @if (frontText()) {
     <div class="group" data-group="template">
       <span class="group-label" id="g-template">Modelo</span>
       <div class="chips" role="radiogroup" aria-labelledby="g-template">
@@ -40,6 +67,8 @@
         }
       </div>
     </div>
+
+    }
 
     <div class="field">
       <label for="cover-title">Título</label>
@@ -107,6 +136,7 @@
       }
     </div>
 
+    @if (frontText()) {
     <div class="group" data-group="font">
       <span class="group-label" id="g-font">Letra</span>
       <div class="chips" role="radiogroup" aria-labelledby="g-font">
@@ -147,6 +177,8 @@
           }
         </div>
       </div>
+    }
+
     }
 
     <section class="glass-card print-card" aria-labelledby="print-title">

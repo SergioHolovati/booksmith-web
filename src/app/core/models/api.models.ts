@@ -237,6 +237,8 @@ export interface CoverDesign {
   barcode?: boolean;
   /** Orelha da frente (capa com orelhas): em geral, a sinopse. */
   flapText?: string | null;
+  /** Título, subtítulo e autor escritos na frente (padrão: sim); não, quando a imagem já traz o título. */
+  frontText?: boolean;
 }
 
 export type PrintProfile = 'kdp-white' | 'kdp-cream' | 'kdp-color-premium' | 'custom';

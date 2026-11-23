@@ -1,4 +1,4 @@
-import { wrapText } from './cover-canvas';
+import { COVER_HEIGHT, coverHeight, wrapText } from './cover-canvas';
 import { BACKGROUNDS, initialDesign, isLight, TEXT_COLORS } from './cover-editor';
 
 describe('editor de capa', () => {
@@ -24,5 +24,15 @@ describe('editor de capa', () => {
     expect(design.title).toBe('Café em Vel');
     expect(design.author).toBe('Lia Moreno');
     expect(design.imageId).toBeNull();
+  });
+
+  it('sem título na frente, a capa fica na proporção da imagem (a capa pronta não é cortada)', () => {
+    const design = initialDesign('Café em Vel', 'Lia Moreno');
+    const a5 = { naturalWidth: 1480, naturalHeight: 2100 };
+    expect(coverHeight(design, a5)).toBe(COVER_HEIGHT);
+    expect(coverHeight({ ...design, frontText: false }, a5)).toBe(Math.round(1600 * 2100 / 1480));
+    expect(coverHeight({ ...design, frontText: false }, null)).toBe(COVER_HEIGHT);
+    // imagem deitada não vira capa deitada
+    expect(coverHeight({ ...design, frontText: false }, { naturalWidth: 3000, naturalHeight: 1000 })).toBe(1600);
   });
 });

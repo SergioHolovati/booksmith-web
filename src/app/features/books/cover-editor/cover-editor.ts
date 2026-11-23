@@ -16,7 +16,8 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { BookDetail, CoverDesign, IllustrationResult, UniverseImage } from '../../../core/models/api.models';
 import { IllustrationStudioComponent } from '../../../shared/illustration-studio/illustration-studio';
 import { HasUnsavedChanges } from '../../../core/util/unsaved-changes.guard';
-import { COVER_HEIGHT, COVER_WIDTH, drawCover } from './cover-canvas';
+import { compressForPrint, pageTitle } from '../illustration-pages';
+import { COVER_WIDTH, coverHeight, drawCover } from './cover-canvas';
 
 export const TEMPLATES: { value: CoverDesign['template']; label: string }[] = [
   { value: 'classic', label: 'Clássica' },
@@ -78,7 +79,6 @@ export class CoverEditorComponent implements HasUnsavedChanges {
   readonly backgrounds = BACKGROUNDS;
   readonly textColors = TEXT_COLORS;
   readonly width = COVER_WIDTH;
-  readonly height = COVER_HEIGHT;
 
   readonly book = signal<BookDetail | null>(null);
   readonly loadError = signal<string | null>(null);
@@ -89,6 +89,10 @@ export class CoverEditorComponent implements HasUnsavedChanges {
   readonly design = signal<CoverDesign>(initialDesign('', null));
   private readonly saved = signal<string>('');
   readonly saving = signal(false);
+  /** Enviando a imagem da capa pronta. */
+  readonly uploading = signal(false);
+  /** Título, subtítulo e autor escritos na frente (não, quando a imagem já traz o título). */
+  readonly frontText = computed(() => this.design().frontText !== false);
   readonly fontsReady = signal(false);
   /** Imagem de fundo carregada (null = sem imagem, ou ainda carregando). */
   private readonly background = signal<HTMLImageElement | null>(null);
@@ -108,8 +112,13 @@ export class CoverEditorComponent implements HasUnsavedChanges {
       const image = this.background();
       this.fontsReady();
       const ctx = canvas?.getContext('2d');
-      if (ctx) {
-        drawCover(ctx, design, image);
+      if (canvas && ctx) {
+        // A altura muda com a capa pronta em imagem (mudar a altura apaga o canvas: vem antes de desenhar)
+        const height = coverHeight(design, image);
+        if (canvas.height !== height) {
+          canvas.height = height;
+        }
+        drawCover(ctx, design, image, { x: 0, y: 0, w: COVER_WIDTH, h: height });
       }
     });
     effect(() => {
@@ -183,6 +192,36 @@ export class CoverEditorComponent implements HasUnsavedChanges {
       }
     }
     this.design.update((design) => ({ ...design, imageId: result.imageId }));
+  }
+
+  /**
+   * Sem texto na frente, a imagem é a capa inteira: sem escurecer. Com texto de novo, volta o escurecimento padrão
+   * (para o título aparecer sobre a imagem).
+   */
+  setFrontText(on: boolean): void {
+    this.design.update((design) => ({ ...design, frontText: on, shade: on ? (design.shade || 30) : 0 }));
+  }
+
+  /** A capa pronta numa imagem (com o título): entra na biblioteca do universo e vira a frente, sem texto por cima. */
+  async uploadCover(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    const universeId = this.book()?.universeId;
+    if (!file || !universeId) {
+      return;
+    }
+    this.uploading.set(true);
+    try {
+      const art = await compressForPrint(file);
+      const image = await firstValueFrom(this.universeApi.uploadImage(universeId, art.dataUrl, `Capa: ${pageTitle(file.name)}`, []));
+      this.images.update((list) => [image, ...list]);
+      this.design.update((design) => ({ ...design, imageId: image.id, frontText: false, shade: 0 }));
+    } catch (error) {
+      this.toast.add({ severity: 'error', summary: problemMessage(error, 'Não foi possível enviar a imagem.'), life: 6000 });
+    } finally {
+      this.uploading.set(false);
+    }
   }
 
   set<K extends keyof CoverDesign>(key: K, value: CoverDesign[K]): void {
