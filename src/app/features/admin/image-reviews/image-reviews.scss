@@ -1,0 +1,74 @@
+.narrow {
+  max-width: 720px;
+  padding-bottom: 5rem;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-height: var(--bs-touch);
+  color: var(--bs-ember);
+  font-size: .9rem;
+}
+
+.reviews {
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.review {
+  display: flex;
+  gap: .9rem;
+  align-items: flex-start;
+  padding: .8rem;
+}
+
+.thumb {
+  flex: none;
+  width: 88px;
+  height: 88px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: rgb(255 255 255 / .06);
+}
+
+// Para revisar: desfocada até tocar (ou passar o mouse), para não abrir de cara
+.thumb.blur {
+  filter: blur(14px);
+  clip-path: inset(0 round 6px);
+  transition: filter .2s;
+
+  &:hover,
+  &:active {
+    filter: none;
+  }
+}
+
+.thumb.empty {
+  display: grid;
+  place-items: center;
+  color: var(--bs-text-soft);
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+  min-width: 0;
+
+  span {
+    overflow-wrap: anywhere;
+  }
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin-top: .4rem;
+}

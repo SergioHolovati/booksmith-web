@@ -180,6 +180,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/admin/invites/invites').then((c) => c.InvitesComponent),
       },
       {
+        path: 'admin/imagens',
+        loadComponent: () => import('./features/admin/image-reviews/image-reviews').then((c) => c.ImageReviewsComponent),
+      },
+      {
         path: 'meus-dados',
         loadComponent: () => import('./features/account-export/account-export').then((c) => c.AccountExportComponent),
       },
