@@ -35,8 +35,10 @@ www.{$SITE_ADDRESS} {
 		max_size 105MB
 	}
 
-	# As rotas da equipe não existem pelo endereço do app: só pelo backoffice (a API confere de novo, ADMIN_HOST)
-	handle /api/v1/admin/* {
+	# As rotas da equipe (e o login dela) não existem pelo endereço do app: só pelo backoffice (a API confere de
+	# novo, ADMIN_HOST)
+	@staff path /api/v1/admin/* /api/v1/staff/*
+	handle @staff {
 		respond 404
 	}
 
@@ -92,7 +94,8 @@ www.{$SITE_ADDRESS} {
 }
 
 # Backoffice da equipe (outro domínio, sessão própria: o cookie da sessão é deste endereço, não do app).
-# Só passam para a API o login, o perfil e as rotas da equipe; o resto da API não existe aqui.
+# Só passam para a API o login da equipe (contas próprias, separadas das dos clientes) e as rotas da equipe; o resto
+# da API (inclusive o login dos clientes) não existe aqui.
 # Na Cloudflare, este endereço fica atrás do Cloudflare Access (login por e-mail antes de a página abrir).
 {$ADMIN_ADDRESS} {
 	encode zstd gzip
@@ -110,7 +113,7 @@ www.{$SITE_ADDRESS} {
 		max_size 1MB
 	}
 
-	@api path /api/v1/auth/* /api/v1/profile /api/v1/admin/*
+	@api path /api/v1/staff/* /api/v1/admin/*
 	handle @api {
 		reverse_proxy api:8080 {
 			header_up X-Forwarded-For {client_ip}

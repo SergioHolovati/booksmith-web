@@ -134,9 +134,6 @@
       <app-google-account [user]="profile.user" [outcome]="google()" (changed)="load()" />
       <app-drive-backup [outcome]="drive()" />
 
-      @if (profile.user.admin) {
-        <a [href]="adminUrl" target="_blank" rel="noopener" class="trash-link" data-backoffice-link><i class="pi pi-briefcase"></i> Backoffice (abre em outro endereço)</a>
-      }
       <a routerLink="/sessions" class="trash-link"><i class="pi pi-mobile"></i> Aparelhos conectados</a>
       <a routerLink="/trash" class="trash-link"><i class="pi pi-trash"></i> Lixeira (itens excluídos nos últimos 30 dias)</a>
       <a routerLink="/meus-dados" class="trash-link"><i class="pi pi-download"></i> Baixar tudo (cópia dos seus livros e dados)</a>

@@ -19,7 +19,6 @@ import { GoogleAccountComponent } from './google-account/google-account';
 import { MfaSettingsComponent } from './mfa-settings/mfa-settings';
 import { DriveBackupComponent } from './drive-backup/drive-backup';
 import { compressImage } from '../../core/util/image';
-import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-profile',
@@ -45,8 +44,6 @@ export class ProfileComponent {
   private readonly auth = inject(AuthService);
   private readonly toast = inject(MessageService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
-  /** Link do backoffice, só para administradores. */
-  readonly adminUrl = environment.adminUrl;
 
   /** ?google= da volta do Google (ligar a conta) */
   readonly google = input<string>();
