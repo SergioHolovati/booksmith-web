@@ -466,7 +466,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
       { p: 'Na ficha de um personagem ou lugar, use o cartão **Imagens** para enviar fotos (várias de uma vez). Elas são reduzidas no aparelho antes de subir, para economizar dados.' },
       { p: 'Toque numa imagem para dar legenda, dizer quem aparece nela ou **usar como retrato**. Todas as imagens do universo ficam em Universos → **Imagens**.' },
       { p: 'Formatos: PNG, JPEG e WebP. Envie só imagens que você tem direito de usar.' },
-      { p: '**Toda imagem enviada é conferida** (no próprio servidor do Booksmith: ela não vai para nenhuma outra empresa). Nudez e conteúdo sexual não são aceitos. Se a conferência ficar em dúvida, a imagem entra e a equipe olha depois; se for claramente imprópria, ela é recusada. Achou que foi engano? Fale com o suporte.' },
+      { p: '**Toda imagem enviada é conferida** (no próprio servidor do Booksmith: ela não vai para nenhuma outra empresa). Nudez e conteúdo sexual não são aceitos. Se a conferência ficar em dúvida, a imagem entra e a equipe olha depois; se for claramente imprópria, ela é recusada. Cenas de violência muito explícita e símbolos de ódio também passam pelos olhos da equipe (guerra e história continuam bem-vindas nos livros). Achou que foi engano? Fale com o suporte.' },
     ],
   },
   {

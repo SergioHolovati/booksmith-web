@@ -3,6 +3,16 @@
 # Tudo no mesmo domínio: sem CORS, e o cookie HttpOnly da sessão fica em /api/v1/auth.
 # (O Let's Encrypt não exige e-mail de contato; o Caddy renova o certificado sozinho.)
 
+# Atrás da Cloudflare (quando o domínio passar por ela, para a detecção de CSAM): o IP do visitante vem no
+# CF-Connecting-IP, aceito SÓ de conexões que chegam pelos endereços da Cloudflare (lista oficial em
+# https://www.cloudflare.com/ips/, 23/11/2026). Sem Cloudflare, nada muda: o IP é o da conexão.
+{
+	servers {
+		trusted_proxies static 173.245.48.0/20 103.21.244.0/22 103.22.200.0/22 103.31.4.0/22 141.101.64.0/18 108.162.192.0/18 190.93.240.0/20 188.114.96.0/20 197.234.240.0/22 198.41.128.0/17 162.158.0.0/15 104.16.0.0/13 104.24.0.0/14 172.64.0.0/13 131.0.72.0/22 2400:cb00::/32 2606:4700::/32 2803:f800::/32 2405:b500::/32 2405:8100::/32 2a06:98c0::/29 2c0f:f248::/32
+		client_ip_headers CF-Connecting-IP
+	}
+}
+
 # www -> sem www (um endereço só, também para o Google e para o cookie da sessão)
 www.{$SITE_ADDRESS} {
 	redir https://{$SITE_ADDRESS}{uri} permanent
@@ -27,7 +37,10 @@ www.{$SITE_ADDRESS} {
 
 	@api path /api/* /oauth2/* /login/oauth2/* /actuator/health
 	handle @api {
-		reverse_proxy api:8080
+		# A API recebe só o IP do visitante (o real, mesmo atrás da Cloudflare): limite por IP e bloqueio de login
+		reverse_proxy api:8080 {
+			header_up X-Forwarded-For {client_ip}
+		}
 	}
 
 	# /fonts/: endereço das fontes numa versão antiga do app (14/11); celulares que guardaram essa versão continuam

@@ -23,7 +23,7 @@
             <span class="thumb empty"><i class="pi pi-ban" aria-hidden="true"></i></span>
           }
           <div class="info">
-            <strong>{{ statusLabel[review.status] }}</strong>
+            <strong>{{ statusLabel[review.status] }}@if (review.reason) { · {{ review.reason }} }</strong>
             <span class="small">{{ categoryLabel[review.category] }} · nota {{ review.score * 100 | number: '1.0-0' }}%</span>
             <span class="small muted">{{ review.ownerEmail ?? review.ownerId }}</span>
             <span class="small muted">{{ review.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>

@@ -14,6 +14,8 @@ export interface ImageReview {
   /** Probabilidade de ser imprópria, de 0 a 1. */
   score: number;
   status: 'pending' | 'blocked' | 'kept' | 'removed';
+  /** O que a moderação viu: nudez, violência, ódio ou ilegível. */
+  reason: string | null;
   createdAt: string;
   decidedAt: string | null;
 }
