@@ -64,10 +64,10 @@
         @if (status(); as s) {
           <p class="muted small footer">
             @if (s.remaining > 0) {
-              Cada pergunta usa 1 dos seus usos de IA: restam {{ s.remaining }} de {{ s.dailyLimit }} nas últimas 24
-              horas.
+              Cada pergunta usa 1 dos seus usos de IA: restam {{ s.remaining }} de {{ s.dailyLimit }}
+              {{ s.windowHours | aiWindow: 'nas' }}.
             } @else {
-              Você já usou os {{ s.dailyLimit }} usos de IA das últimas 24 horas (revisões, ideias e perguntas).
+              Você já usou os {{ s.dailyLimit }} usos de IA {{ s.windowHours | aiWindow: 'das' }} (revisões, ideias e perguntas).
             }
             A IA confere o livro, mas pode errar: os trechos mostram de onde ela tirou cada coisa. O texto vai para a
             Anthropic (Claude), que não o usa para treinar modelos.

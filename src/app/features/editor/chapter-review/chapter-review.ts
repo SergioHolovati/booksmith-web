@@ -17,6 +17,7 @@ import { chunks } from '../proofread/proofreader';
 import { applyFix } from './apply-fix';
 import { proofreadItems } from './proofread-items';
 import { findQuote } from './find-quote';
+import { AiWindowPipe } from '../../../shared/assist/ai-window.pipe';
 
 /**
  * As revisões, na ordem em que rodam: a formatação primeiro (regras, sem IA, instantânea), depois ortografia e
@@ -88,7 +89,7 @@ function stopsEverything(error: unknown): boolean {
  */
 @Component({
   selector: 'app-chapter-review',
-  imports: [NgTemplateOutlet, ButtonModule, DrawerModule, ProgressBarModule],
+  imports: [AiWindowPipe, NgTemplateOutlet, ButtonModule, DrawerModule, ProgressBarModule],
   templateUrl: './chapter-review.html',
   styleUrl: './chapter-review.scss',
 })

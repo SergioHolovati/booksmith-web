@@ -7,6 +7,7 @@ import { firstValueFrom } from 'rxjs';
 import { AssistApi } from '../../../core/api/assist.api';
 import { problemMessage } from '../../../core/api/problem';
 import { AskResult } from '../../../core/models/api.models';
+import { AiWindowPipe } from '../../../shared/assist/ai-window.pipe';
 
 /** Exemplos para quem não sabe o que perguntar; tocar preenche a caixa. */
 export const ASK_EXAMPLES = [
@@ -31,7 +32,7 @@ export interface AskEntry {
  */
 @Component({
   selector: 'app-ask-book',
-  imports: [FormsModule, RouterLink, ButtonModule],
+  imports: [AiWindowPipe, FormsModule, RouterLink, ButtonModule],
   templateUrl: './ask-book.html',
   styleUrl: './ask-book.scss',
 })

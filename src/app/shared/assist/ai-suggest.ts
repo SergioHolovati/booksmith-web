@@ -11,6 +11,7 @@ import { problemMessage } from '../../core/api/problem';
 import { ContextLine, Suggestion, SuggestionKind, SuggestionMode } from '../../core/models/api.models';
 import { copyText } from '../../core/util/copy-text';
 import { ideaText } from './ideas';
+import { AiWindowPipe } from './ai-window.pipe';
 
 /**
  * "Ideias da IA" para um campo: a IA sugere possibilidades ou faz perguntas, e o autor decide. Nada entra no
@@ -19,7 +20,7 @@ import { ideaText } from './ideas';
  */
 @Component({
   selector: 'app-ai-suggest',
-  imports: [FormsModule, ButtonModule, InputTextModule, ProgressSpinnerModule],
+  imports: [AiWindowPipe, FormsModule, ButtonModule, InputTextModule, ProgressSpinnerModule],
   templateUrl: './ai-suggest.html',
   styleUrl: './ai-suggest.scss',
 })

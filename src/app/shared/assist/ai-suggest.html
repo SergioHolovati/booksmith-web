@@ -61,10 +61,10 @@
       @if (status(); as s) {
         <p class="muted small ai-footer">
           @if (s.remaining > 0) {
-            Cada pedido usa 1 dos seus usos de IA: restam {{ s.remaining }} de {{ s.dailyLimit }} nas últimas 24
-            horas.
+            Cada pedido usa 1 dos seus usos de IA: restam {{ s.remaining }} de {{ s.dailyLimit }}
+            {{ s.windowHours | aiWindow: 'nas' }}.
           } @else {
-            Você já usou os {{ s.dailyLimit }} usos de IA das últimas 24 horas (revisões, ideias e perguntas).
+            Você já usou os {{ s.dailyLimit }} usos de IA {{ s.windowHours | aiWindow: 'das' }} (revisões, ideias e perguntas).
           }
           O trecho usado no pedido vai para a Anthropic (Claude), que não o usa para treinar modelos.
         </p>

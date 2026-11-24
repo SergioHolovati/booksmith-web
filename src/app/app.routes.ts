@@ -180,6 +180,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/account-export/account-export').then((c) => c.AccountExportComponent),
       },
       {
+        path: 'plano',
+        loadComponent: () => import('./features/plan/my-plan').then((c) => c.MyPlanComponent),
+      },
+      {
         path: 'ajuda',
         loadComponent: () => import('./features/help/help-center').then((c) => c.HelpCenterComponent),
       },

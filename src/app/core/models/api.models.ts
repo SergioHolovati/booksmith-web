@@ -1328,8 +1328,11 @@ export interface AssistStatus {
   provider: string;
   model: string;
   local: boolean;
+  /** Usos na janela do plano. */
   dailyLimit: number;
   remaining: number;
+  /** A janela: 24 horas nos planos pagos, 168 (7 dias) no Grátis. */
+  windowHours: number;
 }
 
 /** Uma linha do que está na tela, mandada como contexto ("Personalidade: curiosa"). */

@@ -28,9 +28,9 @@
     } @else {
       <p class="usage small" [class.out]="remaining() === 0">
         @if (remaining() > 0) {
-          Usa 1 dos seus usos de IA: restam {{ remaining() }} de {{ status()?.dailyLimit }} nas últimas 24 horas.
+          Usa 1 dos seus usos de IA: restam {{ remaining() }} de {{ status()?.dailyLimit }} {{ status()?.windowHours | aiWindow: 'nas' }}.
         } @else {
-          Você já usou os {{ status()?.dailyLimit }} usos de IA das últimas 24 horas (revisões, ideias e perguntas).
+          Você já usou os {{ status()?.dailyLimit }} usos de IA {{ status()?.windowHours | aiWindow: 'das' }} (revisões, ideias e perguntas).
           A formatação continua livre.
         }
       </p>

@@ -399,7 +399,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
       },
       { p: 'Escolha **Ideias** (4 possibilidades) ou **Perguntas para mim** (4 perguntas para você pensar). Se quiser, peça algo específico, como "algo ligado ao mar".' },
       { p: '**Usar no campo** acrescenta a ideia no fim do campo, num parágrafo novo, para você reescrever. Nada é salvo sozinho: só quando você toca em **Salvar**. No enredo, a ideia só pode ser copiada; nada entra no texto do livro.' },
-      { p: 'A IA lê o que está na tela e o resumo do seu universo (e, no enredo, a sinopse e o fim do último capítulo). A IA é o Claude, da Anthropic: o trecho usado no pedido é enviado a ela, que não o usa para treinar modelos. Cada pedido usa 1 dos seus 3 usos de IA a cada 24 horas (revisões, ideias e perguntas somam juntos), e o rodapé do painel mostra quantos restam.' },
+      { p: 'A IA lê o que está na tela e o resumo do seu universo (e, no enredo, a sinopse e o fim do último capítulo). A IA é o Claude, da Anthropic: o trecho usado no pedido é enviado a ela, que não o usa para treinar modelos. Cada pedido usa 1 dos seus usos de IA (revisões, ideias e perguntas somam juntos; quantos e em quanto tempo depende do plano, veja em **Perfil › Meu plano**), e o rodapé do painel mostra quantos restam.' },
     ],
   },
   {
@@ -413,7 +413,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
       {
         list: [
           '**Revisar sem IA** (livre): ortografia, formatação (espaço duplo, vírgula grudada) e nomes escritos de outro jeito, como "Sergio" na sinopse e "Sérgio" na história.',
-          '**Comparar com IA** (1 dos seus 3 usos a cada 24 horas): fatos que divergem, como a sinopse dizer 6 meses e a história dizer 5.',
+          '**Comparar com IA** (1 dos seus usos de IA): fatos que divergem, como a sinopse dizer 6 meses e a história dizer 5.',
         ],
       },
       { p: 'Os apontamentos aparecem separados por texto. Para corrigir, marque as caixinhas (ou **Marcar todos**) e toque em **Corrigir marcados**, ou use **Corrigir** em um só. Nomes e formatação já vêm marcados. Um nome trocado vale para o texto inteiro: "Sergio" vira "Sérgio" em toda a sinopse. Se você já tinha mudado aquele ponto, a correção é pulada.' },
@@ -430,7 +430,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
       { p: 'Na página do livro, abra **Pergunte ao seu livro** e escreva o que quer saber: "Quem já sabe do segredo?", "Quantos anos o Ben tem?", "Onde a Lia estava no capítulo 3?".' },
       { p: 'A IA lê o texto e as fichas do universo e responde em poucas frases. Embaixo vêm os **trechos de origem**: toque num deles para abrir o editor naquele parágrafo.' },
       { p: 'Se o livro não responde, ela diz que não encontrou, em vez de inventar. Se o texto e as fichas discordam (a ficha diz 5 meses e a sinopse diz 6, por exemplo), ela avisa.' },
-      { p: 'As perguntas ficam só na tela; nada é guardado. Cada pergunta usa 1 dos seus 3 usos de IA a cada 24 horas. O texto vai para a Anthropic (Claude), que não o usa para treinar modelos.' },
+      { p: 'As perguntas ficam só na tela; nada é guardado. Cada pergunta usa 1 dos seus usos de IA. O texto vai para a Anthropic (Claude), que não o usa para treinar modelos.' },
     ],
   },
   {
@@ -440,7 +440,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     topic: 'texto',
     keywords: ['revisão', 'revisar', 'ortografia', 'gramática', 'erro', 'furo', 'roteiro', 'continuidade', 'enredo', 'melhorar', 'ia', 'formatação', 'travessão', 'aspas', 'frase', 'estilo'],
     body: [
-      { p: 'No editor, toque em **Revisão do capítulo** (o quadradinho com o visto, no alto). São duas ações separadas: **Revisar sem IA** (formatação e ortografia pelo corretor do Booksmith, sem limite) e, como bônus, **Revisão com IA**, que faz cinco revisões de uma vez e usa 1 dos seus 3 usos de IA a cada 24 horas. Os apontamentos aparecem separados por tipo:' },
+      { p: 'No editor, toque em **Revisão do capítulo** (o quadradinho com o visto, no alto). São duas ações separadas: **Revisar sem IA** (formatação e ortografia pelo corretor do Booksmith, sem limite) e, como bônus, **Revisão com IA**, que faz cinco revisões de uma vez e usa 1 dos seus usos de IA. Os apontamentos aparecem separados por tipo:' },
       {
         list: [
           '**Formatação** (sem IA, livre): falas com aspas onde o livro usa travessão, fala começando com minúscula, "dona Lurdes" num lugar e "Dona Lurdes" em outro, "perguntou Ana" repetido.',
@@ -453,7 +453,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
         ],
       },
       { p: 'Toque no trecho destacado para ir até ele no texto. Quando há **Corrigir** (formatação, ortografia, frases), ele troca só aquele trecho, e dá para desfazer. Para corrigir vários de uma vez, marque as caixinhas (ou **Marcar todos**) e toque em **Corrigir marcados**. Na formatação, tudo já vem marcado: um capítulo inteiro com aspas vira travessão em um toque. Nos outros, a IA só aponta; quem muda o texto é você. **Dispensar** tira o apontamento da lista.' },
-      { p: 'Os apontamentos aparecem conforme cada revisão termina, e você vê o andamento. **Parar** interrompe o resto. A revisão com IA completa conta como 1 uso, por maior que seja o capítulo. Quando os 3 usos acabam, só as ações de IA ficam bloqueadas; a formatação continua. O que estiver por salvar é salvo antes. A IA erra às vezes, principalmente em continuidade e furos: confira antes de mudar.' },
+      { p: 'Os apontamentos aparecem conforme cada revisão termina, e você vê o andamento. **Parar** interrompe o resto. A revisão com IA completa conta como 1 uso, por maior que seja o capítulo. Quando os usos do seu plano acabam, só as ações de IA ficam bloqueadas; a formatação continua. O que estiver por salvar é salvo antes. A IA erra às vezes, principalmente em continuidade e furos: confira antes de mudar.' },
     ],
   },
   {
@@ -599,6 +599,19 @@ export const HELP_ARTICLES: HelpArticle[] = [
       { p: 'Seus livros são privados. A equipe do Booksmith **não lê o seu texto**: ao falar com o suporte, vai junto só um resumo técnico (a tela onde você estava, o aparelho, os últimos erros), nunca o conteúdo.' },
       { p: 'Se algum dia for preciso ver um capítulo para resolver um problema, a equipe pede autorização a você, por tempo limitado e só para aquele trecho.' },
       { p: 'Pedidos sobre seus dados pessoais (LGPD): fale com o suporte escolhendo o assunto **Privacidade e dados**.' },
+    ],
+  },
+  {
+    slug: 'planos',
+    title: 'Planos: Grátis, Escritor e Autor',
+    summary: 'O que cada plano libera, onde ver o seu e o que acontece se o plano mudar.',
+    topic: 'conta',
+    keywords: ['plano', 'planos', 'assinatura', 'preço', 'grátis', 'escritor', 'autor', 'fundador', 'limite', 'pagar'],
+    body: [
+      { p: 'Veja o seu plano e a comparação dos três em **Perfil › Meu plano**.' },
+      { p: '**Grátis:** 1 livro, 15 personagens por universo, 3 usos de IA por semana, PDF de leitura e Word. **Escritor:** livros e personagens sem limite, 3 usos de IA por dia, ilustrações com IA e ePub. **Autor:** tudo do Escritor, 10 usos de IA por dia, mais ilustrações e o PDF e a capa para gráfica.' },
+      { p: 'Se você chegar a um limite, o app avisa qual é o plano e o que libera mais. **Nada do que você já escreveu some** se o plano mudar: o que passa do limite continua lá para ler, editar e exportar.' },
+      { p: 'Durante o beta, todos os testadores usam o plano Autor.' },
     ],
   },
   {

@@ -31,7 +31,7 @@
           </div>
           <p class="muted small">
             Fatos que divergem: idade, parentesco, aparência, datas, o que acontece. Usa 1 dos seus usos de IA:
-            restam {{ remaining() }} de {{ status()?.dailyLimit }} nas últimas 24 horas.
+            restam {{ remaining() }} de {{ status()?.dailyLimit }} {{ status()?.windowHours | aiWindow: 'nas' }}.
           </p>
           <p-button label="Comparar com IA" icon="pi pi-sparkles" size="small" [loading]="loading() === 'ai'"
             [disabled]="!!loading() || remaining() === 0" (onClick)="compareAi()" />

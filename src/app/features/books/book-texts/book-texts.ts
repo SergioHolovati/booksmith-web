@@ -6,6 +6,7 @@ import { firstValueFrom } from 'rxjs';
 import { AssistApi } from '../../../core/api/assist.api';
 import { problemMessage } from '../../../core/api/problem';
 import { BookTextItem } from '../../../core/models/api.models';
+import { AiWindowPipe } from '../../../shared/assist/ai-window.pipe';
 
 /** O nome de cada tipo de apontamento na tela. */
 export const KIND_LABELS: Partial<Record<string, string>> = {
@@ -31,7 +32,7 @@ export interface TextGroup {
  */
 @Component({
   selector: 'app-book-texts',
-  imports: [RouterLink, ButtonModule],
+  imports: [AiWindowPipe, RouterLink, ButtonModule],
   templateUrl: './book-texts.html',
   styleUrl: './book-texts.scss',
 })
