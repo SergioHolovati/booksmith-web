@@ -1230,10 +1230,25 @@ export interface SupportRequest {
   category: SupportCategory;
   message: string;
   priority: 'high' | 'normal';
-  status: 'open' | 'answered' | 'closed';
+  /** open: esperando a equipe; waiting_user: a equipe respondeu; resolved: resolvido. */
+  status: 'open' | 'waiting_user' | 'resolved';
   /** Para onde vai a resposta. */
   email: string;
   createdAt: string;
+  lastActivityAt: string;
+}
+
+/** Uma mensagem da conversa do pedido: da pessoa (user) ou da equipe (staff). */
+export interface SupportMessage {
+  id: string;
+  author: 'user' | 'staff';
+  body: string;
+  createdAt: string;
+}
+
+export interface SupportConversation {
+  request: SupportRequest;
+  messages: SupportMessage[];
 }
 
 // ===== Meta diária =====

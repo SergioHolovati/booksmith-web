@@ -35,6 +35,11 @@ www.{$SITE_ADDRESS} {
 		max_size 105MB
 	}
 
+	# As rotas da equipe não existem pelo endereço do app: só pelo backoffice (a API confere de novo, ADMIN_HOST)
+	handle /api/v1/admin/* {
+		respond 404
+	}
+
 	@api path /api/* /oauth2/* /login/oauth2/* /actuator/health
 	handle @api {
 		# A API recebe só o IP do visitante (o real, mesmo atrás da Cloudflare): limite por IP e bloqueio de login
@@ -81,6 +86,68 @@ www.{$SITE_ADDRESS} {
 		header @hashed Cache-Control "public, max-age=31536000, immutable"
 		@fresh path /index.html /ngsw-worker.js /ngsw.json /manifest.webmanifest
 		header @fresh Cache-Control "no-cache"
+		try_files {path} /index.html
+		file_server
+	}
+}
+
+# Backoffice da equipe (outro domínio, sessão própria: o cookie da sessão é deste endereço, não do app).
+# Só passam para a API o login, o perfil e as rotas da equipe; o resto da API não existe aqui.
+# Na Cloudflare, este endereço fica atrás do Cloudflare Access (login por e-mail antes de a página abrir).
+{$ADMIN_ADDRESS} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "same-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+		X-Robots-Tag "noindex, nofollow"
+		-Server
+	}
+
+	request_body {
+		max_size 1MB
+	}
+
+	@api path /api/v1/auth/* /api/v1/profile /api/v1/admin/*
+	handle @api {
+		reverse_proxy api:8080 {
+			header_up X-Forwarded-For {client_ip}
+		}
+	}
+
+	handle /api/* {
+		respond 404
+	}
+
+	# /media/: as fontes dos ícones do próprio backoffice e as miniaturas da moderação (bucket do MinIO)
+	handle /media/* {
+		header Cache-Control "public, max-age=31536000, immutable"
+		route {
+			@adminfile file {
+				root /srv-admin
+			}
+			file_server @adminfile {
+				root /srv-admin
+			}
+			uri strip_prefix /media
+			rewrite * /{$MEDIA_BUCKET}{uri}
+			reverse_proxy minio:9000 {
+				header_up Host minio:9000
+			}
+		}
+	}
+
+	handle {
+		root * /srv-admin
+		header Content-Security-Policy "frame-ancestors 'none'"
+		@hashed {
+			path *.js *.css *.woff2 *.woff *.png *.svg *.ico
+			not path /index.html
+		}
+		header @hashed Cache-Control "public, max-age=31536000, immutable"
+		header /index.html Cache-Control "no-cache"
 		try_files {path} /index.html
 		file_server
 	}

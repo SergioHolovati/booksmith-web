@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { SupportCategory, SupportContext, SupportRequest } from '../models/api.models';
+import { SupportCategory, SupportContext, SupportConversation, SupportRequest } from '../models/api.models';
 
 @Injectable({ providedIn: 'root' })
 export class SupportApi {
@@ -16,5 +16,13 @@ export class SupportApi {
 
   mine(): Observable<SupportRequest[]> {
     return this.http.get<SupportRequest[]>(`${this.base}/me/support/requests`);
+  }
+
+  conversation(id: string): Observable<SupportConversation> {
+    return this.http.get<SupportConversation>(`${this.base}/me/support/requests/${id}`);
+  }
+
+  reply(id: string, body: string): Observable<SupportConversation> {
+    return this.http.post<SupportConversation>(`${this.base}/me/support/requests/${id}/messages`, { body });
   }
 }

@@ -601,6 +601,18 @@ export const HELP_ARTICLES: HelpArticle[] = [
       { p: 'Pedidos sobre seus dados pessoais (LGPD): fale com o suporte escolhendo o assunto **Privacidade e dados**.' },
     ],
   },
+  {
+    slug: 'falar-com-o-suporte',
+    title: 'Como o suporte responde',
+    summary: 'A resposta aparece em Meus pedidos e chega no seu e-mail. Dá para responder de volta.',
+    topic: 'conta',
+    keywords: ['suporte', 'pedido', 'protocolo', 'resposta', 'ajuda', 'ticket', 'atendimento'],
+    body: [
+      { p: 'Em **Ajuda › Falar com o suporte**, escolha o assunto e conte o que aconteceu. O pedido ganha um protocolo (como BS-3F9A2C71). "Meu texto sumiu" e "Privacidade e dados" passam na frente.' },
+      { p: 'Quando a equipe responder, você recebe um e-mail e a resposta aparece em **Ajuda › Meus pedidos**: toque no pedido para ver a conversa. Para responder, escreva embaixo e toque em Enviar; o pedido volta para a equipe.' },
+      { p: 'Se o pedido foi marcado como resolvido e o problema voltou, responda no mesmo pedido: ele é reaberto.' },
+    ],
+  },
 ];
 
 /** Busca sem acento e sem diferença de maiúsculas, no título, resumo, palavras-chave e texto. */

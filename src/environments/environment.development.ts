@@ -4,4 +4,6 @@ export const environment = {
   apiBaseUrl: '/api/v1',
   /** O login com Google precisa ir direto à API, cujo endereço está cadastrado no Google. */
   authBaseUrl: 'http://localhost:8090',
+  /** O backoffice da equipe (outro endereço, sessão própria). */
+  adminUrl: 'http://localhost:4300',
 };

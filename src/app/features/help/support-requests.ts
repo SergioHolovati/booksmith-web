@@ -10,13 +10,16 @@ import { SupportApi } from '../../core/api/support.api';
 import { SupportRequest } from '../../core/models/api.models';
 import { SUPPORT_CATEGORIES } from './support-form';
 
-const STATUS: Record<SupportRequest['status'], string> = {
-  open: 'Aguardando resposta',
-  answered: 'Respondido',
-  closed: 'Encerrado',
+export const SUPPORT_STATUS: Record<SupportRequest['status'], string> = {
+  open: 'Aguardando a equipe',
+  waiting_user: 'Respondido',
+  resolved: 'Resolvido',
 };
 
-/** "Meus pedidos" (`/ajuda/pedidos`): o que a pessoa já mandou ao suporte, com protocolo e situação. */
+/**
+ * "Meus pedidos" (`/ajuda/pedidos`): o que a pessoa já mandou ao suporte, com protocolo e situação. Tocar abre a
+ * conversa com a equipe.
+ */
 @Component({
   selector: 'app-support-requests',
   imports: [DatePipe, RouterLink, ButtonModule, ProgressSpinnerModule],
@@ -26,7 +29,7 @@ const STATUS: Record<SupportRequest['status'], string> = {
       <div class="page-header">
         <div>
           <h1 class="page-title">Meus pedidos</h1>
-          <p class="page-subtitle">As respostas chegam no e-mail da sua conta.</p>
+          <p class="page-subtitle">As respostas aparecem aqui e chegam no e-mail da sua conta.</p>
         </div>
       </div>
       @if (loading()) {
@@ -40,13 +43,18 @@ const STATUS: Record<SupportRequest['status'], string> = {
       } @else {
         <ul class="requests">
           @for (request of requests(); track request.id) {
-            <li class="glass-card request">
-              <div class="request-head">
-                <strong class="protocol">{{ request.protocol }}</strong>
-                <span class="status-chip" [class.open]="request.status === 'open'">{{ status[request.status] }}</span>
-              </div>
-              <small class="muted">{{ category(request) }} · {{ request.createdAt | date: "d 'de' MMM, HH:mm" }}</small>
-              <p class="message">{{ request.message }}</p>
+            <li>
+              <a class="glass-card request" [routerLink]="['/ajuda/pedidos', request.id]" [attr.data-request]="request.protocol">
+                <span class="request-head">
+                  <strong class="protocol">{{ request.protocol }}</strong>
+                  <span class="status-chip" [class.answered]="request.status === 'waiting_user'">
+                    @if (request.status === 'waiting_user') { <i class="pi pi-comment" aria-hidden="true"></i> }
+                    {{ status[request.status] }}
+                  </span>
+                </span>
+                <small class="muted">{{ category(request) }} · {{ request.createdAt | date: "d 'de' MMM, HH:mm" }}</small>
+                <span class="message">{{ request.message }}</span>
+              </a>
             </li>
           } @empty {
             <li class="glass-card empty-state">
@@ -61,10 +69,10 @@ const STATUS: Record<SupportRequest['status'], string> = {
   `,
   styles: `
     .requests { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .75rem; }
-    .request { padding: .85rem 1rem; display: flex; flex-direction: column; gap: .35rem; }
+    .request { padding: .85rem 1rem; display: flex; flex-direction: column; gap: .35rem; color: var(--bs-text); text-decoration: none; }
     .request-head { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
     .protocol { font-family: ui-monospace, monospace; letter-spacing: .05em; }
-    .status-chip.open { color: var(--bs-accent-light); }
+    .status-chip.answered { color: var(--bs-accent-light); font-weight: 600; }
     .message { margin: .25rem 0 0; white-space: pre-line; color: var(--bs-text-soft);
       display: -webkit-box; -webkit-line-clamp: 4; line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
     .center { display: flex; justify-content: center; }
@@ -76,7 +84,7 @@ export class SupportRequestsComponent {
   readonly requests = signal<SupportRequest[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
-  readonly status = STATUS;
+  readonly status = SUPPORT_STATUS;
 
   constructor() {
     void this.load();
