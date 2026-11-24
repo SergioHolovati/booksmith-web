@@ -1,6 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -34,12 +33,12 @@ export function inviteState(invite: InviteView, now = new Date()): string {
 }
 
 /**
- * Convites do beta (`/convites`, só administradores): criar códigos (um ou vários, com uma anotação de para quem é),
+ * Convites do beta (`/backoffice/convites`, só administradores): criar códigos (um ou vários, com uma anotação de para quem é),
  * copiar a mensagem com o link e cancelar.
  */
 @Component({
   selector: 'app-invites',
-  imports: [FormsModule, RouterLink, ButtonModule, InputTextModule, MessageModule],
+  imports: [FormsModule, ButtonModule, InputTextModule, MessageModule],
   templateUrl: './invites.html',
   styleUrl: './invites.scss',
 })

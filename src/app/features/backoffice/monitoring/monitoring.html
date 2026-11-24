@@ -1,0 +1,158 @@
+<div class="toolbar">
+  <div class="periods" role="group" aria-label="Período">
+    @for (period of periods; track period) {
+      <button type="button" class="chip" [class.on]="hours() === period" [attr.aria-pressed]="hours() === period"
+        (click)="setHours(period)" [attr.data-period]="period">
+        {{ period === 1 ? 'Última hora' : 'Últimas ' + period + 'h' }}
+      </button>
+    }
+  </div>
+  <p-button icon="pi pi-refresh" label="Atualizar" size="small" severity="secondary" [text]="true"
+    [loading]="loading()" (onClick)="load()" data-monitoring-refresh />
+</div>
+
+@if (error(); as text) {
+  <p-message severity="error" [text]="text" styleClass="block-message" />
+}
+
+@if (report(); as report) {
+  <div class="tiles">
+    <div class="tile glass-card" data-tile="requests">
+      <span class="tile-label">Requisições</span>
+      <strong class="tile-value">{{ formatCount(report.totals.requests) }}</strong>
+    </div>
+    <div class="tile glass-card" data-tile="users">
+      <span class="tile-label">Contas ativas</span>
+      <strong class="tile-value">{{ formatCount(report.totals.activeUsers) }}</strong>
+    </div>
+    <div class="tile glass-card" data-tile="average">
+      <span class="tile-label">Tempo médio</span>
+      <strong class="tile-value">{{ formatCount(report.totals.averageMillis) }} ms</strong>
+    </div>
+    <div class="tile glass-card" data-tile="addresses">
+      <span class="tile-label">IPs diferentes</span>
+      <strong class="tile-value">{{ formatCount(report.totals.addresses) }}</strong>
+    </div>
+    <div class="tile glass-card" data-tile="server" [class.alarm]="report.totals.serverErrors > 0">
+      <span class="tile-label">
+        @if (report.totals.serverErrors > 0) { <i class="pi pi-exclamation-triangle" aria-hidden="true"></i> }
+        Erros 500
+      </span>
+      <strong class="tile-value">{{ formatCount(report.totals.serverErrors) }}</strong>
+    </div>
+    <div class="tile glass-card" data-tile="limited">
+      <span class="tile-label">Barradas (limite)</span>
+      <strong class="tile-value">{{ formatCount(report.totals.limited) }}</strong>
+    </div>
+  </div>
+
+  @if (report.series.length > 1) {
+    <section class="glass-card block" aria-labelledby="chart-title">
+      <h2 id="chart-title" class="block-title">Requisições por hora</h2>
+      <div class="chart" role="group" aria-label="Requisições por hora">
+        @for (point of report.series; track point.hour; let i = $index) {
+          <button type="button" class="bar-slot" [class.on]="selected() === i" (click)="select(i)"
+            [attr.aria-label]="hourLabel(point.hour) + ': ' + formatCount(point.requests) + ' requisições'">
+            <span class="bar" [class.bad]="point.serverErrors > 0" [style.height.%]="heights()[i]"></span>
+          </button>
+        }
+      </div>
+      <p class="small caption" aria-live="polite">
+        @if (selectedPoint(); as point) {
+          {{ hourLabel(point.hour) }} · {{ formatCount(point.requests) }} requisições ·
+          {{ formatCount(point.clientErrors) }} erros 4xx · {{ formatCount(point.limited) }} barradas ·
+          {{ formatCount(point.serverErrors) }} erros 500
+        } @else {
+          <span class="muted">Toque numa barra para ver a hora. Barra vermelha: houve erro 500.</span>
+        }
+      </p>
+    </section>
+  }
+
+  <section class="glass-card block" aria-labelledby="signals-title" data-monitoring-signals>
+    <h2 id="signals-title" class="block-title">Sinais de ataque</h2>
+    @if (incidents().length === 0 && suspicious().length === 0 && report.probes.length === 0) {
+      <p class="muted small calm"><i class="pi pi-check-circle" aria-hidden="true"></i> Nada fora do normal no período.</p>
+    }
+    @if (incidents().length > 0) {
+      <ul class="rows">
+        @for (incident of incidents(); track incident.kind) {
+          <li class="row" [attr.data-incident]="incident.kind">
+            <span>{{ incident.label }}</span>
+            <strong class="num">{{ formatCount(incident.count) }}</strong>
+          </li>
+        }
+      </ul>
+    }
+    @if (suspicious().length > 0) {
+      <h3 class="sub-title">IPs com respostas suspeitas</h3>
+      <p class="muted small hint">Sem login (401), sem permissão (403), barrados (429) ou atrás de caminhos que não existem.</p>
+      <ul class="rows">
+        @for (address of suspicious(); track address.ip) {
+          <li class="row" data-suspicious-ip>
+            <span class="mono">{{ address.ip }}</span>
+            <span class="num"><strong>{{ formatCount(address.suspicious) }}</strong>
+              <span class="muted"> de {{ formatCount(address.requests) }}</span></span>
+          </li>
+        }
+      </ul>
+    }
+    @if (report.probes.length > 0) {
+      <h3 class="sub-title">Caminhos inexistentes mais tentados</h3>
+      <ul class="rows">
+        @for (probe of report.probes; track probe.name) {
+          <li class="row" data-probe>
+            <span class="mono">{{ probe.name }}</span>
+            <strong class="num">{{ formatCount(probe.count) }}</strong>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
+  <section class="glass-card block" aria-labelledby="routes-title">
+    <div class="block-head">
+      <h2 id="routes-title" class="block-title">Rotas da API</h2>
+      <div class="periods" role="group" aria-label="Ordem das rotas">
+        <button type="button" class="chip small-chip" [class.on]="routeOrder() === 'requests'"
+          (click)="routeOrder.set('requests')">Mais usadas</button>
+        <button type="button" class="chip small-chip" [class.on]="routeOrder() === 'slowest'"
+          (click)="routeOrder.set('slowest')">Mais lentas</button>
+        <button type="button" class="chip small-chip" [class.on]="routeOrder() === 'errors'"
+          (click)="routeOrder.set('errors')">Mais erros</button>
+      </div>
+    </div>
+    <ul class="rows">
+      @for (route of routes(); track route.route) {
+        <li class="row route" data-route>
+          <span class="mono route-name">{{ route.route }}</span>
+          <span class="route-numbers small">
+            <span><strong>{{ formatCount(route.requests) }}</strong> chamadas</span>
+            <span>{{ formatCount(route.averageMillis) }} ms</span>
+            <span [class.warn]="errorRate(route) >= 20">{{ errorRate(route) }}% erro</span>
+          </span>
+        </li>
+      } @empty {
+        <li class="muted small">Nenhuma requisição no período.</li>
+      }
+    </ul>
+  </section>
+
+  <section class="glass-card block" aria-labelledby="users-title">
+    <h2 id="users-title" class="block-title">Contas mais ativas</h2>
+    <ul class="rows">
+      @for (user of report.users; track $index) {
+        <li class="row" data-active-user>
+          <span class="ellipsis">{{ user.email ?? user.id ?? 'outras contas' }}</span>
+          <strong class="num">{{ formatCount(user.requests) }}</strong>
+        </li>
+      } @empty {
+        <li class="muted small">Ninguém entrou no período.</li>
+      }
+    </ul>
+  </section>
+
+  <p class="muted small footnote">
+    Os números ficam guardados por 48 horas (o IP é dado pessoal). Os alertas por e-mail continuam valendo.
+  </p>
+}

@@ -1,6 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -33,12 +32,12 @@ export function pendingText(count: number): string {
 }
 
 /**
- * Imagens da moderação (`/admin/imagens`, só administradores): as que o classificador deixou entrar em dúvida, para
+ * Imagens da moderação (`/backoffice/moderacao`, só administradores): as que o classificador deixou entrar em dúvida, para
  * manter ou remover, e as que recusou na hora (sem a imagem, que não foi guardada).
  */
 @Component({
   selector: 'app-image-reviews',
-  imports: [RouterLink, DatePipe, DecimalPipe, ButtonModule, ConfirmDialogModule, MessageModule],
+  imports: [DatePipe, DecimalPipe, ButtonModule, ConfirmDialogModule, MessageModule],
   providers: [ConfirmationService],
   templateUrl: './image-reviews.html',
   styleUrl: './image-reviews.scss',

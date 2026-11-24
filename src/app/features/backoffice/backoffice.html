@@ -1,0 +1,21 @@
+<div class="page backoffice">
+  <a routerLink="/profile" class="back-link"><i class="pi pi-arrow-left"></i> Perfil</a>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Backoffice</h1>
+      <p class="page-subtitle">Área da equipe do Booksmith.</p>
+    </div>
+  </div>
+
+  <nav class="sections" aria-label="Seções do backoffice">
+    @for (section of sections; track section.path) {
+      <a [routerLink]="section.path" routerLinkActive="on" ariaCurrentWhenActive="page" class="section"
+        [attr.data-backoffice-section]="section.path">
+        <i [class]="section.icon" aria-hidden="true"></i> {{ section.label }}
+      </a>
+    }
+  </nav>
+
+  <router-outlet />
+</div>

@@ -135,8 +135,7 @@
       <app-drive-backup [outcome]="drive()" />
 
       @if (profile.user.admin) {
-        <a routerLink="/convites" class="trash-link" data-invites-link><i class="pi pi-ticket"></i> Convites do beta</a>
-        <a routerLink="/admin/imagens" class="trash-link" data-image-reviews-link><i class="pi pi-shield"></i> Imagens da moderação</a>
+        <a routerLink="/backoffice" class="trash-link" data-backoffice-link><i class="pi pi-briefcase"></i> Backoffice (monitoramento, moderação e convites)</a>
       }
       <a routerLink="/sessions" class="trash-link"><i class="pi pi-mobile"></i> Aparelhos conectados</a>
       <a routerLink="/trash" class="trash-link"><i class="pi pi-trash"></i> Lixeira (itens excluídos nos últimos 30 dias)</a>

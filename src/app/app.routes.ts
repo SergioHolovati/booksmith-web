@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { authGuard, guestGuard, pendingMfaGuard, pendingProfileGuard, pendingTermsGuard } from './core/auth/auth.guards';
+import { adminGuard } from './core/auth/admin.guard';
 import { unsavedChangesGuard } from './core/util/unsaved-changes.guard';
 
 export const routes: Routes = [
@@ -176,13 +177,29 @@ export const routes: Routes = [
         loadComponent: () => import('./features/books/book-form/book-form').then((c) => c.BookFormComponent),
       },
       {
-        path: 'convites',
-        loadComponent: () => import('./features/admin/invites/invites').then((c) => c.InvitesComponent),
+        path: 'backoffice',
+        canActivate: [adminGuard],
+        loadComponent: () => import('./features/backoffice/backoffice').then((c) => c.BackofficeComponent),
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'monitoramento' },
+          {
+            path: 'monitoramento',
+            loadComponent: () => import('./features/backoffice/monitoring/monitoring').then((c) => c.MonitoringComponent),
+          },
+          {
+            path: 'moderacao',
+            loadComponent: () =>
+              import('./features/admin/image-reviews/image-reviews').then((c) => c.ImageReviewsComponent),
+          },
+          {
+            path: 'convites',
+            loadComponent: () => import('./features/admin/invites/invites').then((c) => c.InvitesComponent),
+          },
+        ],
       },
-      {
-        path: 'admin/imagens',
-        loadComponent: () => import('./features/admin/image-reviews/image-reviews').then((c) => c.ImageReviewsComponent),
-      },
+      // Endereços antigos do admin
+      { path: 'convites', redirectTo: 'backoffice/convites' },
+      { path: 'admin/imagens', redirectTo: 'backoffice/moderacao' },
       {
         path: 'meus-dados',
         loadComponent: () => import('./features/account-export/account-export').then((c) => c.AccountExportComponent),

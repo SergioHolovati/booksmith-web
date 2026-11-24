@@ -1,15 +1,10 @@
 .narrow {
   max-width: 720px;
-  padding-bottom: 5rem;
 }
 
-.back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: .4rem;
-  min-height: var(--bs-touch);
-  color: var(--bs-ember);
-  font-size: .9rem;
+.section-title {
+  margin: 0;
+  font-size: 1.1rem;
 }
 
 .create {
