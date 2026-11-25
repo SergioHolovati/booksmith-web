@@ -9,7 +9,7 @@ import { firstValueFrom } from 'rxjs';
 
 import { ManuscriptApi } from '../../core/api/manuscript.api';
 import { problemMessage } from '../../core/api/problem';
-import { AiUse, Publication, Rating, ShelfApi, Visibility, WorkStatus } from '../../core/api/shelf.api';
+import { AiUse, Publication, Rating, ReaderComment, ShelfApi, Visibility, WorkStatus } from '../../core/api/shelf.api';
 import { BookDetail, ChapterSummary } from '../../core/models/api.models';
 import { AI_USE_LABEL, RATINGS, RATING_LABEL, STATUS_LABEL, WARNINGS, WARNING_LABEL } from './shelf-labels';
 
@@ -168,6 +168,26 @@ export function changedSince(chapter: ChapterSummary, publication: Publication |
             }
           </div>
         </form>
+
+        @if (publication(); as p) {
+          <section class="feedback" aria-labelledby="feedback-title" data-reader-feedback>
+            <h2 id="feedback-title">O que os leitores disseram</h2>
+            @if (comments().length === 0) {
+              <p class="small muted">Nenhum comentário ainda. Compartilhe o link da obra para chegar aos primeiros leitores.</p>
+            }
+            <ul class="feedback-list">
+              @for (m of comments(); track m.id) {
+                <li class="glass-card feedback-item" [attr.data-feedback]="m.id">
+                  <a class="small" [routerLink]="['/estante/obra', p.slug, m.chapterNumber]">Cap. {{ m.chapterNumber }} ·
+                    {{ m.chapterTitle }}</a>
+                  @if (m.quote) { <p class="feedback-quote small">“{{ m.quote }}”</p> }
+                  <p class="feedback-body">{{ m.body }}</p>
+                  <small class="muted">{{ m.authorName ?? 'Leitor' }} · {{ m.createdAt | date: 'dd/MM/yyyy HH:mm' }}</small>
+                </li>
+              }
+            </ul>
+          </section>
+        }
       } @else if (error(); as text) {
         <p class="muted">{{ text }}</p>
       } @else {
@@ -198,6 +218,13 @@ export function changedSince(chapter: ChapterSummary, publication: Publication |
     .rights { padding: 0; }
     .actions { display: flex; flex-wrap: wrap; gap: .5rem; }
     .center { display: flex; justify-content: center; }
+    .feedback { margin-top: 1.5rem; }
+    .feedback h2 { font-size: 1.05rem; margin: 0 0 .6rem; }
+    .feedback-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .6rem; }
+    .feedback-item { display: flex; flex-direction: column; gap: .3rem; padding: .8rem; overflow-wrap: anywhere; }
+    .feedback-quote { margin: 0; padding-left: .6rem; border-left: 3px solid var(--bs-ember); color: var(--bs-text-soft);
+      font-style: italic; }
+    .feedback-body { margin: 0; white-space: pre-line; }
   `,
 })
 export class PublicationComponent {
@@ -212,6 +239,7 @@ export class PublicationComponent {
   readonly saving = signal(false);
   readonly chosen = signal<Set<string>>(new Set());
   readonly chosenWarnings = signal<Set<string>>(new Set());
+  readonly comments = signal<ReaderComment[]>([]);
 
   readonly ratings = RATINGS;
   readonly ratingLabel = RATING_LABEL;
@@ -243,6 +271,9 @@ export class PublicationComponent {
       ]);
       this.book.set(book);
       this.show(publication, book);
+      if (publication) {
+        this.comments.set(await firstValueFrom(this.shelf.readerComments(this.bookId())));
+      }
     } catch (error) {
       this.error.set(problemMessage(error, 'Não foi possível abrir a publicação.'));
     }

@@ -119,6 +119,19 @@ export interface Publication {
   chapters: { chapterId: string; position: number; title: string; words: number; edition: number; updatedAt: string }[];
 }
 
+/** Um comentário de leitor, para o autor: o capítulo e, se for de um parágrafo, o começo do trecho. */
+export interface ReaderComment {
+  id: string;
+  chapterNumber: number;
+  chapterTitle: string;
+  blockId: string | null;
+  quote: string | null;
+  /** null = leitor sem nome de autor. */
+  authorName: string | null;
+  body: string;
+  createdAt: string;
+}
+
 export interface PublishRequest {
   rating: Rating;
   warnings: string[];
@@ -222,6 +235,10 @@ export class ShelfApi {
 
   publish(bookId: string, request: PublishRequest): Observable<Publication> {
     return this.http.put<Publication>(`${environment.apiBaseUrl}/books/${bookId}/publication`, request);
+  }
+
+  readerComments(bookId: string): Observable<ReaderComment[]> {
+    return this.http.get<ReaderComment[]>(`${environment.apiBaseUrl}/books/${bookId}/publication/comments`);
   }
 
   unpublish(bookId: string): Observable<void> {
