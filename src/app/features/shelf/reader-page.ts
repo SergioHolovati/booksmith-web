@@ -1,4 +1,4 @@
-import { Component, HostListener, OnDestroy, computed, effect, inject, input, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, computed, effect, inject, input, signal, viewChild } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -38,6 +38,45 @@ export function readPrefs(raw: string | null): ReaderPrefs {
   } catch {
     return DEFAULT_PREFS;
   }
+}
+
+/** Quantos comentários cada parágrafo tem. */
+export function countByBlock(comments: { blockId: string | null }[]): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const c of comments) {
+    if (c.blockId) {
+      counts.set(c.blockId, (counts.get(c.blockId) ?? 0) + 1);
+    }
+  }
+  return counts;
+}
+
+/** As primeiras palavras do trecho (até ~80 caracteres). */
+export function shortQuote(text: string): string {
+  const flat = text.replace(/\s+/g, ' ').trim();
+  return flat.length <= 80 ? flat : flat.slice(0, 79).trimEnd() + '…';
+}
+
+/** O id do bloco do parágrafo (a classe blk-<id> que o servidor põe no texto publicado). */
+export function blockOf(element: Element): string | null {
+  const name = [...element.classList].find((c) => c.startsWith('blk-'));
+  return name ? name.slice(4) : null;
+}
+
+/** Marca no texto os parágrafos comentados (com o número) e o selecionado. */
+function decorate(element: HTMLElement, counts: Map<string, number>, selected: string | null): void {
+  element.querySelectorAll<HTMLElement>('p.blk').forEach((p) => {
+    const block = blockOf(p) ?? '';
+    const count = counts.get(block) ?? 0;
+    p.tabIndex = 0;
+    p.classList.toggle('has-comments', count > 0);
+    if (count > 0) {
+      p.dataset['count'] = String(count);
+    } else {
+      delete p.dataset['count'];
+    }
+    p.classList.toggle('selected', block === selected);
+  });
 }
 
 /** Quanto do capítulo já passou pela tela, de 0 a 1. */
@@ -92,7 +131,9 @@ export function scrollProgress(scrollTop: number, scrollHeight: number, viewport
               {{ ratingLabel[c.rating] }}</p>
             <h1>{{ c.title }}</h1>
             <a class="author" [routerLink]="['/estante/autor', c.authorId]">{{ c.authorName }}</a>
-            <div class="prose" [innerHTML]="c.html" data-reader-text></div>
+            <div class="prose" #prose [innerHTML]="c.html" (click)="pickParagraph($event)"
+              (keydown)="pickParagraphByKey($event)" tabindex="-1" data-reader-text></div>
+            <p class="small hint">Toque num parágrafo para ver ou deixar um comentário sobre aquele trecho.</p>
           </article>
 
           <div class="after">
@@ -117,11 +158,18 @@ export function scrollProgress(scrollTop: number, scrollHeight: number, viewport
 
           <section class="comments" aria-labelledby="comments-title" data-reader-comments>
             <h2 id="comments-title">Comentários ({{ comments().length }})</h2>
+            @if (selectedBlock(); as block) {
+              <div class="quote" data-selected-paragraph>
+                <span class="small">Sobre o trecho: “{{ excerpt(block) }}”</span>
+                <button type="button" class="text-button" (click)="clearParagraph()" data-clear-paragraph>Ver todos</button>
+              </div>
+            }
             @if (auth.isAuthenticated()) {
               <form class="comment-form" (ngSubmit)="sendComment()">
                 <label for="comment" class="sr-only">Seu comentário</label>
                 <textarea id="comment" name="comment" rows="3" maxlength="2000" [(ngModel)]="draft"
-                  placeholder="O que você achou deste capítulo?" data-reader-comment-input></textarea>
+                  [placeholder]="selectedBlock() ? 'O que você achou deste trecho?' : 'O que você achou deste capítulo?'"
+                  data-reader-comment-input></textarea>
                 @if (commentError(); as text) { <p class="small error">{{ text }}</p> }
                 <p-button type="submit" label="Comentar" size="small" [disabled]="!draft.trim()" [loading]="sending()"
                   data-reader-comment-send />
@@ -130,8 +178,12 @@ export function scrollProgress(scrollTop: number, scrollHeight: number, viewport
               <p class="small">Para comentar, <a routerLink="/login">entre</a> ou <a routerLink="/register">crie uma conta</a>.</p>
             }
             <ul class="comment-list">
-              @for (m of comments(); track m.id) {
+              @for (m of visibleComments(); track m.id) {
                 <li class="comment" [attr.data-comment]="m.id">
+                  @if (m.blockId && !selectedBlock() && excerpt(m.blockId)) {
+                    <button type="button" class="quote-link small" (click)="goToParagraph(m.blockId)"
+                      data-comment-quote>“{{ excerpt(m.blockId) }}”</button>
+                  }
                   <div class="comment-head">
                     @if (m.authorName) {
                       <a [routerLink]="['/estante/autor', m.authorId]" class="comment-author">{{ m.authorName }}</a>
@@ -211,6 +263,16 @@ export function scrollProgress(scrollTop: number, scrollHeight: number, viewport
       color: var(--bs-ember); }
     .pager-link.next, .end { margin-left: auto; }
     .comments h2 { font-size: 1rem; margin: 1rem 0 .6rem; }
+    .hint { color: var(--r-muted); margin: .5rem 0 0; }
+    .prose ::ng-deep p.blk { cursor: pointer; border-radius: 4px; transition: background .2s; }
+    .prose ::ng-deep p.selected { background: rgba(234, 152, 70, .16); }
+    .prose ::ng-deep p.has-comments::after { content: attr(data-count); display: inline-flex; align-items: center;
+      justify-content: center; min-width: 1.4em; height: 1.4em; margin-left: .35em; padding: 0 .3em; border-radius: 999px;
+      background: var(--bs-ember); color: #1d1b18; font: 600 .65em var(--bs-font-ui); vertical-align: super; }
+    .quote { display: flex; justify-content: space-between; gap: .5rem; align-items: center; padding: .5rem .7rem;
+      margin-bottom: .6rem; border-left: 3px solid var(--bs-ember); background: rgba(234, 152, 70, .08); }
+    .quote-link { background: none; border: 0; padding: 0; margin-bottom: .2rem; color: var(--r-muted); font: inherit;
+      font-style: italic; text-align: left; cursor: pointer; }
     .comment-form { display: flex; flex-direction: column; gap: .5rem; align-items: flex-end; margin-bottom: 1rem; }
     textarea { width: 100%; font: inherit; color: var(--r-text); background: transparent;
       border: 1px solid var(--r-line); border-radius: 10px; padding: .6rem; }
@@ -244,6 +306,13 @@ export class ReaderPageComponent implements OnDestroy {
   readonly commentError = signal<string | null>(null);
   readonly reportingComment = signal<string | null>(null);
   readonly mine = signal(false);
+  /** O parágrafo tocado (o id do bloco); null = comentários do capítulo inteiro. */
+  readonly selectedBlock = signal<string | null>(null);
+  private readonly prose = viewChild<ElementRef<HTMLElement>>('prose');
+  readonly visibleComments = computed(() => {
+    const block = this.selectedBlock();
+    return block ? this.comments().filter((m) => m.blockId === block) : this.comments();
+  });
   readonly ratingLabel = RATING_LABEL;
   readonly minutes = readingMinutes;
   readonly sizes = SIZES;
@@ -262,6 +331,15 @@ export class ReaderPageComponent implements OnDestroy {
     } catch {
       // Sem acesso ao armazenamento: o padrão
     }
+    // Contador de comentários ao lado de cada parágrafo comentado, e o parágrafo selecionado em destaque
+    effect(() => {
+      const counts = countByBlock(this.comments());
+      const selected = this.selectedBlock();
+      const element = this.prose()?.nativeElement;
+      if (element) {
+        queueMicrotask(() => decorate(element, counts, selected));
+      }
+    });
     // Trocar de capítulo (anterior/próximo) reaproveita o componente: recarrega
     effect(() => {
       const slug = this.slug();
@@ -285,8 +363,45 @@ export class ReaderPageComponent implements OnDestroy {
     this.set({ size: SIZES[Math.min(SIZES.length - 1, Math.max(0, index))] });
   }
 
+  /** Tocar num parágrafo do texto: seleciona (tocar de novo tira a seleção). */
+  pickParagraph(event: Event): void {
+    const paragraph = (event.target as HTMLElement | null)?.closest?.('p.blk');
+    const block = paragraph ? blockOf(paragraph) : null;
+    if (!block) {
+      return;
+    }
+    this.selectedBlock.set(this.selectedBlock() === block ? null : block);
+  }
+
+  /** Pelo teclado: Enter ou espaço num parágrafo (cada um recebe foco). */
+  pickParagraphByKey(event: KeyboardEvent): void {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      this.pickParagraph(event);
+    }
+  }
+
+  clearParagraph(): void {
+    this.selectedBlock.set(null);
+  }
+
+  goToParagraph(block: string): void {
+    this.selectedBlock.set(block);
+    this.paragraph(block)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  /** O começo do parágrafo, para citar no comentário; vazio se ele não está mais no capítulo. */
+  excerpt(block: string): string {
+    return shortQuote(this.paragraph(block)?.textContent ?? '');
+  }
+
+  private paragraph(block: string): HTMLElement | null {
+    return this.prose()?.nativeElement.querySelector<HTMLElement>('p.blk-' + CSS.escape(block)) ?? null;
+  }
+
   async load(slug: string, number: number): Promise<void> {
     this.error.set(null);
+    this.selectedBlock.set(null);
     this.chapter.set(null);
     this.comments.set([]);
     try {
@@ -351,7 +466,7 @@ export class ReaderPageComponent implements OnDestroy {
     this.sending.set(true);
     this.commentError.set(null);
     try {
-      const comment = await firstValueFrom(this.api.comment(c.workSlug, c.number, body));
+      const comment = await firstValueFrom(this.api.comment(c.workSlug, c.number, body, this.selectedBlock()));
       this.comments.set([...this.comments(), comment]);
       this.draft = '';
     } catch (error) {

@@ -76,6 +76,8 @@ export interface ShelfComment {
   body: string;
   createdAt: string;
   mine: boolean;
+  /** O parágrafo comentado (classe blk-<blockId> no texto); null = comentário do capítulo. */
+  blockId: string | null;
 }
 
 export interface AuthorPage {
@@ -159,9 +161,9 @@ export class ShelfApi {
     return this.http.get<ShelfComment[]>(`${this.base}/works/${encodeURIComponent(slug)}/chapters/${number}/comments`);
   }
 
-  comment(slug: string, number: number, body: string): Observable<ShelfComment> {
+  comment(slug: string, number: number, body: string, blockId: string | null = null): Observable<ShelfComment> {
     return this.http.post<ShelfComment>(`${this.base}/works/${encodeURIComponent(slug)}/chapters/${number}/comments`,
-      { body });
+      { body, blockId });
   }
 
   deleteComment(id: string): Observable<void> {

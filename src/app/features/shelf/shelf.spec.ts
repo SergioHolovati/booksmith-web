@@ -1,7 +1,7 @@
 import { ChapterSummary } from '../../core/models/api.models';
 import { Publication } from '../../core/api/shelf.api';
 import { changedSince, parseTags } from './publication';
-import { DEFAULT_PREFS, readPrefs, scrollProgress } from './reader-page';
+import { DEFAULT_PREFS, blockOf, countByBlock, readPrefs, scrollProgress, shortQuote } from './reader-page';
 import { parseHiddenTags, toFilter } from './shelf-home';
 import { readingMinutes, wordsLabel } from './shelf-labels';
 
@@ -53,5 +53,17 @@ describe('Estante', () => {
     expect(wordsLabel(12400)).toBe('12 mil palavras');
     expect(readingMinutes(50)).toBe(1);
     expect(readingMinutes(2000)).toBe(10);
+  });
+  it('conta os comentários de cada parágrafo e cita o começo do trecho', () => {
+    const counts = countByBlock([{ blockId: 'b1' }, { blockId: null }, { blockId: 'b1' }, { blockId: 'b2' }]);
+    expect(counts.get('b1')).toBe(2);
+    expect(counts.get('b2')).toBe(1);
+    expect(counts.size).toBe(2);
+    expect(shortQuote('  Era   uma vez. ')).toBe('Era uma vez.');
+    expect(shortQuote('a'.repeat(120))).toHaveLength(80);
+    const p = document.createElement('p');
+    p.className = 'indent blk blk-b_x1';
+    expect(blockOf(p)).toBe('b_x1');
+    expect(blockOf(document.createElement('p'))).toBeNull();
   });
 });
