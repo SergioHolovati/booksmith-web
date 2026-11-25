@@ -613,7 +613,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
       { p: '**Nome que aparece:** só o seu **nome de autor** (Perfil › Perfil de autor), nunca o seu nome ou e-mail. Sem nome de autor, o app pede para criar antes de publicar.' },
       { p: '**Publicar não é salvar:** os leitores veem a cópia publicada. Se você editar o capítulo depois, ele aparece como **editado depois** na tela da Estante; marque e toque em **Atualizar na Estante** para os leitores verem a versão nova.' },
       { p: '**Visibilidade:** pública aparece na vitrine; **só com o link** não aparece, mas abre para quem tiver o endereço. Você pode tirar um capítulo ou a obra inteira quando quiser.' },
-      { p: '**Ler:** qualquer pessoa lê, sem conta, em **Estante** no menu ou em booksmith.com.br/estante. No leitor, o botão **Aa** troca o tema (escuro, claro, sépia), o tamanho e a fonte.' },
+      { p: '**Ler:** qualquer pessoa lê, sem conta, em **Estante** no menu ou em booksmith.com.br/estante. No leitor, o botão **Aa** troca o tema (escuro, claro, sépia), o tamanho e a fonte. Na vitrine, **Em alta** mostra as mais curtidas da semana; toque numa tag para ver obras com ela; em **Esconder obras com estas tags**, escreva o que você não quer ver (fica lembrado no aparelho).' },
       { p: '**Com conta:** curtir, comentar, seguir autores e guardar na **Biblioteca**, que lembra onde você parou. O autor da obra pode apagar comentários nela.' },
       { p: '**Capítulo novo:** quem segue o autor recebe um e-mail quando entra capítulo novo numa obra pública (no máximo um a cada 12 horas por obra). Para não receber, desmarque a opção na **Biblioteca**.' },
       { p: '**Compartilhar:** o link da obra ou do capítulo mostra a capa, o título e a sinopse no WhatsApp e nas redes.' },

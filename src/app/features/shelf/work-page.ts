@@ -76,7 +76,9 @@ import { AI_USE_LABEL, RATING_LABEL, STATUS_LABEL, WARNING_LABEL, readingMinutes
           }
           @if (d.work.tags.length > 0) {
             <div class="meta tags">
-              @for (t of d.work.tags; track t) { <span class="badge">#{{ t }}</span> }
+              @for (t of d.work.tags; track t) {
+                <a class="badge tag" [routerLink]="['/estante']" [queryParams]="{ tag: t }" [attr.data-work-tag]="t">#{{ t }}</a>
+              }
             </div>
           }
 
@@ -130,6 +132,7 @@ import { AI_USE_LABEL, RATING_LABEL, STATUS_LABEL, WARNING_LABEL, readingMinutes
     .chapter-link { display: flex; flex-direction: column; gap: .1rem; padding: .6rem 0; min-height: var(--bs-touch);
       border-bottom: 1px solid var(--bs-border); color: var(--bs-text); }
     .chapter-link.read span { color: var(--bs-muted); }
+    .tag { color: var(--bs-text-soft); min-height: 32px; }
     .link-button { align-self: flex-start; background: none; border: 0; color: var(--bs-muted); cursor: pointer;
       min-height: var(--bs-touch); font: inherit; display: inline-flex; gap: .3rem; align-items: center; }
   `,

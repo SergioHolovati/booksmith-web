@@ -94,6 +94,10 @@ export interface BrowseFilter {
   maxRating?: Rating;
   status?: WorkStatus;
   page?: number;
+  /** Esconde obras com qualquer uma destas tags. */
+  excludeTags?: string[];
+  /** recent (padrão) ou popular (mais curtidas na semana). */
+  sort?: 'recent' | 'popular';
 }
 
 /** Como o livro está na Estante (painel do autor). */
@@ -132,7 +136,11 @@ export class ShelfApi {
   browse(filter: BrowseFilter): Observable<WorkCard[]> {
     let params = new HttpParams();
     for (const [key, value] of Object.entries(filter)) {
-      if (value !== undefined && value !== null && value !== '') {
+      if (Array.isArray(value)) {
+        if (value.length > 0) {
+          params = params.set(key, value.join(','));
+        }
+      } else if (value !== undefined && value !== null && value !== '') {
         params = params.set(key, String(value));
       }
     }

@@ -2,7 +2,7 @@ import { ChapterSummary } from '../../core/models/api.models';
 import { Publication } from '../../core/api/shelf.api';
 import { changedSince, parseTags } from './publication';
 import { DEFAULT_PREFS, readPrefs, scrollProgress } from './reader-page';
-import { toFilter } from './shelf-home';
+import { parseHiddenTags, toFilter } from './shelf-home';
 import { readingMinutes, wordsLabel } from './shelf-labels';
 
 describe('Estante', () => {
@@ -35,8 +35,16 @@ describe('Estante', () => {
   });
 
   it('monta os filtros da vitrine', () => {
-    expect(toFilter('  dragão ', 'fanfic', '12', null)).toEqual({ q: 'dragão', fanfic: true, maxRating: '12', status: undefined });
-    expect(toFilter('', 'all', null, 'complete')).toEqual({ q: undefined, fanfic: undefined, maxRating: undefined, status: 'complete' });
+    expect(toFilter({ query: '  dragão ', kind: 'fanfic', maxRating: '12', status: null })).toEqual({
+      q: 'dragão', fanfic: true, maxRating: '12', status: undefined, tag: undefined, excludeTags: undefined, sort: undefined,
+    });
+    expect(toFilter({ query: '', kind: 'all', maxRating: null, status: 'complete', tag: 'magia', hiddenTags: ['morte'], sort: 'popular' }))
+      .toEqual({ q: undefined, fanfic: undefined, maxRating: undefined, status: 'complete', tag: 'magia', excludeTags: ['morte'], sort: 'popular' });
+  });
+
+  it('lê as tags para esconder', () => {
+    expect(parseHiddenTags('Spoiler, morte  ,#incesto, spoiler,')).toEqual(['spoiler', 'morte', 'incesto']);
+    expect(parseHiddenTags('')).toEqual([]);
   });
 
   it('mostra o tamanho da obra', () => {

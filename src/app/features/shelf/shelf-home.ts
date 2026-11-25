@@ -1,6 +1,7 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
+import { Router } from '@angular/router';
 import { InputTextModule } from 'primeng/inputtext';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { firstValueFrom } from 'rxjs';
@@ -13,20 +14,41 @@ import { RATINGS, RATING_LABEL, STATUS_LABEL } from './shelf-labels';
 import { WorkCardsComponent } from './work-cards';
 
 type Kind = 'all' | 'original' | 'fanfic';
+type Sort = 'recent' | 'popular';
+
+const HIDDEN_TAGS_KEY = 'booksmith.shelf.hiddenTags';
+
+export interface BrowseChoices {
+  query: string;
+  kind: Kind;
+  maxRating: Rating | null;
+  status: WorkStatus | null;
+  tag?: string | null;
+  hiddenTags?: string[];
+  sort?: Sort;
+}
 
 /** Os filtros escolhidos viram os parâmetros da busca. */
-export function toFilter(query: string, kind: Kind, maxRating: Rating | null, status: WorkStatus | null): BrowseFilter {
+export function toFilter(c: BrowseChoices): BrowseFilter {
   return {
-    q: query.trim() || undefined,
-    fanfic: kind === 'all' ? undefined : kind === 'fanfic',
-    maxRating: maxRating ?? undefined,
-    status: status ?? undefined,
+    q: c.query.trim() || undefined,
+    fanfic: c.kind === 'all' ? undefined : c.kind === 'fanfic',
+    maxRating: c.maxRating ?? undefined,
+    status: c.status ?? undefined,
+    tag: c.tag || undefined,
+    excludeTags: c.hiddenTags?.length ? c.hiddenTags : undefined,
+    sort: c.sort === 'popular' ? 'popular' : undefined,
   };
 }
 
+/** "Spoiler, morte  ,#incesto" → ["spoiler", "morte", "incesto"]. */
+export function parseHiddenTags(text: string): string[] {
+  return [...new Set(text.split(',').map((t) => t.trim().replace(/^#/, '').trim().toLowerCase()).filter(Boolean))].slice(0, 20);
+}
+
 /**
- * Vitrine da Estante (`/estante`): obras publicadas, da atualizada mais recentemente para a mais antiga, com busca e
- * filtros. Abre sem login. Com login, mostra antes as novidades de quem a pessoa segue.
+ * Vitrine da Estante (`/estante`): obras publicadas, recentes ou em alta, com busca, filtros, tag (`?tag=`) e tags
+ * escondidas (lembradas no aparelho). Abre sem login. Com login, mostra antes as novidades de quem a pessoa segue.
  */
 @Component({
   selector: 'app-shelf-home',
@@ -43,6 +65,17 @@ export function toFilter(query: string, kind: Kind, maxRating: Rating | null, st
       </form>
 
       <div class="filters">
+        <div class="chips" role="group" aria-label="Ordem">
+          <button type="button" class="chip" [class.on]="sort() === 'recent'" (click)="setSort('recent')" data-sort="recent">Recentes</button>
+          <button type="button" class="chip" [class.on]="sort() === 'popular'" (click)="setSort('popular')" data-sort="popular">
+            <i class="pi pi-bolt" aria-hidden="true"></i> Em alta</button>
+        </div>
+        @if (activeTag(); as t) {
+          <div class="chips">
+            <button type="button" class="chip on" (click)="clearTag()" [attr.aria-label]="'Tirar o filtro da tag ' + t"
+              data-active-tag>#{{ t }} <i class="pi pi-times" aria-hidden="true"></i></button>
+          </div>
+        }
         <div class="chips" role="group" aria-label="Tipo">
           @for (k of kinds; track k.value) {
             <button type="button" class="chip" [class.on]="kind() === k.value" [attr.aria-pressed]="kind() === k.value"
@@ -61,9 +94,18 @@ export function toFilter(query: string, kind: Kind, maxRating: Rating | null, st
               (click)="setStatus(s)" [attr.data-status]="s">{{ statusLabel[s] }}</button>
           }
         </div>
+        <details class="hide-tags" [open]="hiddenTags().length > 0">
+          <summary class="small">Esconder obras com estas tags
+            @if (hiddenTags().length > 0) { ({{ hiddenTags().length }}) }</summary>
+          <form (ngSubmit)="saveHidden()" class="hide-form">
+            <input pInputText name="hidden" [(ngModel)]="hiddenText" placeholder="ex.: spoiler, morte de personagem"
+              aria-label="Tags para esconder, separadas por vírgula" data-hidden-tags />
+            <button type="submit" class="chip">Aplicar</button>
+          </form>
+        </details>
       </div>
 
-      @if (following().length > 0) {
+      @if (following().length > 0 && !activeTag()) {
         <section class="block" data-shelf-following>
           <h2>De quem você segue</h2>
           <app-work-cards [works]="following()" />
@@ -71,7 +113,7 @@ export function toFilter(query: string, kind: Kind, maxRating: Rating | null, st
       }
 
       <section class="block">
-        <h2>Atualizadas recentemente</h2>
+        <h2>{{ sort() === 'popular' ? 'Em alta nesta semana' : 'Atualizadas recentemente' }}</h2>
         @if (error(); as text) {
           <p class="muted">{{ text }}</p>
         } @else if (loading() && works().length === 0) {
@@ -92,21 +134,19 @@ export function toFilter(query: string, kind: Kind, maxRating: Rating | null, st
     .filters { display: flex; flex-direction: column; gap: .5rem; margin: .7rem 0 1rem; }
     .block { margin-bottom: 1.4rem; }
     h2 { font-size: 1rem; color: var(--bs-text-soft); margin: 0 0 .6rem; }
+    .hide-tags summary { min-height: var(--bs-touch); display: flex; align-items: center; cursor: pointer;
+      color: var(--bs-text-soft); }
+    .hide-form { display: flex; gap: .4rem; }
+    .hide-form input { flex: 1; min-width: 0; }
   `,
 })
 export class ShelfHomeComponent {
   private readonly api = inject(ShelfApi);
   private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
 
-  constructor() {
-    inject(Title).setTitle('Estante · Booksmith');
-    queueMicrotask(() => {
-      void this.load();
-      if (this.auth.isAuthenticated()) {
-        void firstValueFrom(this.api.following()).then((w) => this.following.set(w.slice(0, 4))).catch(() => undefined);
-      }
-    });
-  }
+  /** ?tag= (vem da tag tocada na ficha de uma obra). */
+  readonly tag = input<string>('');
 
   readonly kinds: { value: Kind; label: string }[] = [
     { value: 'all', label: 'Tudo' },
@@ -119,13 +159,41 @@ export class ShelfHomeComponent {
   readonly statusLabel = STATUS_LABEL;
 
   query = '';
+  hiddenText = '';
   readonly kind = signal<Kind>('all');
   readonly maxRating = signal<Rating | null>(null);
   readonly status = signal<WorkStatus | null>(null);
+  readonly sort = signal<Sort>('recent');
+  readonly activeTag = signal<string | null>(null);
+  readonly hiddenTags = signal<string[]>([]);
   readonly works = signal<WorkCard[]>([]);
   readonly following = signal<WorkCard[]>([]);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+
+  constructor() {
+    inject(Title).setTitle('Estante · Booksmith');
+    try {
+      this.hiddenTags.set(parseHiddenTags(localStorage.getItem(HIDDEN_TAGS_KEY) ?? ''));
+      this.hiddenText = this.hiddenTags().join(', ');
+    } catch {
+      // Sem armazenamento: nada escondido
+    }
+    effect(() => {
+      this.activeTag.set(this.tag() || null);
+      queueMicrotask(() => void this.load());
+    });
+    queueMicrotask(() => {
+      if (this.auth.isAuthenticated()) {
+        void firstValueFrom(this.api.following()).then((w) => this.following.set(w.slice(0, 4))).catch(() => undefined);
+      }
+    });
+  }
+
+  setSort(sort: Sort): void {
+    this.sort.set(sort);
+    void this.load();
+  }
 
   setKind(kind: Kind): void {
     this.kind.set(kind);
@@ -142,11 +210,30 @@ export class ShelfHomeComponent {
     void this.load();
   }
 
+  clearTag(): void {
+    void this.router.navigate(['/estante']);
+  }
+
+  saveHidden(): void {
+    const tags = parseHiddenTags(this.hiddenText);
+    this.hiddenTags.set(tags);
+    this.hiddenText = tags.join(', ');
+    try {
+      localStorage.setItem(HIDDEN_TAGS_KEY, tags.join(','));
+    } catch {
+      // Vale só nesta visita
+    }
+    void this.load();
+  }
+
   async load(): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
     try {
-      this.works.set(await firstValueFrom(this.api.browse(toFilter(this.query, this.kind(), this.maxRating(), this.status()))));
+      this.works.set(await firstValueFrom(this.api.browse(toFilter({
+        query: this.query, kind: this.kind(), maxRating: this.maxRating(), status: this.status(),
+        tag: this.activeTag(), hiddenTags: this.hiddenTags(), sort: this.sort(),
+      }))));
     } catch (error) {
       this.error.set(problemMessage(error, 'Não foi possível abrir a Estante.'));
     } finally {
