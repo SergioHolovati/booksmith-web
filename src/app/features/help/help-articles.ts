@@ -603,6 +603,22 @@ export const HELP_ARTICLES: HelpArticle[] = [
     ],
   },
   {
+    slug: 'estante',
+    title: 'Publicar e ler na Estante',
+    summary: 'Publique o livro inteiro ou capítulo a capítulo para leitores de graça. Quem lê não precisa de conta.',
+    topic: 'livros',
+    keywords: ['estante', 'publicar', 'leitores', 'ler', 'comentário', 'curtir', 'seguir', 'biblioteca', 'classificação', 'denunciar', 'fanfic'],
+    body: [
+      { p: '**Publicar:** na página do livro, toque em **Na Estante**. Escolha a classificação indicativa (de Livre a 16 anos; 18+ ainda não é aceito), os avisos de conteúdo, se usou IA no texto, a situação e os capítulos. Publique tudo de uma vez ou de um em um, para lançar a história em capítulos.' },
+      { p: '**Nome que aparece:** só o seu **nome de autor** (Perfil › Perfil de autor), nunca o seu nome ou e-mail. Sem nome de autor, o app pede para criar antes de publicar.' },
+      { p: '**Publicar não é salvar:** os leitores veem a cópia publicada. Se você editar o capítulo depois, ele aparece como **editado depois** na tela da Estante; marque e toque em **Atualizar na Estante** para os leitores verem a versão nova.' },
+      { p: '**Visibilidade:** pública aparece na vitrine; **só com o link** não aparece, mas abre para quem tiver o endereço. Você pode tirar um capítulo ou a obra inteira quando quiser.' },
+      { p: '**Ler:** qualquer pessoa lê, sem conta, em **Estante** no menu ou em booksmith.com.br/estante. No leitor, o botão **Aa** troca o tema (escuro, claro, sépia), o tamanho e a fonte.' },
+      { p: '**Com conta:** curtir, comentar, seguir autores e guardar na **Biblioteca**, que lembra onde você parou. O autor da obra pode apagar comentários nela.' },
+      { p: '**Denunciar:** viu plágio, classificação errada ou algo que ofende? Use **Denunciar** na obra ou no comentário. A equipe analisa e, se for o caso, tira do ar; o autor vê o motivo.' },
+    ],
+  },
+  {
     slug: 'planos',
     title: 'Planos: Grátis, Escritor e Autor',
     summary: 'O que cada plano libera, onde ver o seu e o que acontece se o plano mudar.',

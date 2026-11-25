@@ -41,6 +41,28 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/auth/complete-profile/complete-profile').then((c) => c.CompleteProfileComponent),
   },
+  // Estante: ler é público (com ou sem conta); a biblioteca precisa de login
+  {
+    path: 'estante',
+    loadComponent: () => import('./features/shelf/shelf-home').then((c) => c.ShelfHomeComponent),
+  },
+  {
+    path: 'estante/biblioteca',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/shelf/library-page').then((c) => c.LibraryPageComponent),
+  },
+  {
+    path: 'estante/obra/:slug',
+    loadComponent: () => import('./features/shelf/work-page').then((c) => c.WorkPageComponent),
+  },
+  {
+    path: 'estante/obra/:slug/:number',
+    loadComponent: () => import('./features/shelf/reader-page').then((c) => c.ReaderPageComponent),
+  },
+  {
+    path: 'estante/autor/:authorId',
+    loadComponent: () => import('./features/shelf/author-page').then((c) => c.AuthorPageComponent),
+  },
   {
     path: 'termos',
     data: { document: 'terms' },
@@ -165,6 +187,10 @@ export const routes: Routes = [
       {
         path: 'books/:bookId/publicar',
         loadComponent: () => import('./features/books/publish-guide/publish-guide').then((c) => c.PublishGuideComponent),
+      },
+      {
+        path: 'books/:bookId/estante',
+        loadComponent: () => import('./features/shelf/publication').then((c) => c.PublicationComponent),
       },
       {
         path: 'books/:bookId/paginas',
