@@ -1,6 +1,7 @@
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
+import { Title } from '@angular/platform-browser';
 import { ButtonModule } from 'primeng/button';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { firstValueFrom } from 'rxjs';
@@ -137,6 +138,7 @@ export class WorkPageComponent {
   private readonly api = inject(ShelfApi);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly title = inject(Title);
 
   readonly slug = input.required<string>();
 
@@ -163,7 +165,9 @@ export class WorkPageComponent {
 
   async load(): Promise<void> {
     try {
-      this.detail.set(await firstValueFrom(this.api.work(this.slug())));
+      const detail = await firstValueFrom(this.api.work(this.slug()));
+      this.detail.set(detail);
+      this.title.setTitle(`${detail.work.title} · Estante Booksmith`);
     } catch (error) {
       this.error.set(problemMessage(error, 'Não foi possível abrir a obra.'));
     }

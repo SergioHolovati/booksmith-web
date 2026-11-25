@@ -178,6 +178,14 @@ export class ShelfApi {
     return this.http.get<WorkCard[]>(`${this.base}/me/library`);
   }
 
+  preferences(): Observable<{ chapterEmails: boolean }> {
+    return this.http.get<{ chapterEmails: boolean }>(`${this.base}/me/preferences`);
+  }
+
+  savePreferences(chapterEmails: boolean): Observable<{ chapterEmails: boolean }> {
+    return this.http.put<{ chapterEmails: boolean }>(`${this.base}/me/preferences`, { chapterEmails });
+  }
+
   following(): Observable<WorkCard[]> {
     return this.http.get<WorkCard[]>(`${this.base}/me/following`);
   }

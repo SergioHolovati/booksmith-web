@@ -615,6 +615,8 @@ export const HELP_ARTICLES: HelpArticle[] = [
       { p: '**Visibilidade:** pública aparece na vitrine; **só com o link** não aparece, mas abre para quem tiver o endereço. Você pode tirar um capítulo ou a obra inteira quando quiser.' },
       { p: '**Ler:** qualquer pessoa lê, sem conta, em **Estante** no menu ou em booksmith.com.br/estante. No leitor, o botão **Aa** troca o tema (escuro, claro, sépia), o tamanho e a fonte.' },
       { p: '**Com conta:** curtir, comentar, seguir autores e guardar na **Biblioteca**, que lembra onde você parou. O autor da obra pode apagar comentários nela.' },
+      { p: '**Capítulo novo:** quem segue o autor recebe um e-mail quando entra capítulo novo numa obra pública (no máximo um a cada 12 horas por obra). Para não receber, desmarque a opção na **Biblioteca**.' },
+      { p: '**Compartilhar:** o link da obra ou do capítulo mostra a capa, o título e a sinopse no WhatsApp e nas redes.' },
       { p: '**Denunciar:** viu plágio, classificação errada ou algo que ofende? Use **Denunciar** na obra ou no comentário. A equipe analisa e, se for o caso, tira do ar; o autor vê o motivo.' },
     ],
   },

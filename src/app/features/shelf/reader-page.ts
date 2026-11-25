@@ -2,6 +2,7 @@ import { Component, HostListener, OnDestroy, computed, effect, inject, input, si
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { Title } from '@angular/platform-browser';
 import { ButtonModule } from 'primeng/button';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { firstValueFrom } from 'rxjs';
@@ -228,6 +229,7 @@ export function scrollProgress(scrollTop: number, scrollHeight: number, viewport
 export class ReaderPageComponent implements OnDestroy {
   private readonly api = inject(ShelfApi);
   readonly auth = inject(AuthService);
+  private readonly title = inject(Title);
 
   readonly slug = input.required<string>();
   readonly number = input.required<string>();
@@ -289,6 +291,7 @@ export class ReaderPageComponent implements OnDestroy {
     try {
       const chapter = await firstValueFrom(this.api.chapter(slug, number));
       this.chapter.set(chapter);
+      this.title.setTitle(`${chapter.title} · ${chapter.workTitle}`);
       window.scrollTo({ top: 0 });
       this.comments.set(await firstValueFrom(this.api.comments(slug, number)));
       if (this.auth.isAuthenticated()) {

@@ -77,6 +77,19 @@ www.{$SITE_ADDRESS} {
 		}
 	}
 
+	# Prévia dos links da Estante para quem não roda o app (WhatsApp, Instagram, Telegram, buscadores): a API devolve
+	# um HTML mínimo com as etiquetas Open Graph (título, sinopse, capa). Pessoas continuam recebendo o app.
+	@shareBot {
+		path /estante/obra/*
+		header_regexp User-Agent (?i)(facebookexternalhit|facebot|whatsapp|twitterbot|telegrambot|slackbot|discordbot|linkedinbot|pinterest|googlebot|bingbot|applebot|redditbot|skypeuripreview|embedly)
+	}
+	handle @shareBot {
+		rewrite * /api/v1/shelf/share?path={path}
+		reverse_proxy api:8080 {
+			header_up X-Forwarded-For {client_ip}
+		}
+	}
+
 	# O app: arquivos com hash no nome ficam em cache por um ano; o index e o service worker nunca
 	handle {
 		root * /srv

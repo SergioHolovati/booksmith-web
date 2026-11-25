@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Title } from '@angular/platform-browser';
 import { InputTextModule } from 'primeng/inputtext';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { firstValueFrom } from 'rxjs';
@@ -97,6 +98,16 @@ export class ShelfHomeComponent {
   private readonly api = inject(ShelfApi);
   private readonly auth = inject(AuthService);
 
+  constructor() {
+    inject(Title).setTitle('Estante · Booksmith');
+    queueMicrotask(() => {
+      void this.load();
+      if (this.auth.isAuthenticated()) {
+        void firstValueFrom(this.api.following()).then((w) => this.following.set(w.slice(0, 4))).catch(() => undefined);
+      }
+    });
+  }
+
   readonly kinds: { value: Kind; label: string }[] = [
     { value: 'all', label: 'Tudo' },
     { value: 'original', label: 'Originais' },
@@ -115,15 +126,6 @@ export class ShelfHomeComponent {
   readonly following = signal<WorkCard[]>([]);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
-
-  constructor() {
-    queueMicrotask(() => {
-      void this.load();
-      if (this.auth.isAuthenticated()) {
-        void firstValueFrom(this.api.following()).then((w) => this.following.set(w.slice(0, 4))).catch(() => undefined);
-      }
-    });
-  }
 
   setKind(kind: Kind): void {
     this.kind.set(kind);
