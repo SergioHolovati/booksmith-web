@@ -609,7 +609,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     topic: 'livros',
     keywords: ['estante', 'publicar', 'leitores', 'ler', 'comentário', 'curtir', 'seguir', 'biblioteca', 'classificação', 'denunciar', 'fanfic'],
     body: [
-      { p: '**Publicar:** na página do livro, toque em **Na Estante**. Escolha a classificação indicativa (de Livre a 16 anos; 18+ ainda não é aceito), os avisos de conteúdo, se usou IA no texto, a situação e os capítulos. Publique tudo de uma vez ou de um em um, para lançar a história em capítulos.' },
+      { p: '**Publicar:** na página do livro, toque em **Na Estante**. Escolha a classificação indicativa (de Livre a 16 anos; 18+ ainda não é aceito), os avisos de conteúdo, se usou IA no texto, a situação e os capítulos. Publique tudo de uma vez ou de um em um, para lançar a história em capítulos. As ilustrações do texto aparecem na leitura.' },
       { p: '**Nome que aparece:** só o seu **nome de autor** (Perfil › Perfil de autor), nunca o seu nome ou e-mail. Sem nome de autor, o app pede para criar antes de publicar.' },
       { p: '**Publicar não é salvar:** os leitores veem a cópia publicada. Se você editar o capítulo depois, ele aparece como **editado depois** na tela da Estante; marque e toque em **Atualizar na Estante** para os leitores verem a versão nova.' },
       { p: '**Visibilidade:** pública aparece na vitrine; **só com o link** não aparece, mas abre para quem tiver o endereço. Você pode tirar um capítulo ou a obra inteira quando quiser.' },

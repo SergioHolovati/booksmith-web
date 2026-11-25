@@ -199,6 +199,7 @@ export function scrollProgress(scrollTop: number, scrollHeight: number, viewport
     .prose ::ng-deep blockquote { margin: 1em 0; padding-left: 1em; border-left: 3px solid var(--r-line); }
     .prose ::ng-deep .callout { border: 1px solid var(--r-line); border-radius: 10px; padding: .6em .9em; margin: 1em 0; }
     .prose ::ng-deep figure { margin: 1em 0; color: var(--r-muted); font-size: .85em; text-align: center; }
+    .prose ::ng-deep figure img { display: block; max-width: 100%; height: auto; margin: 0 auto .4em; border-radius: 8px; }
     .after { display: flex; flex-direction: column; gap: .8rem; margin: 2rem 0 1rem; padding-top: 1rem;
       border-top: 1px solid var(--r-line); }
     .like { align-self: flex-start; display: inline-flex; gap: .4rem; align-items: center; min-height: var(--bs-touch);
