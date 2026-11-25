@@ -5,15 +5,20 @@ import { ButtonModule } from 'primeng/button';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { firstValueFrom } from 'rxjs';
 
-import { MyPlan, PlanApi, PlanLimits } from '../../core/api/plan.api';
+import { MyPlan, PlanApi, PlanLimits, PlanOffer } from '../../core/api/plan.api';
 import { problemMessage } from '../../core/api/problem';
 
-/** Os preços (os mesmos do plano de produto); a cobrança é feita fora do app por enquanto. */
-export const PRICES: Record<string, { month: string; year: string | null }> = {
-  GRATIS: { month: 'R$ 0', year: null },
-  ESCRITOR: { month: 'R$ 24,90/mês', year: 'ou R$ 199/ano' },
-  AUTOR: { month: 'R$ 49,90/mês', year: 'ou R$ 399/ano' },
+/** O preço mensal de cada plano, para o cabeçalho da comparação. */
+export const PRICES: Record<string, string> = {
+  GRATIS: 'R$ 0',
+  ESCRITOR: 'R$ 24,90/mês',
+  AUTOR: 'R$ 49,90/mês',
 };
+
+/** Só as ofertas com link de pagamento; fundador primeiro. */
+export function buyable(offers: PlanOffer[] | undefined): PlanOffer[] {
+  return (offers ?? []).filter((o) => !!o.url).sort((a, b) => Number(b.founder) - Number(a.founder));
+}
 
 /** As linhas da comparação: o nome e como mostrar o valor de cada plano. */
 export const ROWS: { label: string; value: (l: PlanLimits) => string }[] = [
@@ -72,8 +77,7 @@ export function sourceLabel(plan: MyPlan): string | null {
             @for (option of p.plans; track option.plan) {
               <span role="columnheader" [class.mine]="option.plan === p.plan">
                 <strong>{{ option.label }}</strong>
-                <small class="muted">{{ prices[option.plan].month }}</small>
-                @if (prices[option.plan].year; as year) { <small class="muted year">{{ year }}</small> }
+                <small class="muted">{{ prices[option.plan] }}</small>
               </span>
             }
           </div>
@@ -87,10 +91,28 @@ export function sourceLabel(plan: MyPlan): string | null {
           }
         </div>
 
-        @if (p.plansUrl) {
-          <a class="subscribe" [href]="p.plansUrl" target="_blank" rel="noopener" data-plans-url>
-            <p-button label="Ver planos e assinar" icon="pi pi-star" styleClass="full-width" />
-          </a>
+        @if (offers().length > 0) {
+          <h2 class="offers-title">Assinar</h2>
+          <ul class="offers">
+            @for (o of offers(); track o.key) {
+              <li class="offer glass-card" [class.founder]="o.founder" [attr.data-offer]="o.key">
+                <span class="offer-head">
+                  <strong>{{ planName(o.plan) }}</strong>
+                  @if (o.founder) { <span class="badge">Fundador</span> }
+                </span>
+                <span class="offer-price"><strong>{{ o.price }}</strong> {{ o.period }}</span>
+                @if (o.founder) {
+                  <small class="muted">Preço de fundador garantido nas renovações, enquanto a assinatura continuar.</small>
+                }
+                <a class="subscribe" [href]="o.url" target="_blank" rel="noopener">
+                  <p-button [label]="o.founder ? 'Quero ser fundador' : 'Assinar'" icon="pi pi-star" size="small"
+                    [outlined]="!o.founder" styleClass="full-width" />
+                </a>
+              </li>
+            }
+          </ul>
+          <p class="muted small">O pagamento é feito no Asaas (Pix ou cartão). O plano é liberado na sua conta em até 1 dia
+            útil. Você pode desistir em até 7 dias e receber o valor de volta.</p>
         } @else {
           <p class="muted small">A assinatura abre em breve. Dúvidas? <a routerLink="/ajuda/contato">Fale com o suporte</a>.</p>
         }
@@ -109,7 +131,13 @@ export function sourceLabel(plan: MyPlan): string | null {
     .row { display: grid; grid-template-columns: minmax(7rem, 1.4fr) repeat(3, minmax(4.5rem, 1fr)); gap: .4rem;
       padding: .5rem 0; border-bottom: 1px solid var(--bs-border); align-items: center; }
     .row.head span { display: flex; flex-direction: column; gap: .1rem; }
-    .year { font-size: .7rem; }
+    .offers-title { margin: .5rem 0; font-size: 1rem; }
+    .offers { list-style: none; margin: 0 0 .8rem; padding: 0; display: grid; gap: .6rem; }
+    @media (min-width: 640px) { .offers { grid-template-columns: 1fr 1fr; } }
+    .offer { display: flex; flex-direction: column; gap: .35rem; padding: .9rem; }
+    .offer.founder { border-color: var(--bs-accent); }
+    .offer-head { display: flex; align-items: center; gap: .5rem; }
+    .offer-price strong { font-size: 1.3rem; }
     .mine { color: var(--bs-text); font-weight: 600; }
     .row span:not(.mine) { color: var(--bs-text-soft); }
     .subscribe { display: block; text-decoration: none; }
@@ -123,6 +151,7 @@ export class MyPlanComponent {
   readonly error = signal<string | null>(null);
   readonly rows = ROWS;
   readonly prices = PRICES;
+  readonly offers = computed(() => buyable(this.plan()?.offers));
   readonly source = computed(() => {
     const p = this.plan();
     return p ? sourceLabel(p) : null;
@@ -130,6 +159,10 @@ export class MyPlanComponent {
 
   constructor() {
     queueMicrotask(() => void this.load());
+  }
+
+  planName(plan: string): string {
+    return this.plan()?.plans.find((p) => p.plan === plan)?.label ?? plan;
   }
 
   async load(): Promise<void> {

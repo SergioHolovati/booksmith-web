@@ -1,6 +1,6 @@
 import { aiWindow } from '../../shared/assist/ai-window.pipe';
 import { MyPlan } from '../../core/api/plan.api';
-import { ROWS, count, sourceLabel } from './my-plan';
+import { ROWS, buyable, count, sourceLabel } from './my-plan';
 
 describe('meu plano', () => {
   const free = {
@@ -19,7 +19,7 @@ describe('meu plano', () => {
 
   it('diz se o plano é de fundador ou cortesia', () => {
     const base: Omit<MyPlan, 'source' | 'founder'> = {
-      plan: 'AUTOR', label: 'Autor', expiresAt: null, limits: author, plans: [], plansUrl: null,
+      plan: 'AUTOR', label: 'Autor', expiresAt: null, limits: author, plans: [], offers: [],
     };
     expect(sourceLabel({ ...base, source: 'founder', founder: true })).toBe('Fundador');
     expect(sourceLabel({ ...base, source: 'courtesy', founder: false })).toBe('Cortesia');
@@ -31,5 +31,13 @@ describe('meu plano', () => {
     expect(aiWindow(168, 'nas')).toBe('nos últimos 7 dias');
     expect(aiWindow(168, 'das')).toBe('dos últimos 7 dias');
     expect(aiWindow(undefined, 'das')).toBe('das últimas 24 horas');
+  });
+
+  it('mostra só as ofertas com link, fundador primeiro', () => {
+    const offer = (key: string, founder: boolean, url: string | null) =>
+      ({ key, plan: 'ESCRITOR' as const, price: 'R$ 1', period: 'por mês', founder, url });
+    expect(buyable([offer('mensal', false, 'https://a'), offer('fundador', true, 'https://b'), offer('sem-link', false, null)])
+      .map((o) => o.key)).toEqual(['fundador', 'mensal']);
+    expect(buyable(undefined)).toEqual([]);
   });
 });

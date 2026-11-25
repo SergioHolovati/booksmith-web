@@ -29,8 +29,18 @@ export interface MyPlan {
   expiresAt: string | null;
   limits: PlanLimits;
   plans: { plan: PlanName; label: string; limits: PlanLimits }[];
-  /** Onde ver os planos e assinar (vazio enquanto a venda não abre). */
-  plansUrl: string | null;
+  /** Fundador (anual, preço garantido nas renovações) e mensal. */
+  offers: PlanOffer[];
+}
+
+/** Uma oferta à venda. `url` null: o link de pagamento ainda não existe (não mostra o botão). */
+export interface PlanOffer {
+  key: string;
+  plan: PlanName;
+  price: string;
+  period: string;
+  founder: boolean;
+  url: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
