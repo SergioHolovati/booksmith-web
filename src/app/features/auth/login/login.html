@@ -32,8 +32,12 @@
         <a routerLink="/forgot-password">Esqueceu a senha?</a>
       </div>
 
+      @if (captchaSiteKey()) {
+        <div class="captcha" #captcha data-captcha></div>
+      }
+
       <p-button label="Entrar" type="submit" styleClass="full-width" [loading]="loading()"
-        [disabled]="form.invalid ?? true" />
+        [disabled]="(form.invalid ?? true) || (!!captchaSiteKey() && !captchaToken())" />
     </form>
 
     <div class="divider"><span>OU</span></div>

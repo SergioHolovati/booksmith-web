@@ -768,6 +768,8 @@ export interface ProblemDetail {
   code?: string;
   errors?: { field: string; message: string }[];
   currentVersion?: number;
+  /** captcha_required: a chave do desafio anti-robô (Cloudflare Turnstile). */
+  siteKey?: string;
   /** mfa_required: o desafio da segunda etapa e os métodos da conta. */
   challenge?: string;
   methods?: MfaMethod[];

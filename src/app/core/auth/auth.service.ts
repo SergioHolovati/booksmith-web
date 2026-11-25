@@ -57,9 +57,11 @@ export class AuthService {
     await firstValueFrom(this.refresh());
   }
 
-  async login(email: string, password: string): Promise<void> {
+  /** `captchaToken`: o desafio anti-robô resolvido, quando o servidor pediu (`captcha_required`). */
+  async login(email: string, password: string, captchaToken?: string): Promise<void> {
+    const body = captchaToken ? { email, password, captchaToken } : { email, password };
     const session = await firstValueFrom(
-      this.http.post<SessionResponse>(`${this.base}/login`, { email, password }, { context: this.noRefresh() }),
+      this.http.post<SessionResponse>(`${this.base}/login`, body, { context: this.noRefresh() }),
     );
     this.setToken(session.accessToken);
   }

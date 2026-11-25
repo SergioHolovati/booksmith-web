@@ -1,4 +1,4 @@
-import { Component, inject, input, signal } from '@angular/core';
+import { Component, ElementRef, OnDestroy, inject, input, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -8,6 +8,7 @@ import { MessageModule } from 'primeng/message';
 import { problemMessage, problemOf } from '../../../core/api/problem';
 import { AuthService } from '../../../core/auth/auth.service';
 import { mfaState } from '../mfa-challenge/mfa-challenge';
+import { renderTurnstile } from '../../../core/auth/turnstile';
 
 const GOOGLE_ERRORS: Record<string, string> = {
   google: 'Não foi possível entrar com o Google. Tente novamente.',
@@ -24,7 +25,7 @@ const GOOGLE_ERRORS: Record<string, string> = {
   templateUrl: './login.html',
   styleUrl: '../auth-page.scss',
 })
-export class LoginComponent {
+export class LoginComponent implements OnDestroy {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
@@ -37,6 +38,11 @@ export class LoginComponent {
   password = '';
   readonly loading = signal(false);
   readonly message = signal<string | null>(null);
+  /** Depois de 3 senhas erradas, o servidor pede o desafio anti-robô: a chave dele, e o token quando passa. */
+  readonly captchaSiteKey = signal<string | null>(null);
+  readonly captchaToken = signal<string | null>(null);
+  private readonly captchaBox = viewChild<ElementRef<HTMLElement>>('captcha');
+  private captchaWidget: { reset: () => void; remove: () => void } | null = null;
 
   constructor() {
     queueMicrotask(() => {
@@ -53,10 +59,18 @@ export class LoginComponent {
     this.message.set(null);
     this.loading.set(true);
     try {
-      await this.auth.login(this.address.trim(), this.password);
+      await this.auth.login(this.address.trim(), this.password, this.captchaToken() ?? undefined);
       await this.router.navigate(['/home']);
     } catch (error) {
       const problem = problemOf(error);
+      // O token do desafio vale uma vez só: a próxima tentativa resolve outro
+      this.captchaToken.set(null);
+      this.captchaWidget?.reset();
+      if (problem?.code === 'captcha_required' && problem.siteKey) {
+        this.message.set(problem.detail ?? null);
+        await this.showCaptcha(problem.siteKey);
+        return;
+      }
       if (problem?.code === 'mfa_required') {
         // Senha certa e verificação em duas etapas ligada: a tela do código
         await this.router.navigate(['/verificacao'], { state: mfaState(problem) });
@@ -71,6 +85,28 @@ export class LoginComponent {
     } finally {
       this.loading.set(false);
     }
+  }
+
+  private async showCaptcha(siteKey: string): Promise<void> {
+    if (this.captchaSiteKey() === siteKey && this.captchaWidget) {
+      return;
+    }
+    this.captchaSiteKey.set(siteKey);
+    // Espera o quadro do desafio aparecer na tela
+    await new Promise((resolve) => setTimeout(resolve));
+    const box = this.captchaBox()?.nativeElement;
+    if (!box) {
+      return;
+    }
+    try {
+      this.captchaWidget = await renderTurnstile(box, siteKey, (token) => this.captchaToken.set(token));
+    } catch {
+      this.message.set('Não foi possível carregar a verificação de segurança. Confira a internet e tente de novo.');
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.captchaWidget?.remove();
   }
 
   loginWithGoogle(): void {

@@ -152,3 +152,12 @@
     color: var(--p-red-400, #f87171);
   }
 }
+
+/* Desafio anti-robô (Turnstile): centralizado e sem estourar a largura no celular */
+.captcha {
+  display: flex;
+  justify-content: center;
+  min-height: 65px;
+  max-width: 100%;
+  overflow: hidden;
+}
